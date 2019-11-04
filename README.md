@@ -21,7 +21,7 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 ### Downloading the Scripts
 test
 
-<font style="font-size:.75em;">[&#8679; back to the top](#contents)</font>
+[&#8679; back to the top](#contents)
 
 ### Data Retrieval and Required Format
 
@@ -30,7 +30,7 @@ test
 To retrieve station data, goto [https://www.ncdc.noaa.gov/cdo-web/](https://www.ncdc.noaa.gov/cdo-web/).
 * Scroll down a little bit and select "Search Tool"
 * Under "Weather Observation Type," select *Daily Summaries*
-* Determine desired range of dates. <font style="font-size: .7em;">*Feel free to choose the earliest date possible. I don't know if there are any stations that go well beyond the late 1800s, but if so, the included Report functions only partially support data prior to 1811, but no errors should be encountered*</font>
+* Determine desired range of dates. *Feel free to choose the earliest date possible. I don't know if there are any stations that go well beyond the late 1800s, but if so, the included Report functions only partially support data prior to 1811, but no errors should be encountered*
 * Search for "Stations" &rarr; Input desired location &rarr; Click "Search"
 * Attempt to find stations with data encompassing a long period of time and add them to your cart
 * After adding the station(s) to your cart, hover over and click on cart data (on the right)
@@ -47,4 +47,4 @@ Under "Select Data Types"
 
 Download the data into the same folder as the scripts
 
-<font style="font-size:.75em;">[&#8679; back to the top](#contents)</font>
+[&#8679; back to the top](#contents)
