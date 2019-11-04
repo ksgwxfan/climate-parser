@@ -21,6 +21,8 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 ### Downloading the Scripts
 test
 
+<font style="font-size:.75em;">[&#8679; back to the top](#contents)</font>
+
 ### Data Retrieval and Required Format
 
 <i>**Some sample data for select cities are included. See repository for this data**</i>
@@ -44,3 +46,5 @@ Under "Select Data Types"
 * Input Email Address &rarr; "Submit Order" &rarr; and wait for a completion email
 
 Download the data into the same folder as the scripts
+
+<font style="font-size:.75em;">[&#8679; back to the top](#contents)</font>
