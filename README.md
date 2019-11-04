@@ -21,11 +21,11 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 ### Downloading the Scripts
 test
 
-[&#8679; back to the top](#contents)
+[&#8679; back to Contents](#contents)
 
 ### Data Retrieval and Required Format
 
-<i>**Some sample data for select cities are included. See repository for this data**</i>
+** _Some sample data for select cities are included. See repository for this data_ **
 
 To retrieve station data, goto [https://www.ncdc.noaa.gov/cdo-web/](https://www.ncdc.noaa.gov/cdo-web/).
 * Scroll down a little bit and select "Search Tool"
@@ -41,10 +41,14 @@ Under "Station Detail"
 
 Under "Select Data Types"
 * &#9745; Precipitation (ensure only PRCP, SNOW, and SNWD are selected)
-* &#9745; Air Temperature (**<u>ONLY</u>** select TMAX and TMIN. The averages will be handled internally by the script
+* &#9745; Air Temperature (** _ONLY_ ** select TMAX and TMIN. The averages will be handled internally by the script
 * Click "Continue"
 * Input Email Address &rarr; "Submit Order" &rarr; and wait for a completion email
 
 Download the data into the same folder as the scripts
 
-[&#8679; back to the top](#contents)
+* NOTE: Selecting more than one station in one cart session will result in a single combined csv.
+  * we can easily manage the data if they are for the same city (different times). See example..
+  * Do separate cart-checkouts for to different cities
+
+[&#8679; back to Contents](#contents)
