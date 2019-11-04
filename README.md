@@ -5,10 +5,11 @@ A Python Script enabling extensive analysis of climate data for individual citie
 Weather data are faithfully kept, recorded, and preserved everyday. This is primarily done via assistance of weather-stations which are plentiful and scattered-about all over the United States. This script allows the user to analyze downloaded CSV files that contain land-based station data. Within seconds, the user can retrieve daily, weekly, monthly, annual, and even climatological data, including ranking the data.
 
 ### Contents
-* [Downloading the Scripts](#downloading-the-scripts)
+** &bull; Go ahead and download the script `clmt_parser.py` **
 * [Data Retrieval and Required Format](#data-retrieval-and-required-format)
-* Opening and Initializing the Script
-* Optional Maintenance of city's data
+  * [Managing CSV's with multiple stations](blah) (
+* Running the Script/Loading Data
+* Optional (but possibly needed) Maintenance of city's data
 * Overview of Core Functions
   * Stats Search Functions - output specific to particular times
   * Report Search Functions - outputs a climatological report of historical stats and enables basic climatological-tendency analysis of desired time-frame
@@ -17,11 +18,6 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * Sample Scripts
 * Roadmap
 * Licensing
-
-### Downloading the Scripts
-test
-
-[&#8679; back to Contents](#contents)
 
 ### Data Retrieval and Required Format
 
@@ -45,10 +41,10 @@ Under "Select Data Types"
 * Click "Continue"
 * Input Email Address &rarr; "Submit Order" &rarr; and wait for a completion email
 
-Download the data into the same folder as the scripts
+Download the data and place it into the same folder as the script
 
 * NOTE: Selecting more than one station in one cart session will result in a single combined csv.
-  * we can easily manage the data if they are for the same city (different times). See example..
+  * we can easily manage the data if they are for the same city (different times). See [MANAGE_MULTI.md](blah).
   * Do separate cart-checkouts for to different cities
 
 [&#8679; back to Contents](#contents)
