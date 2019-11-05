@@ -5,7 +5,7 @@ A Python Script enabling extensive analysis of climate data for individual citie
 Weather data are faithfully kept, recorded, and preserved everyday. This is primarily done via assistance of weather-stations which are plentiful and scattered-about all over the United States. This script allows the user to analyze downloaded CSV files that contain land-based station data. Within seconds, the user can retrieve daily, weekly, monthly, annual, and even climatological data, including ranking the data.
 
 ### Contents
-** &bull; Go ahead and download the script `clmt_parser.py` **
+**&bull; Go ahead and download the script** `clmt_parser.py`
 * [Data Retrieval and Required Format](#data-retrieval-and-required-format)
 * [Running the Script (including 'mounting' the Data)](#running-the-script)
 * [Error Report Overview](#error-report)
@@ -21,7 +21,7 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 
 ### Data Retrieval and Required Format
 
-** *Some sample data for select cities are included. See repository for this data* **
+***Some sample data for select cities are included. See repository for this data***
 
 To retrieve station data, goto [https://www.ncdc.noaa.gov/cdo-web/](https://www.ncdc.noaa.gov/cdo-web/).
 * Scroll down a little bit and select "Search Tool"
@@ -84,7 +84,7 @@ Now you're ready to do some analysis or inspect the data.
 As is with most things in life, recorded data is not perfect. When you downloaded your station data, we included Data Flags. When compiling the data, various methods were used to investigate likely errors which could've come from bad indexing or illegibility). Instead of manually checking the errors and fixing the numbers (which would be humanly impossible to do), quality flags were recorded. This script includes a function that can list dates and values with Quality Flags
 
 `errorStats()` will do this. The vast quantity of errors are of type 'I', 'Internal Consistency Check' failure. In my limited experience, these may or may not be significant. As such, they are ignored when compiling statistics (as of this release). Hinting at something I'm going to be investigating, PRCP and SNOW errors with 'I' quality flags, may be legit. They are included in the error report but ARE included in statistics too. This may change. 
-  * For example, one city I was working with showed day with 0.02 inches of PRCP, but with nearly 50 inches of SNOW (2500-to-1 snow/rain ratio! :anguished: :grimmacing:). This raised an 'I' quality flag. I personally think it should've raised a different quality flag, but alas. So in future releases, I'll be considering skipping these data points for prcp and snow values.
+  * For example, one city I was working with showed day with 0.02 inches of PRCP, but with nearly 50 inches of SNOW (2500-to-1 snow/rain ratio! :anguished: :grimacing:). This raised an 'I' quality flag. I personally think it should've raised a different quality flag, but alas. So in future releases, I'll be considering skipping these data points for prcp and snow values.
 
 There's a decent chance that other non-'I' quality flags are legit errors and thus are NOT included in calculations.
 
@@ -118,7 +118,7 @@ These records are scanned. Zoom in if you need to. Try to determine if an error 
 
 ##### *Changing Data*
 
-A late addition to the script was the `corrections()` function. Once loading, follow the instructions that appear to make your corrections. Upon finishing it will output a new CSV file. Enter `DONE` when finished. Then you can run the `clmtAnalyze()` function on the new csv.
+A late addition to the script was the `corrections()` function. After initiating the function, follow the instructions that appear to make your corrections. Upon finishing it will output a new CSV file. Enter `DONE` when finished. Then you can run the `clmtAnalyze()` function on the new csv.
   * The data you just changed is active with the shell session you're working in. The changes would reflect in some, but not all, of the stat functions in the script. So it is recommended to run the `clmtAnalyze()` function on the newly amended output
   * If you forgot to make note of the dates you were checking, no worries. This function prints a little report after you're done, documenting your changes
   * You may find it thorough enough to skip the spreadsheet and rely on the output of the function.
