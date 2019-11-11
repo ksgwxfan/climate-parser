@@ -10,14 +10,15 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * [Running the Script (including 'mounting' the Data)](#running-the-script)
 * [Error Report Overview](#error-report)
   * [OPTIONAL: Fixing Errored Data](#fixing-data)
-* Overview of Core Functions
-  * Stats Search Functions - output specific to particular times
-  * Report Search Functions - outputs a climatological report of historical stats and enables basic climatological-tendency analysis of desired time-frame
-  * Rank Search Functions - orders the data into ranking, based on particular time-frame of interest
-* On-the-fly access/reference to data
+* [Overview of Core Functions](#overview-of-core-functions)
+  * [Stats Search Functions](#stats) - output specific to particular times
+  * [Report Search Functions](#reports) - outputs a climatological report of historical stats and enables basic climatological-tendency analysis of desired time-frame
+  * [Rank Search Functions](#ranking) - orders the data into ranking, based on particular time-frame of interest
+* [On-the-fly access/reference to data](#on-the-fly-data-retrieval)
 * Sample Scripts
-* Roadmap
-* Licensing
+* [Roadmap](#roadmap)
+* [Licensing](#license)
+* [HELP!!!](#help)
 
 ### Data Retrieval and Required Format
 
@@ -28,7 +29,7 @@ To retrieve station data, goto [https://www.ncdc.noaa.gov/cdo-web/](https://www.
 * Under "Weather Observation Type," select *Daily Summaries*
 * Determine desired range of dates. *Feel free to choose the earliest date possible. I don't know if there are any stations that go well beyond the late 1800s, but if so, the included Report functions only partially support data prior to 1811, but no errors should be encountered*
 * Search for "Stations" &rarr; Input desired location &rarr; Click "Search"
-* Attempt to find the major stations with data encompassing a long period of time and add them to your cart (Airports are good candidates)
+* Attempt to find the major stations which will have data encompassing long periods of time and add them to your cart (Airports are good candidates)
 * After adding the station(s) to your cart, hover over and click on cart data (on the right)
 * Select "Custom GHCN-Daily CSV," double-check your date range (it is amended to fit the range of the stations you selected), and click "Continue" at the bottom
 
@@ -58,21 +59,20 @@ Loading data is done through the `clmtAnalyze()` function.
   * running `csvFileList()` will return a list of CSV files in the current directory (helps if your directory is cluttered)
 
 run `clmtAnalyze("city-data.csv")`
-  * OPTIONAL: `clmtAnalyze` accepts 2 optional keyword arguments: `city="cityname.csv"` or `station="station_text"`
-  * Example: `clmtAnalyze("city-name.csv",city="City Name",station="Multiple")`
-  * This would be helpful if you're working with a csv that has data from multiple stations
-  * The default setting would be using the [GHCND Station ID](https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt) and Station Name (which typically includes the cityname)
-  * You wouldn't want to represent all of the data as originating from one place if you used multiple stations
+* OPTIONAL: `clmtAnalyze` accepts 2 optional keyword arguments: `city="cityname.csv"` or `station="station_text"`
+* Example: `clmtAnalyze("city-name.csv",city="City Name",station="Multiple")`
+* This would be helpful if you're working with a csv that has data from multiple stations
+* The default setting would be using the [GHCND Station ID](https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt) and Station Name (which typically includes the cityname)
+* You wouldn't want to represent all of the data as originating from one place if you used multiple stations
 
-Wait for the script to complete. At the end you'll receive a notice of data missing from the record and the time it took to run the script
+Wait for the script to complete. At the end you'll receive a notice of monthly data missing from the record and the time it took to run the script
 ```
 --- City: City Name, USA ---
-*** SKIPPED: TMAX data missing - 1921-07
-*** SKIPPED: TMIN data missing - 1921-07
-*** SKIPPED: TMAX data missing - 1922-08
-*** SKIPPED: TMIN data missing - 1922-08
+*** SKIPPED: Insufficient or erroneous TMAX data - 1893-03
+*** SKIPPED: Insufficient or erroneous TMIN data - 1893-03
+*** SKIPPED: Insufficient or erroneous TMAX data - 1921-07
 *** SCRIPT COMPLETE ***
-Runtime: 10.81 seconds
+Runtime: 11.06 seconds
 ```
 
 Now you're ready to do some analysis or inspect the data.
@@ -81,56 +81,394 @@ Now you're ready to do some analysis or inspect the data.
 
 ### Error Report
 
-As is with most things in life, recorded data is not perfect. When you downloaded your station data, we included Data Flags. When compiling the data, various methods were used to investigate likely errors which could've come from bad indexing or illegibility). Instead of manually checking the errors and fixing the numbers (which would be humanly impossible to do), quality flags were recorded. This script includes a function that can list dates and values with Quality Flags
+As is with most things in life, recorded data is not perfect. When you downloaded your station data, included were Data Flags. When compiling the data, various methods were used to investigate likely errors which I guess could've come from bad indexing or illegibility. Instead of manually checking the errors and fixing the numbers (which would be humanly impossible to do), quality flags were recorded. This script includes a function that can list dates and values with Quality Flags
 
-`errorStats()` will do this. The vast quantity of errors are of type 'I', 'Internal Consistency Check' failure. In my limited experience, these may or may not be significant. As such, they are ignored when compiling statistics (as of this release). Hinting at something I'm going to be investigating, PRCP and SNOW errors with 'I' quality flags, may be legit. They are included in the error report but ARE included in statistics too. This may change. 
-  * For example, one city I was working with showed day with 0.02 inches of PRCP, but with nearly 50 inches of SNOW (2500-to-1 snow/rain ratio! :anguished: :grimacing:). This raised an 'I' quality flag. I personally think it should've raised a different quality flag, but alas. So in future releases, I'll be considering skipping these data points for prcp and snow values.
+`errorStats()` will do this. The vast quantity of errors are of type 'I', 'Internal Consistency Check' failure. In my limited experience, these may or may not be significant. The default setting is to skip over all values with any kind of quality flag.
+* For example, one city I was working with showed day with 0.02 inches of PRCP, but with nearly 50 inches of SNOW (2500-to-1 snow/rain ratio! :anguished: :grimacing:). This raised an 'I' quality flag. I personally think it should've raised a different quality flag, but alas.
+* The error report also lists days where the high-temperature (TMAX) is lower than the low-temperature (TMIN). These are also excluded from the stat functions as it's impossible to tell exactly which of the two recorded temperatures are wrong.
 
-There's a decent chance that other non-'I' quality flags are legit errors and thus are NOT included in calculations.
-
-One other hiccup is that days where the recorded hi (TMAX) temperature is lower than the low (TMIN) temperature typically only raises an 'I' quality flag. As of this release these values are included in statistics but I'll be looking to change this and other related items in the future.
-
-One final note: In the giant scope of these climate data records, these likely amount to very little contribution of statistics/calculations. As such, manually modifying/fixing the data may, in large-part, be somewhat futile.
+It is possible to change the flags which are ignored.
+* Enter `qflagcheck()` to get a list of the abbreviations of possible flag-types you'll run across.
+* to add a flag to ignore, enter `ignoreflags.append("I")`, where "I" is the example flag we want to include in our calculations
+* to remove a flag from the ignore list, (as such to skip over data with the quality flag), enter `ignoreflags.remove("I")
+* These flags MUST be capitalized strings for it to work properly
 
 [&#8679; back to Contents](#contents)
 
 ### Fixing Data
 
-In the event you feel it necessary to investigate and change data, there are ways to modify the data manually. This brief section outlines that processs. Loot at the list. The easiest to check are errors that occur in large groups for a single month.
+In the giant scope of these climate data records, these errors or flagged data probably contribute a very small amount to statistics/calculations. As such, manually modifying/fixing the data may, in large-part, be somewhat futile. You may feel it is important for ranking purposes. In the event you feel it necessary to investigate and change data, there are ways to modify the data manually. This section outlines that processs.
 
 ##### *Verification*
 
 If you desire to go ahead and check/verify data, 
-  * Run `errorStats()`
-    * Tip: Some dates may have multiple errors (for different values) associated with them. Once you've picked a date, enter dayStats(yyyy,m,d) ...this will return a basic report for that specific day with listed errors if any. This is a good way to save time
-  * goto the [NCDC Image Publications System Co-Op](https://www.ncdc.noaa.gov/IPS/coop/coop.html)
-  * Select the State
-  * Find the station of interest (If your city had a lot of stations to choose from, use the "order summary" link located in your download email to try to match the numbers of the station).
-      * If not listed, that particular data may not be available in the image archive or may be split up. Feel free to check similar stations that match the time frame you're looking for. I'd bet the most major of stations are the ones that are in the co-op
-     * Determine date of interest based on the error report. The dropdown list is separated by month and year; select and continue.
-	 * A temporary PDF link will appear. Go ahead and click on it
+* Run `errorStats()`
+  * Tip: Some dates may have multiple errors (for different values) associated with them. Once you've picked a date, enter dayStats(yyyy,m,d) ...this will return a basic report for that specific day with listed errors if any. This is a good way to save time
+* goto the [NCDC Image Publications System Co-Op](https://www.ncdc.noaa.gov/IPS/coop/coop.html)
+* Select the State
+* Find the station of interest (If your city had a lot of stations to choose from, use the "order summary" link located in your download email to try to match the numbers of the station).
+  * If not listed, that particular data may not be available in the image archive or may be split up. Feel free to check similar stations that match the time frame you're looking for. I'd bet the most major of stations are the ones that are in the co-op
+  * Determine date of interest based on the error report. The dropdown list is separated by month and year; select and continue.
+  * A temporary PDF link will appear. Go ahead and click on it
 
 These records are scanned. Zoom in if you need to. Try to determine if an error was made with the variable in question. If you'd like, you can open a spreadsheet to document them this way. Even if it's correct in the record, make note of it so it the record may be amended.
-  * I'd recommend to focus on precipitation errors first
-  * Use sound judgement. But be cautious about assumptions. Yes, it didn't snow in July when the high got up to 85, but that doesn't necessarily mean the recorder meant to place the value in the rain column.
-  * Records that are correct could've been flagged because the scanner or whoever oversaw it missed a decimal in the recording due to lightness of the pen/pencil.
-  * Upon looking at the errors, it's likely normal to come across data where you'll be perplexed why it threw a data-quality flag. If it looks good, keep track of the right ones too.
+* I'd recommend to focus on precipitation errors first
+* Use sound judgement. But be cautious about assumptions. Yes, it didn't snow in July when the high got up to 85, but that doesn't necessarily mean the recorder meant to place the value in the rain column.
+* Records that are correct could've been flagged because the scanner or whoever oversaw it missed a decimal in the recording due to lightness of the pen/pencil.
+* Upon looking at the errors, it's likely normal to come across data where you'll be perplexed why it threw a data-quality flag. If it looks good, keep track of the right ones too.
 
 ##### *Changing Data*
 
-A late addition to the script was the `corrections()` function. After initiating the function, follow the instructions that appear to make your corrections. Upon finishing it will output a new CSV file. Enter `DONE` when finished. Then you can run the `clmtAnalyze()` function on the new csv.
-  * The data you just changed is active with the shell session you're working in. The changes would reflect in some, but not all, of the stat functions in the script. So it is recommended to run the `clmtAnalyze()` function on the newly amended output
-  * If you forgot to make note of the dates you were checking, no worries. This function prints a little report after you're done, documenting your changes
-  * You may find it thorough enough to skip the spreadsheet and rely on the output of the function.
+A late addition to the script was the `corrections()` function. Identify the date and attribute you wish to change.
+
+Example of use:
+```
+CORRECTIONS MODE ACTIVATED - CITY, USA
+------------------------------------------------
+* Input a comma-separated list of the Year, Month, Date, Attribute, and new reading
+* Ex: INPUT CORRECTION: 1899,1,30,"prcp",2.02
+* When finished, type DONE and press enter
+INPUT CORRECTION: 1940,6,2,"tmax",79
+    Amendment for 1940-06-02 TMAX successful: 79
+```
+
+After you finish, enter `DONE`. The function will spit out two files:
+  * An amended version of the data with the changes you made reflected in it. Ex: `AMENDED_city_data.csv`
+  * A changes csv which records the changes you made. The csv format makes it convenient to load in a spreadsheet Ex: `CHG_20191108_1245_city_data.csv`
+    * After completion of each run of `corrections()`, a different changes file will be generated
+
+The data you just changed is active with the shell session you're working in. The changes would reflect in some, but not all, of the stat functions in the script. So it is recommended to run the `clmtAnalyze()` function on the newly amended version of the data
 
 [&#8679; back to Contents](#contents)
 
+### Overview of Core Functions
 
+The "bread-and-butter" of this program is to quickly generate output that would be of most interest to the scientist/researcher/hobbyist. These core functions are generally broken-up into three categories: Stats, Reports, and Ranking
 
+#### Stats
 
+These are a set of functions to get info specific info based on a desired temporal length: `dayStats(y,m,d)`, `weekStats(y,m,d)`, `monthStats(y,m)`, `yearStats(y)`
 
+Simple report retrieved for desired day
+```
+>>> dayStats(1950,7,9)
+Statistics for 1950-07-09
+USC00001337: CITY, USA
+-------------------
+PRCP: 50.00, Flag: G - Failed (G)ap Check
+SNOW: 0.0
+SNWD: 
+TMAX: 78
+TMIN: 58
+```
 
+Delivered stats based on a 7-day week with the submitted date being the center of that period
+```
+>>> weekStats(1955,8,15)
+-------------------------------------
+Weekly Statistics for 1955-08-12 thru 1955-08-18
+USC00001337: CITY, USA
+Quantity of Records: 7
+-----
+Total Precipitation: 1.29
+Total Precipitation Days (>= T): 6
+Average Temperature: 78
+Average Max Temperature: 86
+Average Min Temperature: 70
+-----
+```
+Get stats for the specified month
+```
+>>> monthStats(2005,12)
+-------------------------------------
+Monthly Statistics for December 2005
+USC00001337: CITY, USA
+Quantity of Records: 31
+-----
+Total Precipitation: 3.42
+Total Precipitation Days (>= T): 9
+-- Highest Precip: 1.1 ::: 2005-12-16
+Total Snow: 0.4
+Total Snow Days (>= T): 2
+-- Highest Snow: 0.3 ::: 2005-12-15
+Average Temperature: 35.3
+Average Max Temperature: 46.3
+-- Warmest Max Temperature: 64 ::: 2005-12-05
+-- Coolest Max Temperature: 31 ::: 2005-12-15
+Average Min Temperature: 24.3
+-- Warmest Min Temperature: 35 ::: 2005-12-05, 2005-12-26
+-- Coolest Min Temperature: 14 ::: 2005-12-24
+-----
+```
+Return stats for the specified year
+```
+>>> yearStats(1990)
+-------------------------------------
+Yearly Statistics for 1990
+USC00001337: CITY, USA
+Quantity of Records: 365
+-----
+Total Precipitation: 50.1
+Total Precipitation Days (>= T): 147
+-- Highest Daily Precip: 3.47 ::: 1990-10-11
+-- Wettest Month: 9.44 ::: October
+-- Driest Month: 0.77 ::: June
+Total Snow: 0.3
+Total Snow Days (>= T): 3
+-- Highest Daily Snow: 0.3 ::: 1990-03-20
+-- Snowiest Month: 0.3 ::: March
+Average Temperature: 59.6
+Average Max Temperature: 71.9
+-- Warmest Daily Max Temperature: 96 ::: 1990-07-10
+-- Coolest Daily Max Temperature: 36 ::: 1990-02-26
+-- Warmest AVG Monthly Max Temperature: 88 ::: July
+-- Coolest AVG Monthly Max Temperature: 54.5 ::: December
+Average Min Temperature: 47.4
+-- Warmest Min Temperature: 73 ::: 1990-07-06
+-- Coolest Min Temperature: 12 ::: 1990-02-26
+-- Warmest AVG Monthly Min Temperature: 65.3 ::: July
+-- Coolest AVG Monthly Min Temperature: 32.0 ::: January
+-----
+```
 
+[&#8679; back to Contents](#contents)
+
+#### Reports
+
+These functions return robust climatological data, including all-time statistics and for climatological eras, incremented by 5 years. This allows you to see how the averages changed over time, as comparisons usually only take place against one time period.
+
+`dayReport(m,d)` :: Collects and returns statistics for all specified days in the record
+`weekReport(m,d)` :: Gathers and reports for specified week in the entire record
+`monthReport(m)` :: Gives a report for a specific month
+`yearReport()` :: Analyzes the entire record and returns a report based on years
+
+```
+>>> monthReport(12)
+--------------------------------
+Climatology Report for December
+City: USC00001337, CITY, USA
+--------------------------------
+Part 1: December Precipitation Stats
+▒▒Years▒▒ ▒▒▒PRCP▒▒▒▒  ▒▒PRCP▒▒  ▒▒PRCP▒▒ ▒PRCP▒ ▒▒▒▒PRCP▒▒▒▒ ▒▒▒▒PRCP▒▒▒▒ | ▒▒▒SNOW▒▒▒▒  ▒▒SNOW▒▒ ▒SNOW▒ ▒▒▒▒SNOW▒▒▒▒ |
+▒▒▒▒▒▒▒▒▒ ▒▒▒DAYS▒▒▒▒  DAYS MAX  DAYS MIN ▒AVG▒▒ ▒▒▒▒MAX▒▒▒▒▒ ▒▒▒▒MIN▒▒▒▒▒ | ▒▒▒DAYS▒▒▒▒  DAYS MAX ▒AVG▒▒ ▒▒▒▒MAX▒▒▒▒▒ |
+--------- -----------  --------  -------- ------ ------------ ------------ | -----------  -------- ------ ------------ |
+1893-2019 1249: 33.4%  20, 1972   1, 1896  3.66   8.89, 1901   0.28, 1965  |  144:  3.8%   6, 1945  1.7    14.5, 1917  |
+1896-1925  219: 26.4%  14,  2     1, 1896  3.83   8.89, 1901   0.92, 1899  |   31:  3.7%   4,  3    1.8    14.5, 1917  |
+1901-1930  238: 28.7%  14,  2     4,  2    4.05   8.89, 1901   0.95, 1928  |   31:  3.7%   4,  3    2.0    14.5, 1917  |
+1906-1935  261: 30.1%  14,  3     4,  2    3.73   7.32, 1927   0.95, 1928  |   32:  3.7%   4,  3    2.3    14.5, 1917  |
+1911-1940  266: 30.6%  15, 1936   4,  2    3.58   7.32, 1927   0.95, 1928  |   29:  3.3%   4,  2    2.3    14.5, 1917  |
+1916-1945  282: 31.4%  19, 1942   4,  2    3.54   7.32, 1927   0.95, 1928  |   36:  4.0%   6, 1945  2.2    14.5, 1917  |
+1921-1950  292: 32.5%  19, 1942   4,  2    3.4    7.32, 1927   0.95, 1928  |   36:  4.0%   6, 1945  1.6    10.0, 1945  |
+1926-1955  314: 33.8%  19, 1942   4, 1928  3.49   7.32, 1927    0.9, 1955  |   39:  4.2%   6, 1945  1.6    10.0, 1945  |
+1931-1960  315: 33.9%  19, 1942   5, 1960  3.45   7.16, 1936    0.9, 1955  |   39:  4.2%   6, 1945  1.6    10.0, 1945  |
+1936-1965  305: 34.0%  19, 1942   5, 1960  3.48   7.16, 1936   0.28, 1965  |   40:  4.5%   6, 1945  1.1    10.0, 1945  |
+1941-1970  303: 33.7%  19, 1942   5, 1960  3.57   6.22, 1967   0.28, 1965  |   43:  4.8%   6, 1945  1.5    10.0, 1945  |
+1946-1975  311: 34.6%  20, 1972   5, 1960  3.56   7.72, 1973   0.28, 1965  |   36:  4.0%   4,  2    1.1     9.5, 1969  |
+1951-1980  313: 34.9%  20, 1972   5,  2    3.52   7.72, 1973   0.28, 1965  |   32:  3.6%   4, 1965  1.2     9.5, 1969  |
+1956-1985  322: 35.8%  20, 1972   5,  2    3.46   7.72, 1973   0.28, 1965  |   36:  4.0%   4, 1965  1.3     9.5, 1969  |
+1961-1990  343: 38.2%  20, 1972   5, 1979  3.42   7.72, 1973   0.28, 1965  |   39:  4.3%   4,  2    1.4     9.5, 1969  |
+1966-1995  355: 38.2%  20, 1972   5, 1979  3.38   7.72, 1973   0.68, 1980  |   37:  4.0%   4, 1989  1.6     9.5, 1969  |
+1971-2000  359: 38.6%  20, 1972   5, 1979  3.31   7.72, 1973   0.68, 1980  |   33:  3.5%   4, 1989  1.3     8.0, 1997  |
+1976-2005  334: 35.9%  19, 1982   5, 1979  3.17   6.16, 1983   0.68, 1980  |   34:  3.7%   4, 1989  1.4     8.0, 1997  |
+1981-2010  345: 37.1%  19, 1982   6, 1985  3.55    7.7, 2009    1.0, 1984  |   35:  3.8%   4, 1989  1.8     8.0, 1997  |
+1986-2015  348: 37.4%  17, 2008   7, 2010  3.94    7.7, 2009   1.07, 1988  |   30:  3.2%   4, 1989  1.5     8.0, 1997  |
+
+Part 2: December Temperature Stats
+▒▒Years▒▒ ▒▒▒▒▒▒▒▒▒▒▒▒▒▒AVG TEMP▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ | ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒TMAX▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ | ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒TMIN▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+▒▒▒▒▒▒▒▒▒ STDEV ▒AVG▒ ▒▒▒▒MAX▒▒▒▒▒ ▒▒▒▒MIN▒▒▒▒▒ | STDEV ▒AVG▒ ▒▒▒▒MAX▒▒▒▒▒ ▒▒▒▒MIN▒▒▒▒▒ | STDEV ▒AVG▒ ▒▒▒▒MAX▒▒▒▒▒ ▒▒▒▒MIN▒▒▒▒▒
+--------- ----- ----- ------------ ------------ | ----- ----- ------------ ------------ | ----- ----- ------------ ------------
+1893-2019  3.5  39.1   48.3, 2015   29.6, 1917  |  9.8  50.4   60.0, 1956   40.2, 1935  |  9.6  27.8   37.4, 2015   17.4, 1917 
+1896-1925  3.3  38.3   46.0, 1923   29.6, 1917  |  9.6  49.3   58.4, 1923   41.9, 1917  |  9.6  27.3   33.5, 1923   17.4, 1917 
+1901-1930  3.4  38.3   46.0, 1923   29.6, 1917  |  9.8  49.5   58.4, 1923   41.9, 1917  | 10.0  27.1   33.5, 1923   17.4, 1917 
+1906-1935  3.9  38.8   46.0, 1931   29.6, 1917  | 10.1  50.0   58.4, 1923   40.2, 1935  | 10.2  27.7   34.4, 1931   17.4, 1917 
+1911-1940  3.8  39.3   46.0, 1931   29.6, 1917  |  9.9  50.6   58.4, 1923   40.2, 1935  | 10.3  28.2   34.4, 1931   17.4, 1917 
+1916-1945  3.8  39.1   46.0, 1931   29.6, 1917  | 10.2  50.7   58.4, 1923   40.2, 1935  | 10.3  27.6   34.4, 1931   17.4, 1917 
+1921-1950  3.5  39.7   46.0, 1931   31.1, 1935  | 10.1  51.4     59, 1946   40.2, 1935  | 10.0  28.0   34.4, 1931     22, 1935 
+1926-1955  3.2  39.2   46.0, 1931   31.1, 1935  |  9.9  50.8     59, 1946   40.2, 1935  |  9.9  27.6   34.4, 1931     22, 1935 
+1931-1960  3.6  39.5   47.5, 1956   31.1, 1935  |  9.8  51.1   60.0, 1956   40.2, 1935  |  9.8  27.8   35.1, 1956   21.1, 1960 
+1936-1965  3.1  39.3   47.5, 1956   34.0, 1960  |  9.6  51.0   60.0, 1956   43.9, 1945  |  9.8  27.6   35.1, 1956   21.1, 1960 
+1941-1970  3.2  39.0   47.5, 1956   34.0, 1960  |  9.7  50.6   60.0, 1956   43.9, 1945  |  9.7  27.4   35.1, 1956   21.1, 1960 
+1946-1975  3.3  39.7   47.5, 1956   34.0, 1960  |  9.6  51.0   60.0, 1956   44.6, 1969  |  9.8  28.3   35.9, 1971   21.1, 1960 
+1951-1980  3.2  39.4   47.5, 1956   34.0, 1960  |  9.4  50.8   60.0, 1956   44.6, 1969  |  9.9  28.1   35.9, 1971   21.1, 1960 
+1956-1985  3.6  39.7   47.5, 1956   34.0, 1960  | 10.0  51.0   60.0, 1956   44.6, 1981  | 10.1  28.5   35.9, 1971   21.1, 1960 
+1961-1990  3.4  39.6   47.0, 1971   31.9, 1989  |  9.8  50.6   59.9, 1984   42.0, 1989  |  9.9  28.7   35.9, 1971   22.2, 1989 
+1966-1995  3.6  39.6   47.0, 1971   31.9, 1989  |  9.8  50.5   59.9, 1984   42.0, 1989  |  9.7  28.8   35.9, 1971   22.2, 1989 
+1971-2000  3.8  39.4   47.0, 1971   29.8, 2000  | 10.0  50.6   59.9, 1984   41.2, 2000  |  9.7  28.2   35.9, 1971   18.4, 2000 
+1976-2005  3.7  38.6   46.8, 1984   29.8, 2000  | 10.0  50.0   59.9, 1984   41.2, 2000  |  9.4  27.3   34.1, 1990   18.4, 2000 
+1981-2010  3.9  38.5   46.8, 1984   29.8, 2000  | 10.2  49.6   59.9, 1984   41.2, 2000  |  9.1  27.4   34.1, 1990   18.4, 2000 
+1986-2015  4.0  39.1   48.3, 2015   29.8, 2000  |  9.8  50.3   59.2, 2015   41.2, 2000  |  8.9  27.8   37.4, 2015   18.4, 2000
+```
+
+[&#8679; back to Contents](#contents)
+
+#### Ranking
+
+The "fun stuff." These temporal-based functions give quick info of record-setting times for the city
+
+`dayRank(m,d,qty)` :: Searches for records based on a specific day. Input the month, day, and how many ranks you want the report to be on (put `10` for the top-10)
+`weekRank(m,d,qty)` :: Searches for weekly-based records with the provided day being the center of the week.
+`monthRank(m,"rain",qty)` :: Searches for records by the month. You must specifiy `"temp"` for temperature records or `"rain"` for precipitation-based records
+`yearRank("temp",qty)` :: Ranks by the year. Like `monthRank`, you must specify which type of ranking you want
+
+Example output:
+
+```
+>>> monthRank(1,"temp",10)
+
+                                      Ranked January Monthly Temperatures                                      
+                                            USC00001337, CITY, USA                                       
+---------------------------------------------------------------------------------------------------------------
+              AVG TEMP              |                TMAX                 |                TMIN                
+------------------------------------|-------------------------------------|------------------------------------
+     Warmest     |     Coolest      |     Warmest      |     Coolest      |     Warmest      |     Coolest     
+-----------------|------------------|------------------|------------------|------------------|-----------------
+ 1. 1950   48.1  |  1. 1977   25.6  |  1. 1950   60.2  |  1. 1977   35.2  |  1. 1937   39.5  |  1. 1893   15.7
+ 2. 1937   47.4  |  2. 1893   27.0  |  2. 1974   57.2  |  2. 1918     37  |  2. 1949   37.1  |  2. 2014   16.3
+ 3. 1949   47.1  |  3. 1918   27.7  |  3. 1949   57.1  |  3. 1940   37.9  |  3. 1974     37  |  3. 1977   16.5
+    1974   47.1  |  4. 1940   28.3  |  4. 1932   56.9  |  4. 1893   38.4  |  4. 1932   36.0  |  4. 1918   18.4
+ 4. 1932   46.4  |  5. 2014   29.3  |  5. 1907   56.4  |  5. 1978   38.9  |     1950   36.0  |  5. 1940   18.8
+ 5. 1907   44.6  |  6. 1978     30  |  6. 1933   56.0  |  6. 1994   40.3  |  5. 1947   33.7  |  6. 2018   19.4
+ 6. 1913   44.4  |  7. 1994   30.2  |  7. 1990   55.4  |  7. 2014   42.3  |  6. 1913   33.6  |  7. 1904   19.8
+ 7. 1947   44.3  |  8. 1982   31.3  |  8. 1937   55.2  |  8. 1982   42.4  |  7. 1907   32.9  |  8. 1982   20.3
+ 8. 1933   44.0  |  9. 1904   31.4  |  9. 1913   55.1  |  9. 1970   42.5  |  8. 1993   32.7  |  9. 1912   20.4
+ 9. 1990   43.5  | 10. 1912   31.5  | 10. 1947   54.9  | 10. 1912   42.7  |  9. 1916   32.1  | 10. 1994   20.7
+10. 1952   43.0  |     2018   31.5  |                  |                  | 10. 1933     32  |                
+                 |                  |                  |                  |     1990   32.0  |                
+```
+
+```
+>>> yearRank("rain",10)
+                             Ranked Yearly Precipitation Amounts and Days                              
+                                       USC00001337, CITY, USA                                  
+-------------------------------------------------------------------------------------------------------
+                                Rain                                 |              Snow               
+---------------------------------------------------------------------|---------------------------------
+     Wettest      |      Driest      |   Most Days   |  Least Days   |    Snowiest     |   Most Days   
+------------------|------------------|---------------|---------------|-----------------|---------------
+  1. 2003   69.96 |  1. 1930   19.76 |  1. 1996  176 |  1. 1900   71 |  1. 1895   28.5 |  1. 1978   16 
+  2. 2018    69.0 |  2. 1904   28.05 |  2. 2003  173 |  2. 1899   75 |     1987   28.5 |  2. 1914   15 
+  3. 2013    68.3 |  3. 1963   28.36 |  3. 1945  167 |  3. 1903   77 |  2. 1912   27.5 |  3. 1895   14 
+  4. 1901   63.89 |  4. 1894   28.79 |  4. 1992  160 |  4. 1894   78 |     1960   27.5 |     1948   14 
+  5. 2015   59.01 |  5. 1933   29.92 |  5. 1982  158 |  5. 1893   82 |  3. 2018   24.4 |  4. 1936   13 
+  6. 1929   58.45 |  6. 1988    32.7 |  6. 2015  157 |  6. 1901   86 |  4. 2010   23.8 |     1965   13 
+  7. 2012   58.22 |  7. 2008   33.43 |  7. 2013  156 |  7. 1896   87 |  5. 1914   23.3 |     1983   13 
+  8. 1957   58.02 |  8. 1986   33.62 |  8. 1957  152 |     1941   87 |  6. 1979   23.2 |     1987   13 
+     1996   58.02 |  9. 1925   34.36 |     1959  152 |  8. 1897   89 |  7. 1908   21.5 |  5. 1908   12 
+  9. 1989   57.89 | 10. 1914   35.14 |     1979  152 |     1921   89 |     1996   21.5 |     1982   12 
+ 10. 1906   57.32 |                  |     1989  152 |  9. 1904   90 |  8. 1969   20.8 |     1996   12 
+                  |                  |  9. 1906  150 | 10. 1914   93 |  9. 1993   20.3 |  6. 1950   11 
+                  |                  |     1994  150 |               | 10. 2014   20.2 |     1967   11 
+                  |                  | 10. 1910  148 |               |                 |     1968   11 
+                  |                  |     1991  148 |               |                 |     1980   11 
+                  |                  |     2014  148 |               |                 |     2013   11
+```
+
+Care was taken with the rankings. For monthly records to count, at least 21 days-worth of data must be there. For the yearly ranks, over 300 data entries for the year must exist. These measures were taken so partial months or years couldn't be presented due to incomplete data. For example, if a year had data from January to August, the average temperatures will be warmer than if it had data for the entire year.
+
+[&#8679; back to Contents](#contents)
+
+### On-the-fly Data retrieval
+
+This section partly goes over the data-structure and some examples to quickly call upon some data.
+
+When compiling, everything is thrown into a python-dictionary, `clmt`. There are a lot of embedded dictionaries. The keys are mostly integers, depending on the year, month, and/or day. 
+
+Tier 1 keys generally are years in integer form:
+
+`clmt[1982]` :: This would hold keys specific for the year 1982. These will include months
+
+Tier 2 keys generally are the months for a specific year
+
+`clmt[1982][3]` :: This would hold daily data for March 1982.
+
+Tier 3 keys generally are the specific days. The values are data objects (see below)
+
+`clmt[1982][3][29]` :: This is a data-object specific to March 29, 1982.
+
+Year and Month keys have additional keys besides their integer counter-parts. This includes:
+```
+['recordqty']   :: integer; the number of data entries for the year or month
+['prcp'] 		:: list containing the individual prcp values found for a year or month
+['prcpDAYS']	:: integer; the number of days in a given year or month with prcp recorded
+['prcpPROP']	:: holds day or month maximum and minimum statistics
+['snow'] 		:: list containing the individual snow values found for a year or month
+['snowDAYS'] 	:: integer; the number of snow days for a given year/month
+['snowPROP']	:: daily/monthly max/min stats
+['tempAVGlist] 	:: list; contains matching highs and lows for a year or month. Only days with a recorded high AND a recorded low are put into this list
+['tmax']		:: list; contains all high-temperature data for a year or month
+['tmaxPROP']	:: daily/monthly max/min stats
+['tmin']		:: list; contains all low-temperature data for a year or month
+['tminPROP']	:: daily/monthly max/min stats
+```
+
+The above in lists can easily be worked with using the `sum` function or a `statistics` module method, like `mean`.
+  * `sum(clmt[1982]["prcp"])` would return the total rain amount for the year 1982
+  * `mean(clmt[1993][4]["tmax"]` would return the average high-temperature for April 1993
+  * They eliminate time and lines that would otherwise be needed
+
+Day keys contain `object` values. So each day in the record has the following attributes:
+
+```
+.stationid 		:: GHNCD Station ID
+.station_name 	:: Station Name
+.station_lat 	:: Station Latitude
+.station_lon	:: Station Longitude
+.station_elev	:: Station Elevation
+.daystr 		:: The date in string format
+.entryday		:: the date in python's datetime format
+.prcp 			:: Recorded rain for a date (string format)
+.prcp<M,Q,S,T> 	:: Various precipitation data flags (string format)
+.snow 			:: Recorded snow for a date (string format)
+.snow<M,Q,S,T> 	:: Various snow data flags (string format)
+.snwd 			:: Recorded snow-depth for a date (string format)
+.snwd<M,Q,S,T> 	:: Various snow-depth data flags (string format)
+.tmax 			:: Recorded high-temperature for a date (string format)
+.tmax<M,Q,S,T> 	:: Various tmax data flags (string format)
+.tmin 			:: Recorded low-temperature for a date (string format)
+.tmin<M,Q,S,T> 	:: Various tmin data flags (string format)
+```
+
+The above could be accessed via a simple object attribute call
+  * `clmt[1992][12][29].tmax` would give the high-temperature for December 29, 1992
+  * This kind of use is extremely simplified using the [Stats functions](#stats)
+
+[&#8679; back to Contents](#contents)
+
+### Sample Scripts
+
+`*** COMING SOON ***`
+
+[&#8679; back to Contents](#contents)
+
+### Roadmap
+
+Considerations
+  * Convert all string digits to integers/floats upon creation of `clmt`. This primarily would assist in making the code easier to understand
+  * For CSV's that are combined, somehow make note of the station that an attribute is pulled from
+  * Add a record threshold for the ranking functions; truncating after a certain amount
+    * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
+  * All-time based ranks.
+    * `dayRankAllTime()` would retrieve the hottest/coldest/rainiest/snowiest days on record, regardless of month or day
+	* `monthRankAllTime()` would compare all months to each other, and return the ranks
+  * Improvement of report aesthetics
+	* add "--" for redundant snow values of 0 across all reports
+	* add fixed digits for all values in reports (so `52` would display as `52.0`; `1.1` would show up as `1.10`), increasing readability
+  * I know I need to comment more in the code
+  * Include help() docstrings for each individual function
+
+[&#8679; back to Contents](#contents)
+
+### Licensing
+
+MIT License (see LICENSE.md)
+
+[&#8679; back to Contents](#contents)
+
+### HELP
+
+Let me know via the issues tab of the github repository
+
+[&#8679; back to Contents](#contents)
 
 
 
