@@ -133,9 +133,9 @@ INPUT CORRECTION: 1940,6,2,"tmax",79
 ```
 
 After you finish, enter `DONE`. The function will spit out two files:
-  * An amended version of the data with the changes you made reflected in it. Ex: `AMENDED_city_data.csv`
-  * A changes csv which records the changes you made. The csv format makes it convenient to load in a spreadsheet Ex: `CHG_20191108_1245_city_data.csv`
-    * After completion of each run of `corrections()`, a different changes file will be generated
+* An amended version of the data with the changes you made reflected in it. Ex: `AMENDED_city_data.csv`
+* A changes csv which records the changes you made. The csv format makes it convenient to load in a spreadsheet Ex: `CHG_20191108_1245_city_data.csv`
+  * After completion of each run of `corrections()`, a different changes file will be generated
 
 The data you just changed is active with the shell session you're working in. The changes would reflect in some, but not all, of the stat functions in the script. So it is recommended to run the `clmtAnalyze()` function on the newly amended version of the data
 
@@ -402,9 +402,9 @@ Year and Month keys have additional keys besides their integer counter-parts. Th
 ```
 
 The above in lists can easily be worked with using the `sum` function or a `statistics` module method, like `mean`.
-  * `sum(clmt[1982]["prcp"])` would return the total rain amount for the year 1982
-  * `mean(clmt[1993][4]["tmax"]` would return the average high-temperature for April 1993
-  * They eliminate time and lines that would otherwise be needed
+* `sum(clmt[1982]["prcp"])` would return the total rain amount for the year 1982
+* `mean(clmt[1993][4]["tmax"]` would return the average high-temperature for April 1993
+* They eliminate time and lines that would otherwise be needed
 
 Day keys contain `object` values. So each day in the record has the following attributes:
 
@@ -429,8 +429,8 @@ Day keys contain `object` values. So each day in the record has the following at
 ```
 
 The above could be accessed via a simple object attribute call
-  * `clmt[1992][12][29].tmax` would give the high-temperature for December 29, 1992
-  * This kind of use is extremely simplified using the [Stats functions](#stats)
+* `clmt[1992][12][29].tmax` would give the high-temperature for December 29, 1992
+* This kind of use is extremely simplified using the [Stats functions](#stats)
 
 [&#8679; back to Contents](#contents)
 
@@ -443,18 +443,18 @@ The above could be accessed via a simple object attribute call
 ### Roadmap
 
 Considerations
-  * Convert all string digits to integers/floats upon creation of `clmt`. This primarily would assist in making the code easier to understand
-  * For CSV's that are combined, somehow make note of the station that an attribute is pulled from
-  * Add a record threshold for the ranking functions; truncating after a certain amount
-    * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
-  * All-time based ranks.
-    * `dayRankAllTime()` would retrieve the hottest/coldest/rainiest/snowiest days on record, regardless of month or day
-	* `monthRankAllTime()` would compare all months to each other, and return the ranks
-  * Improvement of report aesthetics
-	* add "--" for redundant snow values of 0 across all reports
-	* add fixed digits for all values in reports (so `52` would display as `52.0`; `1.1` would show up as `1.10`), increasing readability
-  * I know I need to comment more in the code
-  * Include help() docstrings for each individual function
+* Convert all string digits to integers/floats upon creation of `clmt`. This primarily would assist in making the code easier to understand
+* For CSV's that are combined, somehow make note of the station that an attribute is pulled from
+* Add a record threshold for the ranking functions; truncating after a certain amount
+  * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
+* All-time based ranks.
+  * `dayRankAllTime()` would retrieve the hottest/coldest/rainiest/snowiest days on record, regardless of month or day
+  * `monthRankAllTime()` would compare all months to each other, and return the ranks
+* Improvement of report aesthetics
+  * add "--" for redundant snow values of 0 across all reports
+  * add fixed digits for all values in reports (so `52` would display as `52.0`; `1.1` would show up as `1.10`), increasing readability
+* I know I need to comment more in the code
+* Include help() docstrings for each individual function
 
 [&#8679; back to Contents](#contents)
 
