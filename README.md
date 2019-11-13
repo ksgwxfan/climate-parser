@@ -408,16 +408,16 @@ Year and Month keys have additional keys besides their integer counter-parts. Th
 ['tminPROP']	:: daily/monthly max/min stats
 ```
 
-  * `clmt[2005][4]["prcp"]` would return a list of individual precipitation amounts recorded for April 2005
-  * `clmt[2009]["snow"] would return a list of individual snow amounts occurring in the year 2009
-
-Tier 3 keys generally are the specific days. The values are data objects (see below):
-  * `clmt[1982][3][29]` :: This is a data-object specific to March 29, 1982.
+* `clmt[2005][4]["prcp"]` would return a list of individual precipitation amounts recorded for April 2005
+* `clmt[2009]["snow"] would return a list of individual snow amounts occurring in the year 2009
 
 The above in lists can easily be worked with using the `sum` function or a `statistics` module method, like `mean`.
 * `sum(clmt[1982]["prcp"])` would return the total rain amount for the year 1982
-* `mean(clmt[1993][4]["tmax"]` would return the average high-temperature for April 1993
+* `mean(clmt[1993][4]["tmax"])` would return the average high-temperature for April 1993
 * They eliminate time and lines that would otherwise be needed
+
+Tier 3 keys generally are the specific days. The values are data objects (see below):
+  * `clmt[1982][3][29]` :: This is a data-object specific to March 29, 1982.
 
 Day keys contain `object` values. So each day in the record has the following attributes:
 
