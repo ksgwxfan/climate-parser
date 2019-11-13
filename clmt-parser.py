@@ -710,6 +710,10 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
                "snow": [],"snowPROP":{"day_max":[-1,[]]},
                "tmax": [],"tmaxPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
                "tmin": [],"tminPROP":{"day_max":[-999,[]],"day_min":[999,[]]}}
+    # {"day_max":[-1,[]],"month_max":[-1,[]],"month_min":[999,[]]}
+    # {"day_max":[-999,[]],"day_min":[999,[]],"month_AVG_max":[-999,"n/a"],"month_AVG_min":[999,"n/a"]}
+    # if clmt[int(each[2][0:4])][int(each[2][5:7])][int(each[2][8:10])].prcpQ in ignoreflags and clmt[int(each[2][0:4])][int(each[2][5:7])][int(each[2][8:10])].prcp not in ["9999","-9999",""]:
+    # if clmt[int(each[2][0:4])][int(each[2][5:7])][int(each[2][8:10])].tmaxQ in ignoreflags and clmt[int(each[2][0:4])][int(each[2][5:7])][int(each[2][8:10])].tmax not in ["9999","-9999",""]:
     for y in valid_yrs:
         try:
             if clmt[y][m][d].prcpQ in ignoreflags and clmt[y][m][d].prcp not in ["9999","-9999",""]:
@@ -721,7 +725,7 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
                     alltime["prcpPROP"]["day_max"][1] = []
                     alltime["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
                 for c in climo30yrs:
-                    if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                    if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                         climo30yrs[c]["prcp"].append(float(clmt[y][m][d].prcp))
                         if float(clmt[y][m][d].prcp) == climo30yrs[c]["prcpPROP"]["day_max"][0]:
                             climo30yrs[c]["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
@@ -741,7 +745,7 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
                     alltime["snowPROP"]["day_max"][1] = []
                     alltime["snowPROP"]["day_max"][1].append(clmt[y][m][d])
                 for c in climo30yrs:
-                    if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                    if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                         climo30yrs[c]["snow"].append(float(clmt[y][m][d].snow))
                         if float(clmt[y][m][d].snow) == climo30yrs[c]["snowPROP"]["day_max"][0]:
                             climo30yrs[c]["snowPROP"]["day_max"][1].append(clmt[y][m][d])
@@ -767,7 +771,7 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
                     alltime["tmaxPROP"]["day_min"][1] = []
                     alltime["tmaxPROP"]["day_min"][1].append(clmt[y][m][d])
                 for c in climo30yrs:
-                    if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                    if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                         climo30yrs[c]["tmax"].append(int(clmt[y][m][d].tmax))
                         if int(clmt[y][m][d].tmax) == climo30yrs[c]["tmaxPROP"]["day_max"][0]:
                             climo30yrs[c]["tmaxPROP"]["day_max"][1].append(clmt[y][m][d])
@@ -799,7 +803,7 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
                     alltime["tminPROP"]["day_min"][1] = []
                     alltime["tminPROP"]["day_min"][1].append(clmt[y][m][d])
                 for c in climo30yrs:
-                    if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                    if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                         climo30yrs[c]["tmin"].append(int(clmt[y][m][d].tmin))
                         if int(clmt[y][m][d].tmin) == climo30yrs[c]["tminPROP"]["day_max"][0]:
                             climo30yrs[c]["tminPROP"]["day_max"][1].append(clmt[y][m][d])
@@ -905,7 +909,7 @@ def weekReport(m,d):
                         if float(day.prcp) > 0 or day.prcpM == "T": alltime["prcpPROP"]["days"] += 1
                         wk_prcp.append(float(day.prcp))
                         for c in climo30yrs:
-                            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                                 #climo30yrs[c]["prcp"].append(float(day.prcp))
                                 if float(day.prcp) > 0 or day.prcpM == "T": climo30yrs[c]["prcpPROP"]["days"] += 1
                 except:
@@ -916,11 +920,12 @@ def weekReport(m,d):
                         if float(day.snow) > 0 or day.snowM == "T": alltime["snowPROP"]["days"] += 1
                         wk_snow.append(float(day.snow))
                         for c in climo30yrs:
-                            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                                 #climo30yrs[c]["snow"].append(float(day.snow))
                                 if float(day.snow) > 0 or day.snowM == "T": climo30yrs[c]["snowPROP"]["days"] += 1
                 except:
                     pass
+                # "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"week_max":[-999,[]],"week_min":[999,[]]},
                 try:
                     if day.tmaxQ in ignoreflags and day.tmax not in ["9999","-9999",""] and day.tminQ in ignoreflags and day.tmin not in ["9999","-9999",""]:
                         alltime["tempAVGlist_ind"].append(int(day.tmax))
@@ -928,7 +933,7 @@ def weekReport(m,d):
                         wk_tempAVGlist.append(int(day.tmax))
                         wk_tempAVGlist.append(int(day.tmin))
                         for c in climo30yrs:
-                            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                                 climo30yrs[c]["tempAVGlist_ind"].append(int(day.tmax))
                                 climo30yrs[c]["tempAVGlist_ind"].append(int(day.tmin))
                 except:
@@ -938,7 +943,7 @@ def weekReport(m,d):
                         alltime["tmax"].append(int(day.tmax))
                         wk_tmax.append(int(day.tmax))
                         for c in climo30yrs:
-                            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                                 climo30yrs[c]["tmax"].append(int(day.tmax))
                 except:
                     pass
@@ -947,7 +952,7 @@ def weekReport(m,d):
                         alltime["tmin"].append(int(day.tmin))
                         wk_tmin.append(int(day.tmin))
                         for c in climo30yrs:
-                            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                                 climo30yrs[c]["tmin"].append(int(day.tmin))
                 except:
                     pass
@@ -966,6 +971,7 @@ def weekReport(m,d):
                 alltime["snowPROP"]["week_max"][0] = sum(wk_snow)
                 alltime["snowPROP"]["week_max"][1] = []
                 alltime["snowPROP"]["week_max"][1].append(y)
+            # "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"week_max":[-999,[]],"week_min":[999,[]]},
             if len(wk_tempAVGlist) >= 8:
                 alltime["tempAVGlist"].append(round(mean(wk_tempAVGlist),1))
                 if round(mean(wk_tempAVGlist),1) == alltime["tavgPROP"]["week_max"][0]: alltime["tavgPROP"]["week_max"][1].append(y)
@@ -1001,7 +1007,7 @@ def weekReport(m,d):
                     alltime["tminPROP"]["week_min"][1] = []
                     alltime["tminPROP"]["week_min"][1].append(y)
             for c in climo30yrs:
-                if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                     climo30yrs[c]["prcp"].append(sum(wk_prcp))
                     climo30yrs[c]["snow"].append(sum(wk_snow))
                     if sum(wk_prcp) == climo30yrs[c]["prcpPROP"]["week_max"][0]: climo30yrs[c]["prcpPROP"]["week_max"][1].append(y)
@@ -1060,6 +1066,7 @@ def weekReport(m,d):
     print("\nPart 1: Precipitation Stats")
     print("{:▒^9} {:▒^11} {:▒^6} {:▒^12} {:▒^11} {:▒^6} {:▒^12}".format("Years","PRCP","PRCP","PRCP","SNOW","SNOW","SNOW"))
     print("{:▒^9} {:▒^11} {:▒^6} {:▒^12} {:▒^11} {:▒^6} {:▒^12}".format("","DAYS","AVG", "MAX","DAYS","AVG", "MAX"))
+    #         Y     PD     PA      PM       SD     SA      SM
     print("{:-^9} {:-^11} {:-^6} {:-^12} {:-^11} {:-^6} {:-^12}".format("","","","","","",""))
     print("{:^9} {:4}:{:>5}% {:^6} {:>5}, {:^5} {:4}:{:>5}% {:^6} {:>5}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
         alltime["prcpPROP"]["days"],
@@ -1092,6 +1099,8 @@ def weekReport(m,d):
     print("\nPart 2: Temperature Stats")
     print("{:▒^9} {:▒^37} | {:▒^37} | {:▒^37}".format("Years","AVG TEMP","TMAX","TMIN"))
     print("{:▒^9} {:▒<5} {:▒^5} {:▒^12} {:▒^12} | {:▒<5} {:▒^5} {:▒^12} {:▒^12} | {:▒<5} {:▒^5} {:▒^12} {:▒^12}".format("","STDEV","AVG","MAX","MIN","STDEV","AVG","MAX","MIN","STDEV","AVG","MAX","MIN"))
+    #         Y    TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn    
+    # "tempAVGlist": [],"tavgPROP":{"week_max":[-999,[]],"week_min":[999,[]]},
     print("{:-^9} {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12}".format("","","","","","","","","","","","",""))
     print("{:^9} {:^5} {:^5} {:>5}, {:^5} {:>5}, {:^5} | {:^5} {:^5} {:>5}, {:^5} {:>5}, {:^5} | {:^5} {:^5} {:>5}, {:^5} {:>5}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
         round(pstdev(alltime["tempAVGlist"]),1),
@@ -1137,6 +1146,7 @@ def weekReport(m,d):
             print("ERROR: Era = {}; Exception = {}".format(c,e))
 
 def monthReport(m):
+    #print([x for x in clmt.keys()])
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
@@ -1155,6 +1165,7 @@ def monthReport(m):
                "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"month_max":[-999,[]],"month_min":[999,[]]},
                "tmax": [],"tmaxPROP":{"month_max":[-999,[]],"month_min":[999,[]]},
                "tmin": [],"tminPROP":{"month_max":[-999,[]],"month_min":[999,[]]}}
+    # 'recordqty', 'prcp', 'prcpDAYS', 'prcpPROP', 'snow', 'snowDAYS', 'snowPROP', 'tempAVGlist', 'tmax', 'tmaxPROP', 'tmin', 'tminPROP'
     for y in valid_yrs:
         if m in clmt[y]:
             alltime["total_days"] += clmt[y][m]["recordqty"]
@@ -1183,7 +1194,7 @@ def monthReport(m):
                     alltime["prcpPROP"]["month_min"][1] = []
                     alltime["prcpPROP"]["month_min"][1].append(y)
             for c in climo30yrs:
-                if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                     climo30yrs[c]["prcp"].append(sum(clmt[y][m]["prcp"]))
                     climo30yrs[c]["prcpPROP"]["days"] += clmt[y][m]["prcpDAYS"]
                     climo30yrs[c]["total_days"] += clmt[y][m]["recordqty"]
@@ -1224,7 +1235,7 @@ def monthReport(m):
                     alltime["snowPROP"]["month_max"][1] = []
                     alltime["snowPROP"]["month_max"][1].append(y)
             for c in climo30yrs:
-                if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                     climo30yrs[c]["snow"].append(sum(clmt[y][m]["snow"]))
                     climo30yrs[c]["snowPROP"]["days"] += clmt[y][m]["snowDAYS"]
                     if clmt[y][m]["recordqty"] > 20:
@@ -1238,6 +1249,7 @@ def monthReport(m):
                             climo30yrs[c]["snowPROP"]["month_max"][0] = sum(clmt[y][m]["snow"])
                             climo30yrs[c]["snowPROP"]["month_max"][1] = []
                             climo30yrs[c]["snowPROP"]["month_max"][1].append(y)
+    # 'recordqty', 'prcp', 'prcpDAYS', 'prcpPROP', 'snow', 'snowDAYS', 'snowPROP', 'tempAVGlist', 'tmax', 'tmaxPROP', 'tmin', 'tminPROP'
             # TAVG
             for x in clmt[y][m]["tempAVGlist"]: alltime["tempAVGlist_ind"].append(x)
             if len(clmt[y][m]["tempAVGlist"]) >= 42:
@@ -1253,7 +1265,7 @@ def monthReport(m):
                     alltime["tavgPROP"]["month_min"][1] = []
                     alltime["tavgPROP"]["month_min"][1].append(y)
             for c in climo30yrs:
-                if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                     for x in clmt[y][m]["tempAVGlist"]:climo30yrs[c]["tempAVGlist_ind"].append(x)
                     if len(clmt[y][m]["tempAVGlist"]) >= 42:
                         climo30yrs[c]["tempAVGlist"].append(mean(clmt[y][m]["tempAVGlist"]))                    
@@ -1281,7 +1293,7 @@ def monthReport(m):
                     alltime["tmaxPROP"]["month_min"][1] = []
                     alltime["tmaxPROP"]["month_min"][1].append(y)
             for c in climo30yrs:
-                if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                     for x in clmt[y][m]["tmax"]: climo30yrs[c]["tmax"].append(x)
                     if len(clmt[y][m]["tmax"]) > 20:
                         if mean(clmt[y][m]["tmax"]) == climo30yrs[c]["tmaxPROP"]["month_max"][0]: climo30yrs[c]["tmaxPROP"]["month_max"][1].append(y)
@@ -1308,7 +1320,7 @@ def monthReport(m):
                     alltime["tminPROP"]["month_min"][1] = []
                     alltime["tminPROP"]["month_min"][1].append(y)
             for c in climo30yrs:
-                if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+                if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                     for x in clmt[y][m]["tmin"]: climo30yrs[c]["tmin"].append(x)
                     if len(clmt[y][m]["tmin"]) > 20:
                         if mean(clmt[y][m]["tmin"]) == climo30yrs[c]["tminPROP"]["month_max"][0]: climo30yrs[c]["tminPROP"]["month_max"][1].append(y)
@@ -1329,6 +1341,7 @@ def monthReport(m):
     print("Part 1: {} Precipitation Stats".format(calendar.month_name[m]))
     print("{:▒^9} {:▒^11}  {:▒^8}  {:▒^8} {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^8} {:▒^6} {:▒^12} |".format("Years","PRCP","PRCP","PRCP","PRCP","PRCP","PRCP","SNOW","SNOW","SNOW","SNOW"))
     print("{:▒^9} {:▒^11}  {:▒^8}  {:▒^8} {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^8} {:▒^6} {:▒^12} |".format("","DAYS","DAYS MAX","DAYS MIN","AVG", "MAX","MIN","DAYS","DAYS MAX","AVG", "MAX"))
+    #         Y     PD       PDx    PDn      PA      PM     Pmin      SD     SDx       SA      SM
     print("{:-^9} {:-^11}  {:-^8}  {:-^8} {:-^6} {:-^12} {:-^12} | {:-^11}  {:-^8} {:-^6} {:-^12} |".format("","","","","","","","","","",""))
     print("{:^9} {:4}:{:>5}%  {:>2}, {:^4}  {:>2}, {:^4} {:^6} {:>5}, {:^5} {:>5}, {:^5} | {:4}:{:>5}%  {:>2}, {:^4} {:^6} {:>5}, {:^5} |".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
         alltime["prcpPROP"]["days"],
@@ -1350,6 +1363,8 @@ def monthReport(m):
         round(alltime["snowPROP"]["month_max"][0],2),
         alltime["snowPROP"]["month_max"][1][0] if len(alltime["snowPROP"]["month_max"][1]) == 1 else len(alltime["snowPROP"]["month_max"][1])))
     for c in climo30yrs:
+        #print(climo30yrs[c]["prcpPROP"]["days"],climo30yrs[c]["total_days"])
+        #print(climo30yrs[c]["snowPROP"]["days"],climo30yrs[c]["total_days"])
         try:
             print("{:^9} {:4}:{:>5}%  {:>2}, {:^4}  {:>2}, {:^4} {:^6} {:>5}, {:^5} {:>5}, {:^5} | {:4}:{:>5}%  {:>2}, {:^4} {:^6} {:>5}, {:^5} |".format(str(climo30yrs[c]["years"][0])+"-"+str(climo30yrs[c]["years"][1]),
             climo30yrs[c]["prcpPROP"]["days"],
@@ -1423,6 +1438,7 @@ def monthReport(m):
             print("ERROR: Era = {}; Exception = {}".format(c,e))
 
 def yearReport():
+    # assisted on nested list comprehensions: https://www.geeksforgeeks.org/nested-list-comprehensions-in-python/
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
@@ -1445,6 +1461,7 @@ def yearReport():
     print("*** PLEASE WAIT. This will take a few moments ***")
 
     for y in valid_yrs:
+        # 'recordqty', 'prcp', 'prcpDAYS', 'prcpPROP', 'snow', 'snowDAYS', 'snowPROP', 'tempAVGlist', 'tmax', 'tmaxPROP', 'tmin', 'tminPROP'
         alltime["total_days"] += clmt[y]["recordqty"]
         # PRCP
         alltime["prcp"].append(sum(clmt[y]["prcp"]))
@@ -1471,7 +1488,7 @@ def yearReport():
                 alltime["prcpPROP"]["year_min"][1] = []
                 alltime["prcpPROP"]["year_min"][1].append(y)
         for c in climo30yrs:
-            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                 climo30yrs[c]["prcp"].append(sum(clmt[y]["prcp"]))
                 climo30yrs[c]["prcpPROP"]["days"] += clmt[y]["prcpDAYS"]
                 climo30yrs[c]["total_days"] += clmt[y]["recordqty"]
@@ -1511,7 +1528,7 @@ def yearReport():
                 alltime["snowPROP"]["year_max"][1] = []
                 alltime["snowPROP"]["year_max"][1].append(y)
         for c in climo30yrs:
-            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                 climo30yrs[c]["snow"].append(sum(clmt[y]["snow"]))
                 climo30yrs[c]["snowPROP"]["days"] += clmt[y]["snowDAYS"]
                 if clmt[y]["recordqty"] > 20:
@@ -1525,6 +1542,7 @@ def yearReport():
                         climo30yrs[c]["snowPROP"]["year_max"][0] = sum(clmt[y]["snow"])
                         climo30yrs[c]["snowPROP"]["year_max"][1] = []
                         climo30yrs[c]["snowPROP"]["year_max"][1].append(y)
+    # 'recordqty', 'prcp', 'prcpDAYS', 'prcpPROP', 'snow', 'snowDAYS', 'snowPROP', 'tempAVGlist', 'tmax', 'tmaxPROP', 'tmin', 'tminPROP'
         # TAVG
         for x in clmt[y]["tempAVGlist"]: alltime["tempAVGlist_ind"].append(x)
         if len(clmt[y]["tempAVGlist"]) >= 600:
@@ -1540,7 +1558,7 @@ def yearReport():
                 alltime["tavgPROP"]["year_min"][1] = []
                 alltime["tavgPROP"]["year_min"][1].append(y)
         for c in climo30yrs:
-            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                 for x in clmt[y]["tempAVGlist"]:climo30yrs[c]["tempAVGlist_ind"].append(x)
                 if len(clmt[y]["tempAVGlist"]) >= 600:
                     climo30yrs[c]["tempAVGlist"].append(mean(clmt[y]["tempAVGlist"]))                    
@@ -1568,7 +1586,7 @@ def yearReport():
                 alltime["tmaxPROP"]["year_min"][1] = []
                 alltime["tmaxPROP"]["year_min"][1].append(y)
         for c in climo30yrs:
-            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                 for x in clmt[y]["tmax"]: climo30yrs[c]["tmax"].append(x)
                 if len(clmt[y]["tmax"]) > 300:
                     if mean(clmt[y]["tmax"]) == climo30yrs[c]["tmaxPROP"]["year_max"][0]: climo30yrs[c]["tmaxPROP"]["year_max"][1].append(y)
@@ -1595,7 +1613,7 @@ def yearReport():
                 alltime["tminPROP"]["year_min"][1] = []
                 alltime["tminPROP"]["year_min"][1].append(y)
         for c in climo30yrs:
-            if y >= c[0] and y <= c[1] and c[0] in clmt and c[1] in clmt:
+            if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                 for x in clmt[y]["tmin"]: climo30yrs[c]["tmin"].append(x)
                 if len(clmt[y]["tmin"]) > 300:
                     if mean(clmt[y]["tmin"]) == climo30yrs[c]["tminPROP"]["year_max"][0]: climo30yrs[c]["tminPROP"]["year_max"][1].append(y)
@@ -1617,6 +1635,7 @@ def yearReport():
     print("Part 1: Precipitation Stats")
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9}  {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^11} |".format("Years","PRCP","PRCP","PRCP","PRCP","PRCP","PRCP","SNOW","SNOW","SNOW","SNOW"))
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9}  {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^11} |".format("","DAYS","DAYS MAX","DAYS MIN","AVG", "MAX","MIN","DAYS","DAYS MAX","AVG", "MAX"))
+    #         Y     PD       PDx    PDn      PA      PM     Pmin      SD     SDx       SA      SM
     print("{:-^9} {:-^12}  {:-^9}  {:-^9}  {:-^6} {:-^12} {:-^12} | {:-^11}  {:-^9} {:-^6} {:-^11} |".format("","","","","","","","","","",""))
     print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4}  {:^6} {:>6}, {:^4} {:>6}, {:^4} | {:4}:{:>5}%  {:>3}, {:^4} {:^6} {:>5}, {:^4} |".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
         alltime["prcpPROP"]["days"],
@@ -1638,6 +1657,8 @@ def yearReport():
         round(alltime["snowPROP"]["year_max"][0],2),
         alltime["snowPROP"]["year_max"][1][0] if len(alltime["snowPROP"]["year_max"][1]) == 1 else len(alltime["snowPROP"]["year_max"][1])))
     for c in climo30yrs:
+        #print(climo30yrs[c]["prcpPROP"]["days"],climo30yrs[c]["total_days"])
+        #print(climo30yrs[c]["snowPROP"]["days"],climo30yrs[c]["total_days"])
         try:
             print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4}  {:^6} {:>6}, {:^4} {:>6}, {:^4} | {:4}:{:>5}%  {:>3}, {:^4} {:^6} {:>5}, {:^4} |".format(str(climo30yrs[c]["years"][0])+"-"+str(climo30yrs[c]["years"][1]),
             climo30yrs[c]["prcpPROP"]["days"],
@@ -1664,6 +1685,8 @@ def yearReport():
     print("\nPart 2: Temperature Stats")
     print("{:▒^9} {:▒^37} | {:▒^37} | {:▒^37}".format("Years","AVG TEMP","TMAX","TMIN"))
     print("{:▒^9} {:▒<5} {:▒^5} {:▒^12} {:▒^12} | {:▒<5} {:▒^5} {:▒^12} {:▒^12} | {:▒<5} {:▒^5} {:▒^12} {:▒^12}".format("","STDEV","AVG","MAX","MIN","STDEV","AVG","MAX","MIN","STDEV","AVG","MAX","MIN"))
+    #         Y    TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn    
+    # "tempAVGlist": [],"tavgPROP":{"year_max":[-999,[]],"year_min":[999,[]]},
     print("{:-^9} {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12}".format("","","","","","","","","","","","",""))
     print("{:^9} {:^5} {:^5} {:>5}, {:^5} {:>5}, {:^5} | {:^5} {:^5} {:>5}, {:^5} {:>5}, {:^5} | {:^5} {:^5} {:>5}, {:^5} {:>5}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
         round(pstdev(alltime["tempAVGlist"]),1),
