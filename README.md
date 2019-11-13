@@ -248,7 +248,7 @@ Average Min Temperature: 47.4
 
 #### Reports
 
-These functions return robust climatological data, including all-time statistics and for climatological eras, incremented by 5 years. This allows you to see how the averages changed over time, as comparisons usually only take place against one time period.
+These functions return robust climatological data, including all-time statistics and for climatological eras, incremented by 5 years. This is what I refer to climatological-tendency. This allows you to see how the averages changed over time, as comparisons of a day's data usually only takes place against one time period.
 
 `dayReport(m,d)` :: Collects and returns statistics for all specified days in the record
 `weekReport(m,d)` :: Gathers and reports for specified week in the entire record
@@ -376,7 +376,7 @@ Example output:
                   |                  |     2014  148 |               |                 |     2013   11
 ```
 
-Care was taken with the rankings. For monthly records to count, at least 21 days-worth of data must be there. For the yearly ranks, over 300 data entries for the year must exist. These measures were taken so partial months or years couldn't be presented due to incomplete data. For example, if a year had data from January to August, the average temperatures will be warmer than if it had data for the entire year.
+Care was taken with the rankings. For monthly records to count, at least 21 days-worth of data must be there. For the yearly ranks, over 300 data entries for the year must exist. These measures were taken so partial months or years couldn't be presented due to incomplete data. For example, if a year had data from January to August, the average temperatures will be warmer than if it had data for the entire year. Alternatively, if data for the summer of a year was missing, the average temperatures would be too low. These measures aren't technically needed for high-precipitation amounts.
 
 [&#8679; back to Contents](#contents)
 
@@ -384,19 +384,13 @@ Care was taken with the rankings. For monthly records to count, at least 21 days
 
 This section partly goes over the data-structure and some examples to quickly call upon some data.
 
-When compiling, everything is thrown into a python-dictionary, `clmt`. There are a lot of embedded dictionaries. The keys are mostly integers, depending on the year, month, and/or day. 
+When compiling, everything is thrown into a python-dictionary, `clmt`. The primary keys are integers, making organization into a dictionary to be very useful. Monthly dictionaries and Day objects are nested within the respective year's dictionary.
 
-Tier 1 keys generally are years in integer form:
+Tier 1 keys generally are years:
+  * `clmt[1982]` :: This would hold keys specific for the year 1982. These will include months
 
-`clmt[1982]` :: This would hold keys specific for the year 1982. These will include months
-
-Tier 2 keys generally are the months for a specific year
-
-`clmt[1982][3]` :: This would hold daily data for March 1982.
-
-Tier 3 keys generally are the specific days. The values are data objects (see below)
-
-`clmt[1982][3][29]` :: This is a data-object specific to March 29, 1982.
+Tier 2 keys generally are the months for a specific year:
+  * `clmt[1982][3]` :: This would hold daily data for March 1982.
 
 Year and Month keys have additional keys besides their integer counter-parts. This includes:
 ```
@@ -413,6 +407,12 @@ Year and Month keys have additional keys besides their integer counter-parts. Th
 ['tmin']		:: list; contains all low-temperature data for a year or month
 ['tminPROP']	:: daily/monthly max/min stats
 ```
+
+  * `clmt[2005][4]["prcp"]` would return a list of individual precipitation amounts recorded for April 2005
+  * `clmt[2009]["snow"] would return a list of individual snow amounts occurring in the year 2009
+
+Tier 3 keys generally are the specific days. The values are data objects (see below):
+  * `clmt[1982][3][29]` :: This is a data-object specific to March 29, 1982.
 
 The above in lists can easily be worked with using the `sum` function or a `statistics` module method, like `mean`.
 * `sum(clmt[1982]["prcp"])` would return the total rain amount for the year 1982
