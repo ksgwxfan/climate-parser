@@ -248,12 +248,12 @@ Average Min Temperature: 47.4
 
 #### Reports
 
-These functions return robust climatological data, including all-time statistics and for climatological eras, incremented by 5 years. This is what I refer to climatological-tendency. This allows you to see how the averages changed over time, as comparisons of a day's data usually only takes place against one time period.
+These functions return robust climatological data, including all-time statistics and for climatological eras, incremented by 5 years. This enables, what I refer to as, climatological-tendency analysis. This allows you to see how the averages change over time, as comparisons of a day's, month's, or year's data usually only takes place against one time period. How is the long-term average changing? I believe it simplifies analysis and makes it easier to see trends. Of note, in `monthReport()` and `yearReport()`, reported standard deviations are calculated of the means/averages for individual months/years. 
 
 `dayReport(m,d)` :: Collects and returns statistics for all specified days in the record
 `weekReport(m,d)` :: Gathers and reports for specified week in the entire record
 `monthReport(m)` :: Gives a report for a specific month
-`yearReport()` :: Analyzes the entire record and returns a report based on years
+`yearReport()` :: Analyzes the entire record and returns a report based on years; no passed-data is needed
 
 ```
 >>> monthReport(12)
