@@ -6,47 +6,60 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 
 ### Contents
 **&bull; Go ahead and download the script** `clmt_parser.py`
-* [Data Retrieval and Required Format](#data-retrieval-and-required-format)
-* [Running the Script (including 'mounting' the Data)](#running-the-script)
-* [Error Report Overview](#error-report)
+* [Data Retrieval and Required Format](#data-retrieval-and-required-format)<br />
+* [Running the Script / Loading the Data](#running-the-script)
+* [Error Report Overview (skip if you just want to go to analyzing the data)](#error-report)
   * [OPTIONAL: Fixing Errored Data](#fixing-data)
 * [Overview of Core Functions](#overview-of-core-functions)
   * [Stats Search Functions](#stats) - output specific to particular times
   * [Report Search Functions](#reports) - outputs a climatological report of historical stats and enables basic climatological-tendency analysis of desired time-frame
   * [Rank Search Functions](#ranking) - orders the data into ranking, based on particular time-frame of interest
 * [On-the-fly access/reference to data](#on-the-fly-data-retrieval)
-* Sample Scripts
+* Sample Scripts (to be added later)
 * [Roadmap](#roadmap)
 * [Licensing](#license)
 * [HELP!!!](#help)
 
 ### Data Retrieval and Required Format
 
-***Some sample data for select cities are included. See repository for this data***
+***Some sample data for select cities are included. See repository for this data. Ensure that they are placed in the same directory as script***
 
 To retrieve station data, goto [https://www.ncdc.noaa.gov/cdo-web/](https://www.ncdc.noaa.gov/cdo-web/).
 * Scroll down a little bit and select "Search Tool"
 * Under "Weather Observation Type," select *Daily Summaries*
-* Determine desired range of dates. *Feel free to choose the earliest date possible. I don't know if there are any stations that go well beyond the late 1800s, but if so, the included Report functions only partially support data prior to 1811, but no errors should be encountered*
-* Search for "Stations" &rarr; Input desired location &rarr; Click "Search"
-* Attempt to find the major stations which will have data encompassing long periods of time and add them to your cart (Airports are good candidates)
-* After adding the station(s) to your cart, hover over and click on cart data (on the right)
-* Select "Custom GHCN-Daily CSV," double-check your date range (it is amended to fit the range of the stations you selected), and click "Continue" at the bottom
+* Determine desired range of dates. *TIP: Choose the earliest date possible(like 1763). I don't know if there are any stations that go back that far but it ensures the maximum duration selection*
+* You're given different options of how to search.
+  * I'd recommend to search by *City* or *State*.
+  * Find the city or state you're wanting, and click on *View Full Details*
+  * Then under *Included Stations*, select *See Station List Below*
+  * This will allow you to sort the stations in the vicinity by name, start/end date, or coverage.
+* You ideally want to find a station whose records are of a long period, still maintained, and has really good coverage of data (&gt;90%). Data from airports are generally very-well maintained, but as planes weren't developed until after 1900, with airports not well-established until deep into the 20th century, The records for these won't go fully back.
+  * In a situation like this, it's recommended to seek another station to add to the cart. Overlap of time-period is normal, but you should attempt to keep the overlap small.
+* Add the station(s) that you pick out to your cart
+* Hover over and click on cart data (on the right)
+* Select *Custom GHCN-Daily CSV*, double-check your date range (it is amended to fit the range of the stations you selected), and click *Continue* at the bottom
 
 Under "Station Detail" 
-* ensure that **"Geographical Location"** and **Include Data Flags** are checked
+* ensure that **Geographical Location** AND **Include Data Flags** are checked
 
 Under "Select Data Types"
-* &#9745; Precipitation (ensure only PRCP, SNOW, and SNWD are selected)
-* &#9745; Air Temperature (** _ONLY_ ** select TMAX and TMIN. The averages will be handled internally by the script
+* &#9744; Precipitation 
+  * &#9745; Precipitation (PRCP)
+  * &#9745; Snow depth (SNWD)
+  * &#9745; Snowfall (SNOW)
+* &#9744; Air Temperature
+  * &#9745; Maximum temperature (TMAX)
+  * &#9745; Minimum temperature (TMIN)
+* Ensure that only the 5 variables above are selected
 * Click "Continue"
 * Input Email Address &rarr; "Submit Order" &rarr; and wait for a completion email
 
 Download the data, change the name to something intuitive, and place it into the same folder as the script
-
 * NOTE: Selecting more than one station in one cart session will result in a single combined csv.
-  * If there is overlap in the records, the program will only keep the first record of a date encountered.
+  * The script is programmed to do a basic-handle of multiple stations. If there is overlap, it always keeps the data from the date of the first station. This is okay, but may not be fully desired if there is a large overlap.
   * Do separate cart-checkouts for to different cities
+  * As CSV's are just text, a notepad program can be used to cut/paste data out of, or manuevered around, the text file. It's recommended to do this outside of a spreadsheet program to ensure preservation of the data inside quotations. This is vital for the script to work correctly.
+    * You may feel this to be necessary if you'd rather one station's data to be preferred over another.
 
 [&#8679; back to Contents](#contents)
 
@@ -56,14 +69,14 @@ When you load the script `clmt_parser.py`, you should see a welcome message.
 
 Loading data is done through the `clmtAnalyze()` function.
 * Find the filename of interest
-  * running `csvFileList()` will return a list of CSV files in the current directory (helps if your directory is cluttered)
+  * running `csvFileList()` will return a list of CSV files in the current directory. Included is a sample-call using that csv file
+  * remember your file should be in the same directory as your script
 
 run `clmtAnalyze("city-data.csv")`
-* OPTIONAL: `clmtAnalyze` accepts 2 optional keyword arguments: `city="cityname.csv"` or `station="station_text"`
-* Example: `clmtAnalyze("city-name.csv",city="City Name",station="Multiple")`
-* This would be helpful if you're working with a csv that has data from multiple stations
-* The default setting would be using the [GHCND Station ID](https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt) and Station Name (which typically includes the cityname)
-* You wouldn't want to represent all of the data as originating from one place if you used multiple stations
+* RECOMMENDED For 2 or more stations: `clmtAnalyze` accepts 2 optional keyword arguments: `city="cityname.csv"` or `station="station_text"`
+  * Example: `clmtAnalyze("city-name.csv",city="City Name",station="Multiple")`
+  * The default setting would be using the [GHCND Station ID](https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt) and Station Name (which typically includes the cityname)
+  * But you may not want to represent all of the data as originating from one place if you used multiple stations
 
 Wait for the script to complete. At the end you'll receive a notice of monthly data missing from the record and the time it took to run the script
 ```
@@ -445,6 +458,7 @@ The above could be accessed via a simple object attribute call
 Considerations
 * Convert all string digits to integers/floats upon creation of `clmt`. This primarily would assist in making the code easier to understand
 * For CSV's that are combined, somehow make note of the station that an attribute is pulled from
+* Add CSV-output keyword arguments for the report functions
 * Add a record threshold for the ranking functions; truncating after a certain amount
   * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
 * All-time based ranks.
@@ -466,7 +480,9 @@ MIT License (see LICENSE.md)
 
 ### HELP
 
-Let me know via the issues tab of the github repository
+  * Check the roadmap section to see if what you're needing addressed is already there
+  * Let me know via the issues tab of the github repository
+  * Place suggestions there too (which can come-about because of issues)
 
 [&#8679; back to Contents](#contents)
 
