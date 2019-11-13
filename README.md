@@ -459,6 +459,7 @@ Considerations
 * Convert all string digits to integers/floats upon creation of `clmt`. This primarily would assist in making the code easier to understand
 * For CSV's that are combined, somehow make note of the station that an attribute is pulled from
 * Add CSV-output keyword arguments for the report functions
+* Exclude current year from rankings/reports if year is not close to being finished
 * Add a record threshold for the ranking functions; truncating after a certain amount
   * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
 * All-time based ranks.
