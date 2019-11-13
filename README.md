@@ -480,9 +480,11 @@ MIT License (see LICENSE.md)
 
 ### HELP
 
-  * Check the roadmap section to see if what you're needing addressed is already there
-  * Let me know via the issues tab of the github repository
-  * Place suggestions there too (which can come-about because of issues)
+* Check the roadmap section to see if what you're needing addressed is already there
+* Let me know via the issues tab of the github repository
+* Place suggestions there too (which can come-about because of issues)
+
+If you want, let me know if this benefits you somehow in your research/project. Thanks.
 
 [&#8679; back to Contents](#contents)
 
