@@ -29,7 +29,7 @@ To retrieve station data, goto [https://www.ncdc.noaa.gov/cdo-web/](https://www.
 * Under "Weather Observation Type," select *Daily Summaries*
 * Determine desired range of dates. *TIP: Choose the earliest date possible(like 1763). I don't know if there are any stations that go back that far but it ensures the maximum duration selection*
 * You're given different options of how to search.
-  * I'd recommend to search by *City* or *State*.
+  * I'd recommend to search by *City* or *State*. Input a search term, and then search
   * Find the city or state you're wanting, and click on *View Full Details*
   * Then under *Included Stations*, select *See Station List Below*
   * This will allow you to sort the stations in the vicinity by name, start/end date, or coverage.
