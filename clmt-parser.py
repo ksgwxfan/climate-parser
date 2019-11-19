@@ -62,149 +62,153 @@ def clmtAnalyze(filename,**CITY):
                     print("--- City: {} ---".format(clmt["station_name"]))
                     clmt["coordinates"] = "{}, {}".format(each[2],each[3])
                     clmt["elevation"] = each[4]
-                if int(each[5][0:4]) not in clmt:   # YEAR
-                    clmt[int(each[5][0:4])] = {}
-                if int(each[5][5:7]) not in clmt[int(each[5][0:4])]:   # MONTH
-                    clmt[int(each[5][0:4])][int(each[5][5:7])] = {}
+                #if y % 10 == 0: print("{},".format(each[5][0:4]),end=" ")
+                y = int(each[5][0:4])
+                m = int(each[5][5:7])
+                d = int(each[5][8:10])
+                if y not in clmt:   # YEAR
+                    clmt[y] = {}
+                if m not in clmt[y]:   # MONTH
+                    clmt[y][m] = {}
                 # DAY Record stuff
-                if int(each[5][8:10]) in clmt[int(each[5][0:4])][int(each[5][5:7])]:    # Skipped if a record entry has already been made for that date
+                if d in clmt[y][m]:    # Skipped if a record entry has already been made for that date
                     pass
                 else:
-                    clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])] = DayRecord(each)
+                    clmt[y][m][d] = DayRecord(each)
                     # YEAR and MONTH - Additional keys
-                    if "recordqty" not in clmt[int(each[5][0:4])]: clmt[int(each[5][0:4])]["recordqty"] = 1
-                    else: clmt[int(each[5][0:4])]["recordqty"] += 1
-                    if "recordqty" not in clmt[int(each[5][0:4])][int(each[5][5:7])]: clmt[int(each[5][0:4])][int(each[5][5:7])]["recordqty"] = 1
-                    else: clmt[int(each[5][0:4])][int(each[5][5:7])]["recordqty"] += 1
-                    if "prcp" not in clmt[int(each[5][0:4])]:
-                        clmt[int(each[5][0:4])]["prcp"] = []
-                        clmt[int(each[5][0:4])]["prcpDAYS"] = 0
-                        clmt[int(each[5][0:4])]["prcpPROP"] = {"day_max":[-1,[]],"month_max":[-1,[]],"month_min":[999,[]]}
-                    if "prcp" not in clmt[int(each[5][0:4])][int(each[5][5:7])]:
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["prcp"] = []
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["prcpDAYS"] = 0
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["prcpPROP"] = {"day_max":[-1,[]]}
-                    if clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcpQ in ignoreflags and clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp not in ["9999","-9999",""]:
-                        if float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp) > 0:
-                            clmt[int(each[5][0:4])]["prcp"].append(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp))
-                            if round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp),2) == clmt[int(each[5][0:4])]["prcpPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])]["prcpPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp),2) > clmt[int(each[5][0:4])]["prcpPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])]["prcpPROP"]["day_max"][0] = round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp),2)
-                                clmt[int(each[5][0:4])]["prcpPROP"]["day_max"][1] = []
-                                clmt[int(each[5][0:4])]["prcpPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            clmt[int(each[5][0:4])][int(each[5][5:7])]["prcp"].append(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp))
-                            if round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp),2) == clmt[int(each[5][0:4])][int(each[5][5:7])]["prcpPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["prcpPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp),2) > clmt[int(each[5][0:4])][int(each[5][5:7])]["prcpPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["prcpPROP"]["day_max"][0] = round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp),2)
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["prcpPROP"]["day_max"][1] = []
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["prcpPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                        if float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcp) > 0 or clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].prcpM == "T":
-                            clmt[int(each[5][0:4])]["prcpDAYS"] += 1
-                            clmt[int(each[5][0:4])][int(each[5][5:7])]["prcpDAYS"] += 1
-                    if "snow" not in clmt[int(each[5][0:4])]:
-                        clmt[int(each[5][0:4])]["snow"] = []
-                        clmt[int(each[5][0:4])]["snowDAYS"] = 0
-                        clmt[int(each[5][0:4])]["snowPROP"] = {"day_max":[-1,[]],"month_max":[-1,[]]}
-                    if "snow" not in clmt[int(each[5][0:4])][int(each[5][5:7])]:
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["snow"] = []
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["snowDAYS"] = 0
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["snowPROP"] = {"day_max":[-1,[]]}
-                    if clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snowQ in ignoreflags and clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow not in ["9999","-9999",""]:
-                        if float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow) > 0:
-                            clmt[int(each[5][0:4])]["snow"].append(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow))
-                            if round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow),1) == clmt[int(each[5][0:4])]["snowPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])]["snowPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow),1) > clmt[int(each[5][0:4])]["snowPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])]["snowPROP"]["day_max"][0] = round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow),1)
-                                clmt[int(each[5][0:4])]["snowPROP"]["day_max"][1] = []
-                                clmt[int(each[5][0:4])]["snowPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            clmt[int(each[5][0:4])][int(each[5][5:7])]["snow"].append(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow))
-                            if round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow),1) == clmt[int(each[5][0:4])][int(each[5][5:7])]["snowPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["snowPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow),1) > clmt[int(each[5][0:4])][int(each[5][5:7])]["snowPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["snowPROP"]["day_max"][0] = round(float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow),1)
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["snowPROP"]["day_max"][1] = []
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["snowPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                        if float(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snow) > 0 or clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].snowM == "T":
-                            clmt[int(each[5][0:4])]["snowDAYS"] += 1
-                            clmt[int(each[5][0:4])][int(each[5][5:7])]["snowDAYS"] += 1
-                    if "tmax" not in clmt[int(each[5][0:4])]:
-                        clmt[int(each[5][0:4])]["tempAVGlist"] = []
-                        clmt[int(each[5][0:4])]["tmax"] = []
-                        clmt[int(each[5][0:4])]["tmaxPROP"] = {"day_max":[-999,[]],"day_min":[999,[]],"month_AVG_max":[-999,"n/a"],"month_AVG_min":[999,"n/a"]}
-                    if "tmax" not in clmt[int(each[5][0:4])][int(each[5][5:7])]:
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["tempAVGlist"] = []
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["tmax"] = []
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"] = {"day_max":[-999,[]],"day_min":[999,[]]}
-                    if "tmin" not in clmt[int(each[5][0:4])]:
-                        clmt[int(each[5][0:4])]["tmin"] = []
-                        clmt[int(each[5][0:4])]["tminPROP"] = {"day_max":[-999,[]],"day_min":[999,[]],"month_AVG_max":[-999,"n/a"],"month_AVG_min":[999,"n/a"]}
-                    if "tmin" not in clmt[int(each[5][0:4])][int(each[5][5:7])]:
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["tmin"] = []
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"] = {"day_max":[-999,[]],"day_min":[999,[]]}
-                    if clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmaxQ in ignoreflags and clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax not in ["9999","-9999",""]:
-                        if clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin != "" and int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) >= int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin):
-                            clmt[int(each[5][0:4])]["tmax"].append(int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax))
-                            if int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) == clmt[int(each[5][0:4])]["tmaxPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])]["tmaxPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) > clmt[int(each[5][0:4])]["tmaxPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])]["tmaxPROP"]["day_max"][0] = int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax)
-                                clmt[int(each[5][0:4])]["tmaxPROP"]["day_max"][1] = []
-                                clmt[int(each[5][0:4])]["tmaxPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            if int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) == clmt[int(each[5][0:4])]["tmaxPROP"]["day_min"][0]:
-                                clmt[int(each[5][0:4])]["tmaxPROP"]["day_min"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) < clmt[int(each[5][0:4])]["tmaxPROP"]["day_min"][0]:
-                                clmt[int(each[5][0:4])]["tmaxPROP"]["day_min"][0] = int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax)
-                                clmt[int(each[5][0:4])]["tmaxPROP"]["day_min"][1] = []
-                                clmt[int(each[5][0:4])]["tmaxPROP"]["day_min"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            clmt[int(each[5][0:4])][int(each[5][5:7])]["tmax"].append(int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax))
-                            if int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) == clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) > clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_max"][0] = int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax)
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_max"][1] = []
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            if int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) == clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_min"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_min"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) < clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_min"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_min"][0] = int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax)
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_min"][1] = []
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tmaxPROP"]["day_min"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                    if clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tminQ in ignoreflags and clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin not in ["9999","-9999",""]:
-                        if clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax != "" and int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin) <= int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax):
-                            clmt[int(each[5][0:4])]["tmin"].append(int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin))
-                            if int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin) == clmt[int(each[5][0:4])]["tminPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])]["tminPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin) > clmt[int(each[5][0:4])]["tminPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])]["tminPROP"]["day_max"][0] = int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin)
-                                clmt[int(each[5][0:4])]["tminPROP"]["day_max"][1] = []
-                                clmt[int(each[5][0:4])]["tminPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            if int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin) == clmt[int(each[5][0:4])]["tminPROP"]["day_min"][0]:
-                                clmt[int(each[5][0:4])]["tminPROP"]["day_min"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin) < clmt[int(each[5][0:4])]["tminPROP"]["day_min"][0]:
-                                clmt[int(each[5][0:4])]["tminPROP"]["day_min"][0] = int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin)
-                                clmt[int(each[5][0:4])]["tminPROP"]["day_min"][1] = []
-                                clmt[int(each[5][0:4])]["tminPROP"]["day_min"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            clmt[int(each[5][0:4])][int(each[5][5:7])]["tmin"].append(int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin))
-                            if int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin) == clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin) > clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_max"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_max"][0] = int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin)
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_max"][1] = []
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_max"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            if int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin) == clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_min"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_min"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                            elif int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin) < clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_min"][0]:
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_min"][0] = int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin)
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_min"][1] = []
-                                clmt[int(each[5][0:4])][int(each[5][5:7])]["tminPROP"]["day_min"][1].append(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])])
-                    if clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmaxQ in ignoreflags and clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax not in ["9999","-9999",""] and clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tminQ in ignoreflags and clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin not in ["9999","-9999",""] and int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax) >= int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin):
-                        clmt[int(each[5][0:4])]["tempAVGlist"].append(int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax))
-                        clmt[int(each[5][0:4])]["tempAVGlist"].append(int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin))
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["tempAVGlist"].append(int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmax))
-                        clmt[int(each[5][0:4])][int(each[5][5:7])]["tempAVGlist"].append(int(clmt[int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])].tmin))
+                    if "recordqty" not in clmt[y]: clmt[y]["recordqty"] = 1
+                    else: clmt[y]["recordqty"] += 1
+                    if "recordqty" not in clmt[y][m]: clmt[y][m]["recordqty"] = 1
+                    else: clmt[y][m]["recordqty"] += 1
+                    if "prcp" not in clmt[y]:
+                        clmt[y]["prcp"] = []
+                        clmt[y]["prcpDAYS"] = 0
+                        clmt[y]["prcpPROP"] = {"day_max":[-1,[]],"month_max":[-1,[]],"month_min":[999,[]]}
+                    if "prcp" not in clmt[y][m]:
+                        clmt[y][m]["prcp"] = []
+                        clmt[y][m]["prcpDAYS"] = 0
+                        clmt[y][m]["prcpPROP"] = {"day_max":[-1,[]]}
+                    if clmt[y][m][d].prcpQ in ignoreflags and clmt[y][m][d].prcp not in ["9999","-9999",""]:
+                        if float(clmt[y][m][d].prcp) > 0:
+                            clmt[y]["prcp"].append(float(clmt[y][m][d].prcp))
+                            if round(float(clmt[y][m][d].prcp),2) == clmt[y]["prcpPROP"]["day_max"][0]:
+                                clmt[y]["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
+                            elif round(float(clmt[y][m][d].prcp),2) > clmt[y]["prcpPROP"]["day_max"][0]:
+                                clmt[y]["prcpPROP"]["day_max"][0] = round(float(clmt[y][m][d].prcp),2)
+                                clmt[y]["prcpPROP"]["day_max"][1] = []
+                                clmt[y]["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
+                            clmt[y][m]["prcp"].append(float(clmt[y][m][d].prcp))
+                            if round(float(clmt[y][m][d].prcp),2) == clmt[y][m]["prcpPROP"]["day_max"][0]:
+                                clmt[y][m]["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
+                            elif round(float(clmt[y][m][d].prcp),2) > clmt[y][m]["prcpPROP"]["day_max"][0]:
+                                clmt[y][m]["prcpPROP"]["day_max"][0] = round(float(clmt[y][m][d].prcp),2)
+                                clmt[y][m]["prcpPROP"]["day_max"][1] = []
+                                clmt[y][m]["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
+                        if float(clmt[y][m][d].prcp) > 0 or clmt[y][m][d].prcpM == "T":
+                            clmt[y]["prcpDAYS"] += 1
+                            clmt[y][m]["prcpDAYS"] += 1
+                    if "snow" not in clmt[y]:
+                        clmt[y]["snow"] = []
+                        clmt[y]["snowDAYS"] = 0
+                        clmt[y]["snowPROP"] = {"day_max":[-1,[]],"month_max":[-1,[]]}
+                    if "snow" not in clmt[y][m]:
+                        clmt[y][m]["snow"] = []
+                        clmt[y][m]["snowDAYS"] = 0
+                        clmt[y][m]["snowPROP"] = {"day_max":[-1,[]]}
+                    if clmt[y][m][d].snowQ in ignoreflags and clmt[y][m][d].snow not in ["9999","-9999",""]:
+                        if float(clmt[y][m][d].snow) > 0:
+                            clmt[y]["snow"].append(float(clmt[y][m][d].snow))
+                            if round(float(clmt[y][m][d].snow),1) == clmt[y]["snowPROP"]["day_max"][0]:
+                                clmt[y]["snowPROP"]["day_max"][1].append(clmt[y][m][d])
+                            elif round(float(clmt[y][m][d].snow),1) > clmt[y]["snowPROP"]["day_max"][0]:
+                                clmt[y]["snowPROP"]["day_max"][0] = round(float(clmt[y][m][d].snow),1)
+                                clmt[y]["snowPROP"]["day_max"][1] = []
+                                clmt[y]["snowPROP"]["day_max"][1].append(clmt[y][m][d])
+                            clmt[y][m]["snow"].append(float(clmt[y][m][d].snow))
+                            if round(float(clmt[y][m][d].snow),1) == clmt[y][m]["snowPROP"]["day_max"][0]:
+                                clmt[y][m]["snowPROP"]["day_max"][1].append(clmt[y][m][d])
+                            elif round(float(clmt[y][m][d].snow),1) > clmt[y][m]["snowPROP"]["day_max"][0]:
+                                clmt[y][m]["snowPROP"]["day_max"][0] = round(float(clmt[y][m][d].snow),1)
+                                clmt[y][m]["snowPROP"]["day_max"][1] = []
+                                clmt[y][m]["snowPROP"]["day_max"][1].append(clmt[y][m][d])
+                        if float(clmt[y][m][d].snow) > 0 or clmt[y][m][d].snowM == "T":
+                            clmt[y]["snowDAYS"] += 1
+                            clmt[y][m]["snowDAYS"] += 1
+                    if "tmax" not in clmt[y]:
+                        clmt[y]["tempAVGlist"] = []
+                        clmt[y]["tmax"] = []
+                        clmt[y]["tmaxPROP"] = {"day_max":[-999,[]],"day_min":[999,[]],"month_AVG_max":[-999,"n/a"],"month_AVG_min":[999,"n/a"]}
+                    if "tmax" not in clmt[y][m]:
+                        clmt[y][m]["tempAVGlist"] = []
+                        clmt[y][m]["tmax"] = []
+                        clmt[y][m]["tmaxPROP"] = {"day_max":[-999,[]],"day_min":[999,[]]}
+                    if "tmin" not in clmt[y]:
+                        clmt[y]["tmin"] = []
+                        clmt[y]["tminPROP"] = {"day_max":[-999,[]],"day_min":[999,[]],"month_AVG_max":[-999,"n/a"],"month_AVG_min":[999,"n/a"]}
+                    if "tmin" not in clmt[y][m]:
+                        clmt[y][m]["tmin"] = []
+                        clmt[y][m]["tminPROP"] = {"day_max":[-999,[]],"day_min":[999,[]]}
+                    if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""]:
+                        if clmt[y][m][d].tmin != "" and int(clmt[y][m][d].tmax) >= int(clmt[y][m][d].tmin):
+                            clmt[y]["tmax"].append(int(clmt[y][m][d].tmax))
+                            if int(clmt[y][m][d].tmax) == clmt[y]["tmaxPROP"]["day_max"][0]:
+                                clmt[y]["tmaxPROP"]["day_max"][1].append(clmt[y][m][d])
+                            elif int(clmt[y][m][d].tmax) > clmt[y]["tmaxPROP"]["day_max"][0]:
+                                clmt[y]["tmaxPROP"]["day_max"][0] = int(clmt[y][m][d].tmax)
+                                clmt[y]["tmaxPROP"]["day_max"][1] = []
+                                clmt[y]["tmaxPROP"]["day_max"][1].append(clmt[y][m][d])
+                            if int(clmt[y][m][d].tmax) == clmt[y]["tmaxPROP"]["day_min"][0]:
+                                clmt[y]["tmaxPROP"]["day_min"][1].append(clmt[y][m][d])
+                            elif int(clmt[y][m][d].tmax) < clmt[y]["tmaxPROP"]["day_min"][0]:
+                                clmt[y]["tmaxPROP"]["day_min"][0] = int(clmt[y][m][d].tmax)
+                                clmt[y]["tmaxPROP"]["day_min"][1] = []
+                                clmt[y]["tmaxPROP"]["day_min"][1].append(clmt[y][m][d])
+                            clmt[y][m]["tmax"].append(int(clmt[y][m][d].tmax))
+                            if int(clmt[y][m][d].tmax) == clmt[y][m]["tmaxPROP"]["day_max"][0]:
+                                clmt[y][m]["tmaxPROP"]["day_max"][1].append(clmt[y][m][d])
+                            elif int(clmt[y][m][d].tmax) > clmt[y][m]["tmaxPROP"]["day_max"][0]:
+                                clmt[y][m]["tmaxPROP"]["day_max"][0] = int(clmt[y][m][d].tmax)
+                                clmt[y][m]["tmaxPROP"]["day_max"][1] = []
+                                clmt[y][m]["tmaxPROP"]["day_max"][1].append(clmt[y][m][d])
+                            if int(clmt[y][m][d].tmax) == clmt[y][m]["tmaxPROP"]["day_min"][0]:
+                                clmt[y][m]["tmaxPROP"]["day_min"][1].append(clmt[y][m][d])
+                            elif int(clmt[y][m][d].tmax) < clmt[y][m]["tmaxPROP"]["day_min"][0]:
+                                clmt[y][m]["tmaxPROP"]["day_min"][0] = int(clmt[y][m][d].tmax)
+                                clmt[y][m]["tmaxPROP"]["day_min"][1] = []
+                                clmt[y][m]["tmaxPROP"]["day_min"][1].append(clmt[y][m][d])
+                    if clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmin not in ["9999","-9999",""]:
+                        if clmt[y][m][d].tmax != "" and int(clmt[y][m][d].tmin) <= int(clmt[y][m][d].tmax):
+                            clmt[y]["tmin"].append(int(clmt[y][m][d].tmin))
+                            if int(clmt[y][m][d].tmin) == clmt[y]["tminPROP"]["day_max"][0]:
+                                clmt[y]["tminPROP"]["day_max"][1].append(clmt[y][m][d])
+                            elif int(clmt[y][m][d].tmin) > clmt[y]["tminPROP"]["day_max"][0]:
+                                clmt[y]["tminPROP"]["day_max"][0] = int(clmt[y][m][d].tmin)
+                                clmt[y]["tminPROP"]["day_max"][1] = []
+                                clmt[y]["tminPROP"]["day_max"][1].append(clmt[y][m][d])
+                            if int(clmt[y][m][d].tmin) == clmt[y]["tminPROP"]["day_min"][0]:
+                                clmt[y]["tminPROP"]["day_min"][1].append(clmt[y][m][d])
+                            elif int(clmt[y][m][d].tmin) < clmt[y]["tminPROP"]["day_min"][0]:
+                                clmt[y]["tminPROP"]["day_min"][0] = int(clmt[y][m][d].tmin)
+                                clmt[y]["tminPROP"]["day_min"][1] = []
+                                clmt[y]["tminPROP"]["day_min"][1].append(clmt[y][m][d])
+                            clmt[y][m]["tmin"].append(int(clmt[y][m][d].tmin))
+                            if int(clmt[y][m][d].tmin) == clmt[y][m]["tminPROP"]["day_max"][0]:
+                                clmt[y][m]["tminPROP"]["day_max"][1].append(clmt[y][m][d])
+                            elif int(clmt[y][m][d].tmin) > clmt[y][m]["tminPROP"]["day_max"][0]:
+                                clmt[y][m]["tminPROP"]["day_max"][0] = int(clmt[y][m][d].tmin)
+                                clmt[y][m]["tminPROP"]["day_max"][1] = []
+                                clmt[y][m]["tminPROP"]["day_max"][1].append(clmt[y][m][d])
+                            if int(clmt[y][m][d].tmin) == clmt[y][m]["tminPROP"]["day_min"][0]:
+                                clmt[y][m]["tminPROP"]["day_min"][1].append(clmt[y][m][d])
+                            elif int(clmt[y][m][d].tmin) < clmt[y][m]["tminPROP"]["day_min"][0]:
+                                clmt[y][m]["tminPROP"]["day_min"][0] = int(clmt[y][m][d].tmin)
+                                clmt[y][m]["tminPROP"]["day_min"][1] = []
+                                clmt[y][m]["tminPROP"]["day_min"][1].append(clmt[y][m][d])
+                    if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""] and clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmin not in ["9999","-9999",""] and int(clmt[y][m][d].tmax) >= int(clmt[y][m][d].tmin):
+                        clmt[y]["tempAVGlist"].append(int(clmt[y][m][d].tmax))
+                        clmt[y]["tempAVGlist"].append(int(clmt[y][m][d].tmin))
+                        clmt[y][m]["tempAVGlist"].append(int(clmt[y][m][d].tmax))
+                        clmt[y][m]["tempAVGlist"].append(int(clmt[y][m][d].tmin))
 
     # MONTHLY STATS
     for y in [YR for YR in clmt if type(YR) == int]:
@@ -433,6 +437,7 @@ def qflagCheck(*q):
         print("Z - Flagged as a result of an official Datzilla Investigation")
 
 def dayStats(y,m,d):
+    ranks = ["th","st","nd","rd","th","th","th","th","th","th"]
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     dayExists = checkDate(y,m,d)
     if dayExists:
@@ -440,24 +445,81 @@ def dayStats(y,m,d):
         print("Statistics for {}".format(dayobj.entryday))
         print("{}: {}".format(clmt["station"],clmt["station_name"]))
         print("-------------------")
-        if dayobj.prcpM == "T":
+        if dayobj.prcpM == "T":     # PRCP - Trace Amount
             if dayobj.prcpQ != "": print("PRCP: T, Flag: {} - {}".format(dayobj.prcpQ,qflagCheck(dayobj.prcpQ)))
             else: print("PRCP: T")
-        else:
-            if dayobj.prcpQ != "": print("PRCP: {}, Flag: {} - {}".format(dayobj.prcp,dayobj.prcpQ,qflagCheck(dayobj.prcpQ)))
-            else: print("PRCP: {}".format(dayobj.prcp))
-        if dayobj.snowM == "T":
-            if dayobj.snowQ != "": print("SNOW: T, Flag: {} - {}".format(dayobj.snowQ,qflagCheck(dayobj.snowQ)))
-            else: print("SNOW: T")
-        else:
-            if dayobj.snowQ != "": print("SNOW: {}, Flag: {} - {}".format(dayobj.snow,dayobj.snowQ,qflagCheck(dayobj.snowQ)))
-            else: print("SNOW: {}".format(dayobj.snow))
-        if dayobj.snwdQ != "": print("SNWD: {}, Flag: {} - {}".format(dayobj.snwd,dayobj.snwdQ,qflagCheck(dayobj.snwdQ)))
-        else: print("SNWD: {}".format(dayobj.snwd))
-        if dayobj.tmaxQ != "": print("TMAX: {}, Flag: {} - {}".format(dayobj.tmax,dayobj.tmaxQ,qflagCheck(dayobj.tmaxQ)))
-        else: print("TMAX: {}".format(dayobj.tmax))
-        if dayobj.tminQ != "": print("TMIN: {}, Flag: {} - {}".format(dayobj.tmin,dayobj.tminQ,qflagCheck(dayobj.tminQ)))
-        else: print("TMIN: {}".format(dayobj.tmin))
+        else:   # PRCP - 0 or greater; no trace
+            prcphist = sorted(list(set(list(round(float(clmt[Y][m][d].prcp),2) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].prcp != "" and float(clmt[Y][m][d].prcp) != 0 and clmt[Y][m][d].prcpQ == ""))),reverse=True)
+            if dayobj.prcpQ != "":  # if PRCP has an error flag
+                if float(dayobj.prcp) == 0: print("PRCP: {}, Flag: {} - {}".format(dayobj.prcp,dayobj.prcpQ,qflagCheck(dayobj.prcpQ)))
+                else: print("PRCP: {}, Rank: {}, Flag: {} - {}".format(dayobj.prcp,prcphist.index(round(float(dayobj.prcp),2))+1,dayobj.prcpQ,qflagCheck(dayobj.prcpQ)))
+            else: # NO error Flag
+                if float(dayobj.prcp) == 0: print("PRCP: {}".format(dayobj.prcp))
+                else: print("PRCP: {}, Rank: {}".format(dayobj.prcp,prcphist.index(round(float(dayobj.prcp),2))+1))
+        if dayobj.snowM != "" or dayobj.snow != "" and float(dayobj.snow) != 0:
+            if dayobj.snowM == "T":     # SNOW - Trace
+                if dayobj.snowQ != "": print("SNOW: T, Flag: {} - {}".format(dayobj.snowQ,qflagCheck(dayobj.snowQ)))
+                else: print("SNOW: T")
+            else: # Snow - 0 or more; no trace recorded
+                snowhist = sorted(list(set(list(round(float(clmt[Y][m][d].snow),1) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].snow != "" and float(clmt[Y][m][d].snow) != 0 and clmt[Y][m][d].snowQ == ""))),reverse=True)
+                if dayobj.snowQ != "": # if SNOW has an error flag
+                    if float(dayobj.snow) == 0: print("SNOW: {}, Flag: {} - {}".format(dayobj.snow,dayobj.snowQ,qflagCheck(dayobj.snowQ)))
+                    else: print("SNOW: {}, Rank: {}, Flag: {} - {}".format(dayobj.snow,snowhist.index(round(float(dayobj.snow),1))+1,dayobj.snowQ,qflagCheck(dayobj.snowQ)))
+                else: # No error flag
+                    if float(dayobj.snow) == 0: print("SNOW: {}".format(dayobj.snow))
+                    else: print("SNOW: {}, Rank: {}".format(dayobj.snow,snowhist.index(round(float(dayobj.snow),1))+1))
+        if dayobj.snwd != "" and float(dayobj.snwd) > 0:
+            if dayobj.snwdM == "T":     # snwd - Trace
+                if dayobj.snwdQ != "": print("SNWD: T, Flag: {} - {}".format(dayobj.snwdQ,qflagCheck(dayobj.snwdQ)))
+                else: print("SNWD: T")
+            else: # snwd - 0 or more; no trace recorded
+                snwdhist = sorted(list(set(list(round(float(clmt[Y][m][d].snwd),1) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].snwd != "" and float(clmt[Y][m][d].snwd) != 0 and clmt[Y][m][d].snwdQ == ""))),reverse=True)
+                if dayobj.snwdQ != "": # if snwd has an error flag
+                    if float(dayobj.snwd) == 0: print("SNWD: {}, Flag: {} - {}".format(dayobj.snwd,dayobj.snwdQ,qflagCheck(dayobj.snwdQ)))
+                    else: print("SNWD: {}, Rank: {}, Flag: {} - {}".format(dayobj.snwd,snwdhist.index(round(float(dayobj.snwd),1))+1,dayobj.snwdQ,qflagCheck(dayobj.snwdQ)))
+                else: # No error flag
+                    if float(dayobj.snwd) == 0: print("snwd: {}".format(dayobj.snwd))
+                    else: print("SNWD: {}, Rank: {}".format(dayobj.snwd,snwdhist.index(round(float(dayobj.snwd),1))+1))
+        tmaxdeschist = sorted(list(set(list(int(clmt[Y][m][d].tmax) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].tmax != "" and clmt[Y][m][d].tmaxQ == ""))),reverse=True)
+        tmaxaschist = sorted(list(set(list(int(clmt[Y][m][d].tmax) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].tmax != "" and clmt[Y][m][d].tmaxQ == ""))))
+        if dayobj.tmaxQ != "": # TMAX Error flag
+            if dayobj.tmax == "": print("TMAX: N/A, Flag: {} - {}".format(dayobj.tmax,dayobj.tmaxQ,qflagCheck(dayobj.tmaxQ)))
+            else: # if temp was recorded
+                print("TMAX: {}, Rank: {}{} Warmest; {}{} Coolest, Flag: {} - {}".format(dayobj.tmax,
+             tmaxdeschist.index(int(dayobj.tmax))+1,
+             ranks[int(str(tmaxdeschist.index(int(dayobj.tmax))+1)[len(str(tmaxdeschist.index(int(dayobj.tmax))+1))-1])] if tmaxdeschist.index(int(dayobj.tmax))+1 not in [11,12,13] else "th",
+             tmaxaschist.index(int(dayobj.tmax))+1,
+             ranks[int(str(tmaxaschist.index(int(dayobj.tmax))+1)[len(str(tmaxaschist.index(int(dayobj.tmax))+1))-1])] if tmaxaschist.index(int(dayobj.tmax))+1 not in [11,12,13] else "th",
+             dayobj.tmaxQ,
+             qflagCheck(dayobj.tmaxQ)))
+        else: # no TMAX error flag
+            if dayobj.tmax == "": print("TMAX: N/A".format(dayobj.tmax))
+            else: # if temp was recorded
+                print("TMAX: {}, Rank: {}{} Warmest; {}{} Coolest".format(dayobj.tmax,
+             tmaxdeschist.index(int(dayobj.tmax))+1,
+             ranks[int(str(tmaxdeschist.index(int(dayobj.tmax))+1)[len(str(tmaxdeschist.index(int(dayobj.tmax))+1))-1])] if tmaxdeschist.index(int(dayobj.tmax))+1 not in [11,12,13] else "th",
+             tmaxaschist.index(int(dayobj.tmax))+1,
+             ranks[int(str(tmaxaschist.index(int(dayobj.tmax))+1)[len(str(tmaxaschist.index(int(dayobj.tmax))+1))-1])] if tmaxaschist.index(int(dayobj.tmax))+1 not in [11,12,13] else "th"))
+        tmindeschist = sorted(list(set(list(int(clmt[Y][m][d].tmin) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].tmin != "" and clmt[Y][m][d].tminQ == ""))),reverse=True)
+        tminaschist = sorted(list(set(list(int(clmt[Y][m][d].tmin) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].tmin != "" and clmt[Y][m][d].tminQ == ""))))
+        if dayobj.tminQ != "": # tmin Error flag
+            if dayobj.tmin == "": print("TMIN: N/A, Flag: {} - {}".format(dayobj.tmin,dayobj.tminQ,qflagCheck(dayobj.tminQ)))
+            else: # if temp was recorded
+                print("TMIN: {}, Rank: {}{} Warmest; {}{} Coolest, Flag: {} - {}".format(dayobj.tmin,
+         tmindeschist.index(int(dayobj.tmin))+1,
+         ranks[int(str(tmindeschist.index(int(dayobj.tmin))+1)[len(str(tmindeschist.index(int(dayobj.tmin))+1))-1])] if tmindeschist.index(int(dayobj.tmin))+1 not in [11,12,13] else "th",
+         tminaschist.index(int(dayobj.tmin))+1,
+         ranks[int(str(tminaschist.index(int(dayobj.tmin))+1)[len(str(tminaschist.index(int(dayobj.tmin))+1))-1])] if tminaschist.index(int(dayobj.tmin))+1 not in [11,12,13] else "th",
+         dayobj.tminQ,
+         qflagCheck(dayobj.tminQ)))
+        else: # no tmin error flag
+            if dayobj.tmin == "": print("TMIN: N/A".format(dayobj.tmin))
+            else: # if temp was recorded
+                print("TMIN: {}, Rank: {}{} Warmest; {}{} Coolest".format(dayobj.tmin,
+         tmindeschist.index(int(dayobj.tmin))+1,
+         ranks[int(str(tmindeschist.index(int(dayobj.tmin))+1)[len(str(tmindeschist.index(int(dayobj.tmin))+1))-1])] if tmindeschist.index(int(dayobj.tmin))+1 not in [11,12,13] else "th",
+         tminaschist.index(int(dayobj.tmin))+1,
+         ranks[int(str(tminaschist.index(int(dayobj.tmin))+1)[len(str(tminaschist.index(int(dayobj.tmin))+1))-1])] if tminaschist.index(int(dayobj.tmin))+1 not in [11,12,13] else "th"))
         try:
             if int(dayobj.tmax) < int(dayobj.tmin): print("*** CHECK DATA: TMIN > TMAX ***")
         except:
@@ -2695,7 +2757,7 @@ FILE = None
 
 # WELCOME MESSAGE UPON STARTING
 print("************************************")
-print("CLIMATE PARSER (clmt-parser.py) v1.4")
+print("CLIMATE PARSER (clmt-parser.py) v1.8")
 print("  by K. Gentry (ksgwxfan)")
 print("************************************\n")
 
