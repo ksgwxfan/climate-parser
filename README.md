@@ -1,8 +1,12 @@
-# Climate Parser v1.4
+# Climate Parser v1.8
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Introduction
 Weather data are faithfully kept, recorded, and preserved everyday. This is primarily done via assistance of weather-stations which are plentiful and scattered-about all over the United States. This script allows the user to analyze downloaded CSV files that contain land-based station data. Within seconds, the user can retrieve daily, weekly, monthly, annual, and even climatological data, including ranking the data.
+
+### New in v1.8
+* Significantly increased speed of script loading/mounting
+* Enhanced `dayStats(y,m,d)` to display ranks of stats for that particular day of interest
 
 ### Contents
 **&bull; Go ahead and download the script** `clmt_parser.py`
@@ -164,15 +168,14 @@ These are a set of functions to get info specific info based on a desired tempor
 
 Simple report retrieved for desired day
 ```
->>> dayStats(1950,7,9)
-Statistics for 1950-07-09
-USC00001337: CITY, USA
+>>> dayStats(2000,12,25)
+Statistics for 2000-12-25
+2 stations, CITY, USA
 -------------------
-PRCP: 50.00, Flag: G - Failed (G)ap Check
-SNOW: 0.0
-SNWD: 
-TMAX: 78
-TMIN: 58
+PRCP: 0.01, Rank: 21
+SNWD: 11.0
+TMAX: 12, Rank: 32nd Warmest; 13th Coolest
+TMIN: -17, Rank: 50th Warmest; 4th Coolest
 ```
 
 Delivered stats based on a 7-day week with the submitted date being the center of that period
@@ -456,6 +459,8 @@ The above could be accessed via a simple object attribute call
 ### Roadmap
 
 Considerations
+* Create Meteorological year functions (Spring-to-Winter rather than Jan-to-Dec). This would be so you could still compare years to one another but not have the predicament of 2 partial winters being included, like in a standard year
+* Create Meteorological season functions to compare season-to-season
 * Convert all string digits to integers/floats upon creation of `clmt`. This primarily would assist in making the code easier to understand
 * For CSV's that are combined, somehow make note of the station that an attribute is pulled from
 * Add CSV-output keyword arguments for the report functions
