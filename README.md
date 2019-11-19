@@ -412,7 +412,7 @@ Year and Month keys have additional keys besides their integer counter-parts. Th
 ```
 
 * `clmt[2005][4]["prcp"]` would return a list of individual precipitation amounts recorded for April 2005
-* `clmt[2009]["snow"] would return a list of individual snow amounts occurring in the year 2009
+* `clmt[2009]["snow"]` would return a list of individual snow amounts occurring in the year 2009
 
 The above in lists can easily be worked with using the `sum` function or a `statistics` module method, like `mean`.
 * `sum(clmt[1982]["prcp"])` would return the total rain amount for the year 1982
@@ -446,7 +446,7 @@ Day keys contain `object` values. So each day in the record has the following at
 
 The above could be accessed via a simple object attribute call
 * `clmt[1992][12][29].tmax` would give the high-temperature for December 29, 1992
-* This kind of use is extremely simplified using the [Stats functions](#stats)
+* This kind of use is extremely, but powerfully, simplified using the [Stats functions](#stats)
 
 [&#8679; back to Contents](#contents)
 
