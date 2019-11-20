@@ -7,6 +7,9 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 ### New in v1.8
 * Significantly increased speed of script loading/mounting
 * Enhanced `dayStats(y,m,d)` to display ranks of stats for that particular day of interest
+##### *Tweaks in v.1.81*
+* Fixed `dayStats` rank error for values that had flags
+* `errorStats` now displays the quality flag next to the value, in addition to the flag description
 
 ### Contents
 **&bull; Go ahead and download the script** `clmt_parser.py`
@@ -458,12 +461,12 @@ The above could be accessed via a simple object attribute call
 
 ### Roadmap
 
-Considerations
 * Create Meteorological year functions (Spring-to-Winter rather than Jan-to-Dec). This would be so you could still compare years to one another but not have the predicament of 2 partial winters being included, like in a standard year
 * Create Meteorological season functions to compare season-to-season
 * Convert all string digits to integers/floats upon creation of `clmt`. This primarily would assist in making the code easier to understand
 * For CSV's that are combined, somehow make note of the station that an attribute is pulled from
 * Add CSV-output keyword arguments for the report functions
+* Include SNWD (Snow Depth) in rankings
 * Exclude current year from rankings/reports if year is not close to being finished
 * Add a record threshold for the ranking functions; truncating after a certain amount
   * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
