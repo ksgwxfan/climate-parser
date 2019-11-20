@@ -296,6 +296,8 @@ def attchk(attstr):
     return M,Q,S,T
 
 def errorStats():
+    #if "ignore" in ig: ignoreflags.append(ig["ignore"])
+    #if "heed" in ig: ignoreflags.remove(ig["heed"])
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     total_records = 0
     errors = []
@@ -342,19 +344,19 @@ def errorStats():
         for y in error_array[x]:
             if x == 0:
                 if y.prcpQ not in [i for i in ignoreflags if i != "I"] or y.prcp in ["9999","-9999"]:
-                    print("Day: {}; PRCP: {}; Quality Flag (prcpQ): {}".format(y.daystr,y.prcp,qflagCheck(y.prcpQ)))
+                    print("Day: {}; PRCP: {}; Quality Flag (prcpQ): {} - {}".format(y.daystr,y.prcp,y.prcpQ,qflagCheck(y.prcpQ)))
             if x == 1:
                 if y.snowQ not in [i for i in ignoreflags if i != "I"] or y.snow in ["9999","-9999"]:
-                    print("Day: {}; SNOW: {}; Quality Flag (snowQ): {}".format(y.daystr,y.snow,qflagCheck(y.snowQ)))
+                    print("Day: {}; SNOW: {}; Quality Flag (snowQ): {} - {}".format(y.daystr,y.snow,y.snowQ,qflagCheck(y.snowQ)))
             if x == 2:
                 if y.snwdQ not in ignoreflags or y.snwd in ["9999","-9999"]:
-                    print("Day: {}; SNWD: {}; Quality Flag (snwdQ): {}".format(y.daystr,y.snwd,qflagCheck(y.snwdQ)))
+                    print("Day: {}; SNWD: {}; Quality Flag (snwdQ): {} - {}".format(y.daystr,y.snwd,y.snwdQ,qflagCheck(y.snwdQ)))
             if x == 3:
                 if y.tmaxQ not in ignoreflags and y.tmaxQ != "I" or y.tmax in ["9999","-9999"]:
-                    print("Day: {}; TMAX: {}; Quality Flag (tmaxQ): {}".format(y.daystr,y.tmax,qflagCheck(y.tmaxQ)))
+                    print("Day: {}; TMAX: {}; Quality Flag (tmaxQ): {} - {}".format(y.daystr,y.tmax,y.tmaxQ,qflagCheck(y.tmaxQ)))
             if x == 4:
                 if y.tminQ not in ignoreflags and y.tminQ != "I" or y.tmax in ["9999","-9999"]:
-                    print("Day: {}; TMIN: {}; Quality Flag (tminQ): {}".format(y.daystr,y.tmin,qflagCheck(y.tminQ)))
+                    print("Day: {}; TMIN: {}; Quality Flag (tminQ): {} - {}".format(y.daystr,y.tmin,y.tminQ,qflagCheck(y.tminQ)))
 
     print("---------------------------")
     print("TOTAL DAYS where tmax and/or tmin is missing: {}".format(misscounter))
@@ -452,7 +454,7 @@ def dayStats(y,m,d):
             prcphist = sorted(list(set(list(round(float(clmt[Y][m][d].prcp),2) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].prcp != "" and float(clmt[Y][m][d].prcp) != 0 and clmt[Y][m][d].prcpQ == ""))),reverse=True)
             if dayobj.prcpQ != "":  # if PRCP has an error flag
                 if float(dayobj.prcp) == 0: print("PRCP: {}, Flag: {} - {}".format(dayobj.prcp,dayobj.prcpQ,qflagCheck(dayobj.prcpQ)))
-                else: print("PRCP: {}, Rank: {}, Flag: {} - {}".format(dayobj.prcp,prcphist.index(round(float(dayobj.prcp),2))+1,dayobj.prcpQ,qflagCheck(dayobj.prcpQ)))
+                else: print("PRCP: {}, Rank: --, Flag: {} - {}".format(dayobj.prcp,dayobj.prcpQ,qflagCheck(dayobj.prcpQ)))
             else: # NO error Flag
                 if float(dayobj.prcp) == 0: print("PRCP: {}".format(dayobj.prcp))
                 else: print("PRCP: {}, Rank: {}".format(dayobj.prcp,prcphist.index(round(float(dayobj.prcp),2))+1))
@@ -464,7 +466,7 @@ def dayStats(y,m,d):
                 snowhist = sorted(list(set(list(round(float(clmt[Y][m][d].snow),1) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].snow != "" and float(clmt[Y][m][d].snow) != 0 and clmt[Y][m][d].snowQ == ""))),reverse=True)
                 if dayobj.snowQ != "": # if SNOW has an error flag
                     if float(dayobj.snow) == 0: print("SNOW: {}, Flag: {} - {}".format(dayobj.snow,dayobj.snowQ,qflagCheck(dayobj.snowQ)))
-                    else: print("SNOW: {}, Rank: {}, Flag: {} - {}".format(dayobj.snow,snowhist.index(round(float(dayobj.snow),1))+1,dayobj.snowQ,qflagCheck(dayobj.snowQ)))
+                    else: print("SNOW: {}, Rank: --, Flag: {} - {}".format(dayobj.snow,dayobj.snowQ,qflagCheck(dayobj.snowQ)))
                 else: # No error flag
                     if float(dayobj.snow) == 0: print("SNOW: {}".format(dayobj.snow))
                     else: print("SNOW: {}, Rank: {}".format(dayobj.snow,snowhist.index(round(float(dayobj.snow),1))+1))
@@ -476,7 +478,7 @@ def dayStats(y,m,d):
                 snwdhist = sorted(list(set(list(round(float(clmt[Y][m][d].snwd),1) for Y in clmt if type(Y) == int and m in clmt[Y] and d in clmt[Y][m] and clmt[Y][m][d].snwd != "" and float(clmt[Y][m][d].snwd) != 0 and clmt[Y][m][d].snwdQ == ""))),reverse=True)
                 if dayobj.snwdQ != "": # if snwd has an error flag
                     if float(dayobj.snwd) == 0: print("SNWD: {}, Flag: {} - {}".format(dayobj.snwd,dayobj.snwdQ,qflagCheck(dayobj.snwdQ)))
-                    else: print("SNWD: {}, Rank: {}, Flag: {} - {}".format(dayobj.snwd,snwdhist.index(round(float(dayobj.snwd),1))+1,dayobj.snwdQ,qflagCheck(dayobj.snwdQ)))
+                    else: print("SNWD: {}, Rank: --, Flag: {} - {}".format(dayobj.snwd,dayobj.snwdQ,qflagCheck(dayobj.snwdQ)))
                 else: # No error flag
                     if float(dayobj.snwd) == 0: print("snwd: {}".format(dayobj.snwd))
                     else: print("SNWD: {}, Rank: {}".format(dayobj.snwd,snwdhist.index(round(float(dayobj.snwd),1))+1))
@@ -485,13 +487,7 @@ def dayStats(y,m,d):
         if dayobj.tmaxQ != "": # TMAX Error flag
             if dayobj.tmax == "": print("TMAX: N/A, Flag: {} - {}".format(dayobj.tmax,dayobj.tmaxQ,qflagCheck(dayobj.tmaxQ)))
             else: # if temp was recorded
-                print("TMAX: {}, Rank: {}{} Warmest; {}{} Coolest, Flag: {} - {}".format(dayobj.tmax,
-             tmaxdeschist.index(int(dayobj.tmax))+1,
-             ranks[int(str(tmaxdeschist.index(int(dayobj.tmax))+1)[len(str(tmaxdeschist.index(int(dayobj.tmax))+1))-1])] if tmaxdeschist.index(int(dayobj.tmax))+1 not in [11,12,13] else "th",
-             tmaxaschist.index(int(dayobj.tmax))+1,
-             ranks[int(str(tmaxaschist.index(int(dayobj.tmax))+1)[len(str(tmaxaschist.index(int(dayobj.tmax))+1))-1])] if tmaxaschist.index(int(dayobj.tmax))+1 not in [11,12,13] else "th",
-             dayobj.tmaxQ,
-             qflagCheck(dayobj.tmaxQ)))
+                print("TMAX: {}, Rank: --, Flag: {} - {}".format(dayobj.tmax,dayobj.tmaxQ,qflagCheck(dayobj.tmaxQ)))
         else: # no TMAX error flag
             if dayobj.tmax == "": print("TMAX: N/A".format(dayobj.tmax))
             else: # if temp was recorded
@@ -505,13 +501,7 @@ def dayStats(y,m,d):
         if dayobj.tminQ != "": # tmin Error flag
             if dayobj.tmin == "": print("TMIN: N/A, Flag: {} - {}".format(dayobj.tmin,dayobj.tminQ,qflagCheck(dayobj.tminQ)))
             else: # if temp was recorded
-                print("TMIN: {}, Rank: {}{} Warmest; {}{} Coolest, Flag: {} - {}".format(dayobj.tmin,
-         tmindeschist.index(int(dayobj.tmin))+1,
-         ranks[int(str(tmindeschist.index(int(dayobj.tmin))+1)[len(str(tmindeschist.index(int(dayobj.tmin))+1))-1])] if tmindeschist.index(int(dayobj.tmin))+1 not in [11,12,13] else "th",
-         tminaschist.index(int(dayobj.tmin))+1,
-         ranks[int(str(tminaschist.index(int(dayobj.tmin))+1)[len(str(tminaschist.index(int(dayobj.tmin))+1))-1])] if tminaschist.index(int(dayobj.tmin))+1 not in [11,12,13] else "th",
-         dayobj.tminQ,
-         qflagCheck(dayobj.tminQ)))
+                print("TMIN: {}, Rank: --, Flag: {} - {}".format(dayobj.tmin,dayobj.tminQ,qflagCheck(dayobj.tminQ)))
         else: # no tmin error flag
             if dayobj.tmin == "": print("TMIN: N/A".format(dayobj.tmin))
             else: # if temp was recorded
@@ -2757,7 +2747,7 @@ FILE = None
 
 # WELCOME MESSAGE UPON STARTING
 print("************************************")
-print("CLIMATE PARSER (clmt-parser.py) v1.8")
+print("CLIMATE PARSER (clmt-parser.py) v1.81")
 print("  by K. Gentry (ksgwxfan)")
 print("************************************\n")
 
