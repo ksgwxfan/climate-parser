@@ -1,20 +1,31 @@
-# Climate Parser v1.8
+# Climate Parser v2.0
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
+
+### Requirements
+* This script was written with Python 3.7x installed; no 3rd-party modules need to be installed
 
 ### Introduction
 Weather data are faithfully kept, recorded, and preserved everyday. This is primarily done via assistance of weather-stations which are plentiful and scattered-about all over the United States. This script allows the user to analyze downloaded CSV files that contain land-based station data. Within seconds, the user can retrieve daily, weekly, monthly, annual, and even climatological data, including ranking the data.
 
-### New in v1.8
-* Significantly increased speed of script loading/mounting
-* Enhanced `dayStats(y,m,d)` to display ranks of stats for that particular day of interest
-##### *Tweaks in v.1.81*
-* Fixed `dayStats` rank error for values that had flags
-* `errorStats` now displays the quality flag next to the value, in addition to the flag description
+### New in v2.0
+* Inclusion of Meteorological Season functions. Allows one to compare seasons to other like-seasons.
+  * Spring - 3,4,5; Summer - 6,7,8; Fall - 9,10,11; Winter - 12,1,2
+* Inclusion of Meteorological Year functions. Meteorological years go from March to February of the following year (Spring to Winter), encompassing 4 complete seasons. Otherwise, the winter months (12,1,2) would include data from seperate winters like found if assessing a calendar year. Any inferred difference would be much less if astronomically-based functions were included, as there would only be a 10 or 11 day shift in the yearly calculations. But meteorological seasons are much simpler to deal with, and they are a standard temporal frame recognized in the weather community
+* Added accessible record-threshold variables near the end of the script to allow easy tweaking. These variables control if a year, season, month, or week of interest is included in reports and rankings. Another bonus is these thresholds can be modified after you compile/mount the script
+  * I included these record thresholds in rank function output
+* Added tweaks that aids legibility of the function output
+  * added fixed-digit output to reports and rankings
+  * added alignment to rankings
+
+##### *Fixes*
+* Fixed some record-threshold values that pointed to time-eras that weren't theirs (like 20 for a year when it should've been 300)
+* Reduced redundancy in the `monthRank` function
 
 ### Contents
 **&bull; Go ahead and download the script** `clmt_parser.py`
 * [Data Retrieval and Required Format](#data-retrieval-and-required-format)<br />
 * [Running the Script / Loading the Data](#running-the-script)
+* [A Note on Record Thresholds](#a-note-on-record-thresholds)
 * [Error Report Overview (skip if you just want to go to analyzing the data)](#error-report)
   * [OPTIONAL: Fixing Errored Data](#fixing-data)
 * [Overview of Core Functions](#overview-of-core-functions)
@@ -99,6 +110,21 @@ Now you're ready to do some analysis or inspect the data.
 
 [&#8679; back to Contents](#contents)
 
+### A Note on Record Thresholds
+
+A big part that is played in compiling reports and ranks is the exclusion of data if it is deemed insufficient or incomplete. The idea is to prevent, for example, years with only 50 days of data, all happening to be in the spring and summer months, from bothering yearly-ranks and reports. To handle this, I used exclusion thresholds. In v2.0 or newer, these variables are accessible at the end of the script, to allow you to tinker with if desired. For example, for yearly ranks, the default threshold is 300 days. Change it if you feel it is too lenient or not lenient enough of a standard. Just change the variable, and run your function again. For best results, change it in the code, then run the `clmtAnalyze` function again. The following are the default values found at the end of the script:
+```
+excludeyear = 300       # Exclude years from ranking/reports if year recordqty <= to this threshold
+excludeseason = 70      # Exclude season from rankings/reports if season recordqty <= to this threshold
+excludemonth = 20       # Exclude months from ranking/reports if month recordqty <= to this threshold
+excludeweek = 4         # Exclude weeks from ranking/reports if week recordqty <= to this threshold
+```
+In general, these thresholds are not used when determining precipitation maximums, but are used when calculating the driest months. So a month may only have 10 days of data, but if it ends up being the rainiest month, it'll show up in the ranks. But it won't if it is one of the driest months.
+
+Temperatures always use the thresholds, but uses the number of days with temperatures recorded, rather than the `recordqty`, as it's possible that temperature data is missing from a daily-record
+
+[&#8679; back to Contents](#contents)
+
 ### Error Report
 
 As is with most things in life, recorded data is not perfect. When you downloaded your station data, included were Data Flags. When compiling the data, various methods were used to investigate likely errors which I guess could've come from bad indexing or illegibility. Instead of manually checking the errors and fixing the numbers (which would be humanly impossible to do), quality flags were recorded. This script includes a function that can list dates and values with Quality Flags
@@ -117,7 +143,9 @@ It is possible to change the flags which are ignored.
 
 ### Fixing Data
 
-In the giant scope of these climate data records, these errors or flagged data probably contribute a very small amount to statistics/calculations. As such, manually modifying/fixing the data may, in large-part, be somewhat futile. You may feel it is important for ranking purposes. In the event you feel it necessary to investigate and change data, there are ways to modify the data manually. This section outlines that processs.
+This is advanced, and frankly, not very fun. Feel free to skip. Just know that by default, no data is included if it has been quality-flagged in any way.
+
+In the giant scope of these climate data records, these errors or flagged data probably contribute a very small amount to statistics/calculations. As such, manually modifying/fixing the data may, in large-part, be somewhat futile. You may feel it is important for ranking purposes. If anything, you may feel it is important to check/verify the data, and report it to the NCDC. In the event you feel it necessary to investigate and change data, there are ways to modify the data manually. This section outlines that process
 
 ##### *Verification*
 
@@ -167,11 +195,12 @@ The "bread-and-butter" of this program is to quickly generate output that would 
 
 #### Stats
 
-These are a set of functions to get info specific info based on a desired temporal length: `dayStats(y,m,d)`, `weekStats(y,m,d)`, `monthStats(y,m)`, `yearStats(y)`
+These are a set of functions to get info specific info based on a desired temporal length: `dayStats(y,m,d)`, `weekStats(y,m,d)`, `monthStats(y,m)`, `yearStats(y)`, `metYearStats(y)`, `seasonStats(y,season)`
 
 Simple report retrieved for desired day
 ```
 >>> dayStats(2000,12,25)
+
 Statistics for 2000-12-25
 2 stations, CITY, USA
 -------------------
@@ -179,6 +208,7 @@ PRCP: 0.01, Rank: 21
 SNWD: 11.0
 TMAX: 12, Rank: 32nd Warmest; 13th Coolest
 TMIN: -17, Rank: 50th Warmest; 4th Coolest
+
 ```
 
 Delivered stats based on a 7-day week with the submitted date being the center of that period
@@ -249,17 +279,76 @@ Average Min Temperature: 47.4
 -- Coolest AVG Monthly Min Temperature: 32.0 ::: January
 -----
 ```
+Return stats for the specified Meteorological Year (March-February)
+```
+>>> metYearStats(2015)
+-------------------------------------
+Statistics for Meteorological Year 2015
+USC00001337: CITY, USA
+Quantity of Records: 366
+-----
+Total Precipitation: 62.2
+Total Precipitation Days (>= T): 154
+-- Highest Daily Precip: 3.12 ::: 2015-04-20
+-- Wettest Month: 8.35 ::: June
+-- Driest Month: 2.46 ::: May
+Total Snow: 10.0
+Total Snow Days (>= T): 7
+-- Highest Daily Snow: 6.0 ::: 2016-01-23
+-- Snowiest Month: 8.0 ::: January
+Average Temperature: 57.6
+Average Max Temperature: 69.7
+-- Warmest Daily Max Temperature: 94 ::: 2015-07-31, 2015-08-06
+-- Coolest Daily Max Temperature: 24 ::: 2016-02-15
+-- Warmest AVG Monthly Max Temperature: 87.4 ::: July
+-- Coolest AVG Monthly Max Temperature: 45.5 ::: January
+Average Min Temperature: 45.5
+-- Warmest Min Temperature: 71 ::: 2015-08-20
+-- Coolest Min Temperature: 12 ::: 2016-01-07, 2016-01-20
+-- Warmest AVG Monthly Min Temperature: 65.2 ::: July
+-- Coolest AVG Monthly Min Temperature: 22.3 ::: January
+-----
+```
+
+Retrieve stats of a certain season (meteorological)
+```
+>>> seasonStats(1955,"autumn")
+-----------------------------------------------------
+Seasonal Statistics for Meteorological Fall 1955
+USC00001337: CITY, USA
+Quantity of Records: 91
+-----------------------------------------------------
+Total Precipitation: 4.11
+Total Precipitation Days (>= T): 22
+-- Highest Daily Precip: 0.83 ::: 1955-10-08
+-- Wettest Month: 1.92 ::: October
+-- Driest Month: 0.59 ::: September
+Average Temperature: 57.6
+Average Max Temperature: 71.2
+-- Warmest Daily Max Temperature: 93 ::: 1955-09-19
+-- Coolest Daily Max Temperature: 35 ::: 1955-11-29
+-- Warmest AVG Monthly Max Temperature: 81.9 ::: September
+-- Coolest AVG Monthly Max Temperature: 59.9 ::: November
+Average Min Temperature: 44.3
+-- Warmest Min Temperature: 66 ::: 1955-09-23
+-- Coolest Min Temperature: 14 ::: 1955-11-29
+-- Warmest AVG Monthly Min Temperature: 58.9 ::: September
+-- Coolest AVG Monthly Min Temperature: 31.0 ::: November
+-----
+```
 
 [&#8679; back to Contents](#contents)
 
 #### Reports
 
-These functions return robust climatological data, including all-time statistics and for climatological eras, incremented by 5 years. This enables, what I refer to as, climatological-tendency analysis. This allows you to see how the averages change over time, as comparisons of a day's, month's, or year's data usually only takes place against one time period. How is the long-term average changing? I believe it simplifies analysis and makes it easier to see trends. Of note, in `monthReport()` and `yearReport()`, reported standard deviations are calculated of the means/averages for individual months/years. 
+These functions return robust climatological data, including all-time statistics and for climatological eras, incremented by 5 years. This enables, what I refer to as, climatological-tendency analysis. This allows you to see how the averages change over time, as comparisons of a day's, month's, or year's data usually only takes place against one time period. How is the long-term average changing? I believe it simplifies analysis and makes it easier to see trends. Of note, in `monthReport()` and `yearReport()`, reported standard deviations are calculated of the means/averages for individual months/years. Associated data is not considered if threshold quantities are not met.
 
 `dayReport(m,d)` :: Collects and returns statistics for all specified days in the record
 `weekReport(m,d)` :: Gathers and reports for specified week in the entire record
 `monthReport(m)` :: Gives a report for a specific month
 `yearReport()` :: Analyzes the entire record and returns a report based on years; no passed-data is needed
+`metYearReport()` :: Same as above, but does so based on meteorological years (March-February)
+`seasonReport(season)` :: Gets a meteorologically-seasoned based statistic report
 
 ```
 >>> monthReport(12)
@@ -316,18 +405,21 @@ Part 2: December Temperature Stats
 1976-2005  3.7  38.6   46.8, 1984   29.8, 2000  | 10.0  50.0   59.9, 1984   41.2, 2000  |  9.4  27.3   34.1, 1990   18.4, 2000 
 1981-2010  3.9  38.5   46.8, 1984   29.8, 2000  | 10.2  49.6   59.9, 1984   41.2, 2000  |  9.1  27.4   34.1, 1990   18.4, 2000 
 1986-2015  4.0  39.1   48.3, 2015   29.8, 2000  |  9.8  50.3   59.2, 2015   41.2, 2000  |  8.9  27.8   37.4, 2015   18.4, 2000
+
 ```
 
 [&#8679; back to Contents](#contents)
 
 #### Ranking
 
-The "fun stuff." These temporal-based functions give quick info of record-setting times for the city
+The "fun stuff." These temporal-based functions give quick info of record-setting times for the city. Associated data is not considered if threshold quantities are not met.
 
 `dayRank(m,d,qty)` :: Searches for records based on a specific day. Input the month, day, and how many ranks you want the report to be on (put `10` for the top-10)
 `weekRank(m,d,qty)` :: Searches for weekly-based records with the provided day being the center of the week.
 `monthRank(m,"rain",qty)` :: Searches for records by the month. You must specifiy `"temp"` for temperature records or `"rain"` for precipitation-based records
 `yearRank("temp",qty)` :: Ranks by the year. Like `monthRank`, you must specify which type of ranking you want
+`metYearRank("temp",qty)` :: Ranks by the meteorological year (March-Feb). Like `monthRank`, you must specify which type of ranking you want
+`seasonRank(season,"temp",qty)` :: Ranks by the meteorological season. Like `monthRank`, you must specify which type of ranking you want
 
 Example output:
 
@@ -381,9 +473,6 @@ Example output:
                   |                  |     1991  148 |               |                 |     1980   11 
                   |                  |     2014  148 |               |                 |     2013   11
 ```
-
-Care was taken with the rankings. For monthly records to count, at least 21 days-worth of data must be there. For the yearly ranks, over 300 data entries for the year must exist. These measures were taken so partial months or years couldn't be presented due to incomplete data. For example, if a year had data from January to August, the average temperatures will be warmer than if it had data for the entire year. Alternatively, if data for the summer of a year was missing, the average temperatures would be too low. These measures aren't technically needed for high-precipitation amounts.
-
 [&#8679; back to Contents](#contents)
 
 ### On-the-fly Data retrieval
@@ -451,6 +540,8 @@ The above could be accessed via a simple object attribute call
 * `clmt[1992][12][29].tmax` would give the high-temperature for December 29, 1992
 * This kind of use is extremely, but powerfully, simplified using the [Stats functions](#stats)
 
+Meteorlogical Years/Seasons can also be retrieved in very similar ways as above. Instead of `clmt`, you would type `metclmt` in the commands above. Additionally, metclmt years have 4 additional keys, `"spring","summer","fall","winter"`. So you can get the list of high-temperatures for spring of 2017 like this: `metclmt[2017]["spring"]["tmax"]`. Here, as mentioned above, a lot has been simplified via the stats functions
+
 [&#8679; back to Contents](#contents)
 
 ### Sample Scripts
@@ -461,13 +552,10 @@ The above could be accessed via a simple object attribute call
 
 ### Roadmap
 
-* Create Meteorological year functions (Spring-to-Winter rather than Jan-to-Dec). This would be so you could still compare years to one another but not have the predicament of 2 partial winters being included, like in a standard year
-* Create Meteorological season functions to compare season-to-season
 * Convert all string digits to integers/floats upon creation of `clmt`. This primarily would assist in making the code easier to understand
 * For CSV's that are combined, somehow make note of the station that an attribute is pulled from
 * Add CSV-output keyword arguments for the report functions
 * Include SNWD (Snow Depth) in rankings
-* Exclude current year from rankings/reports if year is not close to being finished
 * Add a record threshold for the ranking functions; truncating after a certain amount
   * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
 * All-time based ranks.
@@ -478,6 +566,10 @@ The above could be accessed via a simple object attribute call
   * add fixed digits for all values in reports (so `52` would display as `52.0`; `1.1` would show up as `1.10`), increasing readability
 * I know I need to comment more in the code
 * Include help() docstrings for each individual function
+* Include least-snowiest years in year functions
+* Add ranks to month and year Stats functions
+* Add/check threshold to stat functions?
+* reduce redundancy of metclmt compiling by checking if I can remove the threshold bools
 
 [&#8679; back to Contents](#contents)
 
