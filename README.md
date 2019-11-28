@@ -1,4 +1,4 @@
-# Climate Parser v2.0
+# Climate Parser v2.01
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -7,7 +7,11 @@ A Python Script enabling extensive analysis of climate data for individual citie
 ### Introduction
 Weather data are faithfully kept, recorded, and preserved everyday. This is primarily done via assistance of weather-stations which are plentiful and scattered-about all over the United States. This script allows the user to analyze downloaded CSV files that contain land-based station data. Within seconds, the user can retrieve daily, weekly, monthly, annual, and even climatological data, including ranking the data.
 
-### New in v2.0
+### New in v2.x
+##### v2.01
+* cleaned up some testing artifacts
+
+##### v2.0
 * Inclusion of Meteorological Season functions. Allows one to compare seasons to other like-seasons.
   * Spring - 3,4,5; Summer - 6,7,8; Fall - 9,10,11; Winter - 12,1,2
 * Inclusion of Meteorological Year functions. Meteorological years go from March to February of the following year (Spring to Winter), encompassing 4 complete seasons. Otherwise, the winter months (12,1,2) would include data from seperate winters like found if assessing a calendar year. Any inferred difference would be much less if astronomically-based functions were included, as there would only be a 10 or 11 day shift in the yearly calculations. But meteorological seasons are much simpler to deal with, and they are a standard temporal frame recognized in the weather community

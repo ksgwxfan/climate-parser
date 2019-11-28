@@ -318,13 +318,13 @@ def clmtAnalyze(filename,**CITY):
         metclmt[y]["prcpPROP"]["month_max"][0] = round(max(sum(metclmt[y][m]["prcp"]) for m in metclmt[y] if type(m) == int),2)
         for s in ["spring","summer","fall","winter"]:
             try: metclmt[y][s]["prcpPROP"]["month_max"][0] = round(max(sum(metclmt[y][m]["prcp"]) for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"]),2)
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["prcpPROP"]["month_max"][1].extend(m for m in metclmt[y] if type(m) == int and round(sum(metclmt[y][m]["prcp"]),2) == metclmt[y]["prcpPROP"]["month_max"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["prcpPROP"]["month_max"][1].extend(m for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and round(sum(metclmt[y][m]["prcp"]),2) == metclmt[y][s]["prcpPROP"]["month_max"][0])
         metclmt[y]["prcpPROP"]["month_min"][0] = round(min(sum(metclmt[y][m]["prcp"]) for m in metclmt[y] if type(m) == int),2)
         for s in ["spring","summer","fall","winter"]:
             try: metclmt[y][s]["prcpPROP"]["month_min"][0] = round(min(sum(metclmt[y][m]["prcp"]) for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"]),2)
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["prcpPROP"]["month_min"][1].extend(m for m in metclmt[y] if type(m) == int and round(sum(metclmt[y][m]["prcp"]),2) == metclmt[y]["prcpPROP"]["month_min"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["prcpPROP"]["month_min"][1].extend(m for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and round(sum(metclmt[y][m]["prcp"]),2) == metclmt[y][s]["prcpPROP"]["month_min"][0])
         # SNOW
@@ -344,7 +344,7 @@ def clmtAnalyze(filename,**CITY):
         metclmt[y]["snowPROP"]["month_max"][0] = round(max(sum(metclmt[y][m]["snow"]) for m in metclmt[y] if type(m) == int),2)
         for s in ["spring","summer","fall","winter"]: 
             try: metclmt[y][s]["snowPROP"]["month_max"][0] = round(max(sum(metclmt[y][m]["snow"]) for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"]),2)
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["snowPROP"]["month_max"][1].extend(m for m in metclmt[y] if type(m) == int and round(sum(metclmt[y][m]["snow"]),2) == metclmt[y]["snowPROP"]["month_max"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["snowPROP"]["month_max"][1].extend(m for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and round(sum(metclmt[y][m]["snow"]),2) == metclmt[y][s]["snowPROP"]["month_max"][0])
         # TAVG
@@ -362,25 +362,25 @@ def clmtAnalyze(filename,**CITY):
         metclmt[y]["tmaxPROP"]["day_max"][0] = max(metclmt[y]["tmax"])
         for s in ["spring","summer","fall","winter"]: 
             try: metclmt[y][s]["tmaxPROP"]["day_max"][0] = max(metclmt[y][s]["tmax"])
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["tmaxPROP"]["day_max"][1].extend(metclmt[y][m][d] for m in metclmt[y] if type(m) == int for d in metclmt[y][m] if type(d) == int and metclmt[y][m][d].tmax != "" and int(metclmt[y][m][d].tmax) == metclmt[y]["tmaxPROP"]["day_max"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["tmaxPROP"]["day_max"][1].extend(metclmt[y][m][d] for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] for d in metclmt[y][m] if type(d) == int and metclmt[y][m][d].tmax != "" and int(metclmt[y][m][d].tmax) == metclmt[y][s]["tmaxPROP"]["day_max"][0])
         metclmt[y]["tmaxPROP"]["day_min"][0] = min(metclmt[y]["tmax"])
         for s in ["spring","summer","fall","winter"]: 
             try: metclmt[y][s]["tmaxPROP"]["day_min"][0] = min(metclmt[y][s]["tmax"])
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["tmaxPROP"]["day_min"][1].extend(metclmt[y][m][d] for m in metclmt[y] if type(m) == int for d in metclmt[y][m] if type(d) == int and metclmt[y][m][d].tmax != "" and int(metclmt[y][m][d].tmax) == metclmt[y]["tmaxPROP"]["day_min"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["tmaxPROP"]["day_min"][1].extend(metclmt[y][m][d] for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] for d in metclmt[y][m] if type(d) == int and metclmt[y][m][d].tmax != "" and int(metclmt[y][m][d].tmax) == metclmt[y][s]["tmaxPROP"]["day_min"][0])
         metclmt[y]["tmaxPROP"]["month_AVG_max"][0] = round(max(mean(metclmt[y][m]["tmax"]) for m in metclmt[y] if type(m) == int and len(metclmt[y][m]["tmax"]) > excludemonth),1)
         for s in ["spring","summer","fall","winter"]: 
             try:metclmt[y][s]["tmaxPROP"]["month_AVG_max"][0] = round(max(mean(metclmt[y][m]["tmax"]) for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and len(metclmt[y][m]["tmax"]) > excludemonth),1)
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["tmaxPROP"]["month_AVG_max"][1].extend(m for m in metclmt[y] if type(m) == int and len(metclmt[y][m]["tmax"]) > excludemonth and round(mean(metclmt[y][m]["tmax"]),1) == metclmt[y]["tmaxPROP"]["month_AVG_max"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["tmaxPROP"]["month_AVG_max"][1].extend(m for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and len(metclmt[y][m]["tmax"]) > excludemonth and round(mean(metclmt[y][m]["tmax"]),1) == metclmt[y][s]["tmaxPROP"]["month_AVG_max"][0])
         metclmt[y]["tmaxPROP"]["month_AVG_min"][0] = round(min(mean(metclmt[y][m]["tmax"]) for m in metclmt[y] if type(m) == int and len(metclmt[y][m]["tmax"]) > excludemonth),1)
         for s in ["spring","summer","fall","winter"]: 
             try: metclmt[y][s]["tmaxPROP"]["month_AVG_min"][0] = round(min(mean(metclmt[y][m]["tmax"]) for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and len(metclmt[y][m]["tmax"]) > excludemonth),1)
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["tmaxPROP"]["month_AVG_min"][1].extend(m for m in metclmt[y] if type(m) == int and len(metclmt[y][m]["tmax"]) > excludemonth and round(mean(metclmt[y][m]["tmax"]),1) == metclmt[y]["tmaxPROP"]["month_AVG_min"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["tmaxPROP"]["month_AVG_min"][1].extend(m for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and len(metclmt[y][m]["tmax"]) > excludemonth and round(mean(metclmt[y][m]["tmax"]),1) == metclmt[y][s]["tmaxPROP"]["month_AVG_min"][0])
         # TMIN
@@ -393,25 +393,25 @@ def clmtAnalyze(filename,**CITY):
         metclmt[y]["tminPROP"]["day_max"][0] = max(metclmt[y]["tmin"])
         for s in ["spring","summer","fall","winter"]: 
             try: metclmt[y][s]["tminPROP"]["day_max"][0] = max(metclmt[y][s]["tmin"])
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["tminPROP"]["day_max"][1].extend(metclmt[y][m][d] for m in metclmt[y] if type(m) == int for d in metclmt[y][m] if type(d) == int and metclmt[y][m][d].tmin != "" and int(metclmt[y][m][d].tmin) == metclmt[y]["tminPROP"]["day_max"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["tminPROP"]["day_max"][1].extend(metclmt[y][m][d] for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] for d in metclmt[y][m] if type(d) == int and metclmt[y][m][d].tmin != "" and int(metclmt[y][m][d].tmin) == metclmt[y][s]["tminPROP"]["day_max"][0])
         metclmt[y]["tminPROP"]["day_min"][0] = min(metclmt[y]["tmin"])
         for s in ["spring","summer","fall","winter"]: 
             try: metclmt[y][s]["tminPROP"]["day_min"][0] = min(metclmt[y][s]["tmin"])
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["tminPROP"]["day_min"][1].extend(metclmt[y][m][d] for m in metclmt[y] if type(m) == int for d in metclmt[y][m] if type(d) == int and metclmt[y][m][d].tmin != "" and int(metclmt[y][m][d].tmin) == metclmt[y]["tminPROP"]["day_min"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["tminPROP"]["day_min"][1].extend(metclmt[y][m][d] for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] for d in metclmt[y][m] if type(d) == int and metclmt[y][m][d].tmin != "" and int(metclmt[y][m][d].tmin) == metclmt[y][s]["tminPROP"]["day_min"][0])
         metclmt[y]["tminPROP"]["month_AVG_max"][0] = round(max(mean(metclmt[y][m]["tmin"]) for m in metclmt[y] if type(m) == int and len(metclmt[y][m]["tmin"]) > excludemonth),1)
         for s in ["spring","summer","fall","winter"]: 
             try:metclmt[y][s]["tminPROP"]["month_AVG_max"][0] = round(max(mean(metclmt[y][m]["tmin"]) for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and len(metclmt[y][m]["tmin"]) > excludemonth),1)
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["tminPROP"]["month_AVG_max"][1].extend(m for m in metclmt[y] if type(m) == int and len(metclmt[y][m]["tmin"]) > excludemonth and round(mean(metclmt[y][m]["tmin"]),1) == metclmt[y]["tminPROP"]["month_AVG_max"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["tminPROP"]["month_AVG_max"][1].extend(m for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and len(metclmt[y][m]["tmin"]) > excludemonth and round(mean(metclmt[y][m]["tmin"]),1) == metclmt[y][s]["tminPROP"]["month_AVG_max"][0])
         metclmt[y]["tminPROP"]["month_AVG_min"][0] = round(min(mean(metclmt[y][m]["tmin"]) for m in metclmt[y] if type(m) == int and len(metclmt[y][m]["tmin"]) > excludemonth),1)
         for s in ["spring","summer","fall","winter"]: 
             try: metclmt[y][s]["tminPROP"]["month_AVG_min"][0] = round(min(mean(metclmt[y][m]["tmin"]) for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and len(metclmt[y][m]["tmin"]) > excludemonth),1)
-            except: print(y,s,m,[M for M in metclmt[y] if type(M) == int])
+            except: pass #print(y,s,m,[M for M in metclmt[y] if type(M) == int])
         metclmt[y]["tminPROP"]["month_AVG_min"][1].extend(m for m in metclmt[y] if type(m) == int and len(metclmt[y][m]["tmin"]) > excludemonth and round(mean(metclmt[y][m]["tmin"]),1) == metclmt[y]["tminPROP"]["month_AVG_min"][0])
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["tminPROP"]["month_AVG_min"][1].extend(m for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and len(metclmt[y][m]["tmin"]) > excludemonth and round(mean(metclmt[y][m]["tmin"]),1) == metclmt[y][s]["tminPROP"]["month_AVG_min"][0])
 
@@ -4016,7 +4016,7 @@ excludeweek_tavg = excludeweek * 2
 
 # WELCOME MESSAGE UPON STARTING
 print("************************************")
-print("CLIMATE PARSER (clmt-parser.py) v2.0")
+print("CLIMATE PARSER (clmt-parser.py) v2.01")
 print("  by K. Gentry (ksgwxfan)")
 print("************************************\n")
 
