@@ -1,4 +1,4 @@
-# Climate Parser v2.01
+# Climate Parser v2.3
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -8,6 +8,14 @@ A Python Script enabling extensive analysis of climate data for individual citie
 Weather data are faithfully kept, recorded, and preserved everyday. This is primarily done via assistance of weather-stations which are plentiful and scattered-about all over the United States. This script allows the user to analyze downloaded CSV files that contain land-based station data. Within seconds, the user can retrieve daily, weekly, monthly, annual, and even climatological data, including ranking the data.
 
 ### New in v2.x
+
+##### v2.3
+* Included `customStats`, `customReport`, and `customRank` functions. These allow the user to define the period of time they want to retrieve stats, reports, or rankings for. You are no longer confined to retrieving data based on fixed lengths of time. A great proxy for a Year-to-Date, Month-to-Date, or even a Season-to-Date functions.
+  * Included associated `excludecustom` threshold. Instead of a fixed integer, it is a fixed float as a percentage; implemented since time-frames can be of variable lengths. The functions have basic logic to to use other exclusion variables if they meet certain criteria.
+* Included daily temperature average in `dayReport`
+* Fixed `weekStats`, `weekReport`, and `weekRank` calculations; one of the problems seen was that on weeks that overlapped years, it wasn't using dates from the later or previous year, respectively
+* Included `help()` doc-strings for all major functions
+
 ##### v2.01
 * cleaned up some testing artifacts
 
@@ -20,10 +28,6 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * Added tweaks that aids legibility of the function output
   * added fixed-digit output to reports and rankings
   * added alignment to rankings
-
-##### *Fixes*
-* Fixed some record-threshold values that pointed to time-eras that weren't theirs (like 20 for a year when it should've been 300)
-* Reduced redundancy in the `monthRank` function
 
 ### Contents
 **&bull; Go ahead and download the script** `clmt_parser.py`
@@ -199,7 +203,7 @@ The "bread-and-butter" of this program is to quickly generate output that would 
 
 #### Stats
 
-These are a set of functions to get info specific info based on a desired temporal length: `dayStats(y,m,d)`, `weekStats(y,m,d)`, `monthStats(y,m)`, `yearStats(y)`, `metYearStats(y)`, `seasonStats(y,season)`
+These are a set of functions to get info specific info based on a desired temporal length: `dayStats(y,m,d)`, `weekStats(y,m,d)`, `monthStats(y,m)`, `yearStats(y)`, `metYearStats(y)`, `seasonStats(y,season)`, `customStats(y1,m1,d1,*[y2,m2,d2])`
 
 Simple report retrieved for desired day
 ```
@@ -341,6 +345,32 @@ Average Min Temperature: 44.3
 -----
 ```
 
+Return stats for a custom time-frame; if you don't include an ending date, by default December 31 of that year will be used
+```
+>>> customStats(1999,12,1,2000,1,15)
+-------------------------------------
+Statistics for 1999-12-1 thru 2000-1-15
+USW00001337: TOWN, USA
+Quantity of Records: 46
+-----
+Total Precipitation: 0.97
+Total Precipitation Days (>= T): 19 (41.3 %)
+Wettest Day: 0.3 ::: 2000-01-12
+Total Snow: 19.7
+Total Snow Days (>= T): 16
+Snowiest Day: 8.7 ::: 2000-01-12
+Average Temperature: 24.4
+-- Warmest Daily Avg Temperature: 42.5, ::: 1999-12-03, 1999-12-29
+-- Coolest Daily Avg Temperature: -1, ::: 1999-12-21
+Average Max Temperature: 32.2
+-- Warmest Max Temperature: 53, ::: 1999-12-29
+-- Coolest Max Temperature: 6, ::: 1999-12-21
+Average Min Temperature: 16.5
+-- Warmest Min Temperature: 36, ::: 1999-12-02
+-- Coolest Min Temperature: -8, ::: 1999-12-21
+-----
+```
+
 [&#8679; back to Contents](#contents)
 
 #### Reports
@@ -353,6 +383,7 @@ These functions return robust climatological data, including all-time statistics
 `yearReport()` :: Analyzes the entire record and returns a report based on years; no passed-data is needed
 `metYearReport()` :: Same as above, but does so based on meteorological years (March-February)
 `seasonReport(season)` :: Gets a meteorologically-seasoned based statistic report
+`customReport(m1,d1,*[m2,d2])` :: Gets a climatolgical report based on the user-defined custom time-frame
 
 ```
 >>> monthReport(12)
@@ -424,6 +455,7 @@ The "fun stuff." These temporal-based functions give quick info of record-settin
 `yearRank("temp",qty)` :: Ranks by the year. Like `monthRank`, you must specify which type of ranking you want
 `metYearRank("temp",qty)` :: Ranks by the meteorological year (March-Feb). Like `monthRank`, you must specify which type of ranking you want
 `seasonRank(season,"temp",qty)` :: Ranks by the meteorological season. Like `monthRank`, you must specify which type of ranking you want
+`customRank("attribute",qty,m1,d1,*[m2,d2])` :: Ranks by the meteorological season. Like some others, you must specify which type of ranking you want
 
 Example output:
 
@@ -556,7 +588,6 @@ Meteorlogical Years/Seasons can also be retrieved in very similar ways as above.
 
 ### Roadmap
 
-* Convert all string digits to integers/floats upon creation of `clmt`. This primarily would assist in making the code easier to understand
 * For CSV's that are combined, somehow make note of the station that an attribute is pulled from
 * Add CSV-output keyword arguments for the report functions
 * Include SNWD (Snow Depth) in rankings
@@ -567,13 +598,16 @@ Meteorlogical Years/Seasons can also be retrieved in very similar ways as above.
   * `monthRankAllTime()` would compare all months to each other, and return the ranks
 * Improvement of report aesthetics
   * add "--" for redundant snow values of 0 across all reports
-  * add fixed digits for all values in reports (so `52` would display as `52.0`; `1.1` would show up as `1.10`), increasing readability
 * I know I need to comment more in the code
-* Include help() docstrings for each individual function
 * Include least-snowiest years in year functions
 * Add ranks to month and year Stats functions
 * Add/check threshold to stat functions?
-* reduce redundancy of metclmt compiling by checking if I can remove the threshold bools
+* reduce redundancy of `metclmt` compiling by checking if I can remove the threshold bools
+* Value Search Statistics (some way that you can search for 90degree-plus days; days/months with x-amount or more of precip)
+* Revamp month and year stats functions to give broader-base of data; more of a table-summary, perhaps
+* Make an annual Average Temperatures Graph; daily and day-centered weekly; day-centered monthly
+* Check reports and ranks for unnecessary exclusions (i.e. max amount of rain and snow days/amts)
+* Remove `checkdate` calls from customStats
 
 [&#8679; back to Contents](#contents)
 
@@ -592,15 +626,3 @@ MIT License (see LICENSE.md)
 If you want, let me know if this benefits you somehow in your research/project. Thanks.
 
 [&#8679; back to Contents](#contents)
-
-
-
-
-
-
-
-
-
-
-
-

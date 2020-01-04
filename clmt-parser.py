@@ -2,8 +2,11 @@ import datetime
 from time import time
 import calendar
 from statistics import mean, pstdev
+from math import floor
 import csv
 import os
+#import traceback
+
 # assisted on nested list comprehensions: https://www.geeksforgeeks.org/nested-list-comprehensions-in-python/
 
 class DayRecord:
@@ -41,6 +44,18 @@ class DayRecord:
         self.tminM, self.tminQ, self.tminS, self.tminT = attchk(flags_tmin)
 
 def clmtAnalyze(filename,**CITY):
+    """Initializes the build of city and session-specific climate dictionaries; Required for the successful use of the script.
+    
+    clmtAnalzye(filename, **{city=str, station=str})
+
+    REQUIRED: filename --> str version of the filename (a csv) of interest.
+    OPT **kwargs: city=str, station=str --> Dictates output of the city-name and
+                       station ID. These are useful if multiple stations are compiled
+                       to together to represent the data as it wouldn't be
+                       recommended to use a singular station's name if it isn't a 
+                       complete representation of the data.
+    """
+    
     if os.path.isfile(filename) == False: return print('"{}" not found! Try again!'.format(filename))
     global clmt
     global metclmt
@@ -420,6 +435,7 @@ def clmtAnalyze(filename,**CITY):
     print("Runtime: {} seconds".format(round(END - START,2)))
 
 def attchk(attstr):
+    """Not used by user; program uses it for output and 'filling in' of missing data"""
     try:
         M = attstr[0]       # Measurement Flag
     except:
@@ -440,6 +456,7 @@ def attchk(attstr):
     return M,Q,S,T
 
 def errorStats():
+    """Returns a report on errors that might be worth veryfying the data for."""
     #if "ignore" in ig: ignoreflags.append(ig["ignore"])
     #if "heed" in ig: ignoreflags.remove(ig["heed"])
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
@@ -515,6 +532,7 @@ def errorStats():
             print(x)
 
 def checkDate(*args):
+    """Used only by the program"""
     if len(args) == 3:
         y = args[0]
         m = args[1]
@@ -550,6 +568,13 @@ def checkDate(*args):
         print("OOPS! No date input received! Try again!")
 
 def qflagCheck(*q):
+    """Primarily used internally by the program. Can return definitions of Quality Flags. These are used to denote data that may not be reliable.
+    
+    qflagCheck(*[str]) -> str
+    
+    OPTIONAL args: "F" -> will return the definition of a flag by that one-letter
+    string
+    """
     if len(q) != 0:
         if q[0] == "D": return "Failed (D)uplicate Check"
         if q[0] == "G": return "Failed (G)ap Check"
@@ -583,6 +608,13 @@ def qflagCheck(*q):
         print("Z - Flagged as a result of an official Datzilla Investigation")
 
 def dayStats(y,m,d):
+    """Report on recorded statistics for the day of interest. Passed arguments MUST be integers.
+    
+    dayStats(year,month,day)   
+    
+    EXAMPLE: dayStats(1992,12,29) -> Returns a printout of statistics from December
+                                     29, 1992
+    """
     ranks = ["th","st","nd","rd","th","th","th","th","th","th"]
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     dayExists = checkDate(y,m,d)
@@ -663,6 +695,14 @@ def dayStats(y,m,d):
         print("")
 
 def weekStats(y,m,d):
+    """Report on recorded statistics for a week of interest. The week will be centered on the day passed as an argument. Passed arguments MUST be integers. 
+
+    weekStats(year,month,day)
+
+    EXAMPLE: weekStats(1992,12,29) -> Returns a printout of weekly-based statistics
+                                      centered on December 29, 1992 (The week would
+                                      be inclusive 3 days before and after the date
+    """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     wkstart = datetime.date(y,m,d) - datetime.timedelta(days=3)
     c = wkstart
@@ -694,25 +734,26 @@ def weekStats(y,m,d):
                 if clmt[c.year][c.month][c.day].snowQ in ignoreflags and clmt[c.year][c.month][c.day].snow not in ["9999","-9999",""]:
                     w_snow += float(clmt[c.year][c.month][c.day].snow)
                     if float(clmt[c.year][c.month][c.day].snow) > 0 or clmt[c.year][c.month][c.day].snowM == "T": w_snowDAYS += 1
-                if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""]:
-                    w_tmax.append(int(clmt[y][m][d].tmax))
-                    #if int(clmt[y][m][d].tmax) > w_tmaxPROP["HI"]:
-                        #w_tmaxPROP["HI"] = int(clmt[y][m][d].tmax)
-                        #w_tmaxPROP["dayHI"] = clmt[y][m][d].daystr
-                    #if int(clmt[y][m][d].tmax) < w_tmaxPROP["LO"]:
-                        #w_tmaxPROP["LO"] = int(clmt[y][m][d].tmax)
-                        #w_tmaxPROP["dayLO"] = clmt[y][m][d].daystr
-                if clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmin not in ["9999","-9999",""]:
-                    w_tmin.append(int(clmt[y][m][d].tmin))
-                    #if int(clmt[y][m][d].tmin) > w_tminPROP["HI"]:
-                        #w_tminPROP["HI"] = int(clmt[y][m][d].tmin)
-                        #w_tminPROP["dayHI"] = clmt[y][m][d].daystr
-                    #if int(clmt[y][m][d].tmin) < w_tminPROP["LO"]:
-                        #w_tminPROP["LO"] = int(clmt[y][m][d].tmin)
-                        #w_tminPROP["dayLO"] = clmt[y][m][d].daystr
-                if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""] and clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmin not in ["9999","-9999",""]:
-                    w_alltemps.append(int(clmt[y][m][d].tmax))
-                    w_alltemps.append(int(clmt[y][m][d].tmin))
+                if clmt[c.year][c.month][c.day].tmaxQ in ignoreflags and clmt[c.year][c.month][c.day].tmax not in ["9999","-9999",""]:
+                    w_tmax.append(int(clmt[c.year][c.month][c.day].tmax))
+                    #if int(clmt[c.year][c.month][c.day].tmax) > w_tmaxPROP["HI"]:
+                        #w_tmaxPROP["HI"] = int(clmt[c.year][c.month][c.day].tmax)
+                        #w_tmaxPROP["dayHI"] = clmt[c.year][c.month][c.day].daystr
+                    #if int(clmt[c.year][c.month][c.day].tmax) < w_tmaxPROP["LO"]:
+                        #w_tmaxPROP["LO"] = int(clmt[c.year][c.month][c.day].tmax)
+                        #w_tmaxPROP["dayLO"] = clmt[c.year][c.month][c.day].daystr
+                if clmt[c.year][c.month][c.day].tminQ in ignoreflags and clmt[c.year][c.month][c.day].tmin not in ["9999","-9999",""]:
+                    w_tmin.append(int(clmt[c.year][c.month][c.day].tmin))
+                    #if int(clmt[c.year][c.month][c.day].tmin) > w_tminPROP["HI"]:
+                        #w_tminPROP["HI"] = int(clmt[c.year][c.month][c.day].tmin)
+                        #w_tminPROP["dayHI"] = clmt[c.year][c.month][c.day].daystr
+                    #if int(clmt[c.year][c.month][c.day].tmin) < w_tminPROP["LO"]:
+                        #w_tminPROP["LO"] = int(clmt[c.year][c.month][c.day].tmin)
+                        #w_tminPROP["dayLO"] = clmt[c.year][c.month][c.day].daystr
+                if clmt[c.year][c.month][c.day].tmaxQ in ignoreflags and clmt[c.year][c.month][c.day].tmax not in ["9999","-9999",""] and clmt[c.year][c.month][c.day].tminQ in ignoreflags and clmt[c.year][c.month][c.day].tmin not in ["9999","-9999",""]:
+                    w_alltemps.append(int(clmt[c.year][c.month][c.day].tmax))
+                    w_alltemps.append(int(clmt[c.year][c.month][c.day].tmin))
+#[c.year][c.month][c.day]
             except KeyError:
                 continue
             c += datetime.timedelta(days=1)
@@ -737,26 +778,31 @@ def weekStats(y,m,d):
         #mnth_his_and_los.extend(w_tmin)
         if records_in_week > excludeweek and (len(w_tmax) <= excludeweek or len(w_tmin) <= excludeweek): print("*** TEMPERATURE STATS LIKELY UNDERREPRESENTED ***")
         try:
-            print("Average Temperature: {}".format(round(mean(w_alltemps),2)))
+            print("Average Temperature: {}".format(round(mean(w_alltemps),1)))
         except:
             print("Average Max Temperature: N/A")
         try:
-            print("Average Max Temperature: {}".format(round(mean(w_tmax),2)))
+            print("Average Max Temperature: {}".format(round(mean(w_tmax),1)))
             #print("-- Warmest Max Temperature: {}, {}".format(w_tmaxPROP["HI"],w_tmaxPROP["dayHI"]))
             #print("-- Coolest Max Temperature: {}, {}".format(w_tmaxPROP["LO"],w_tmaxPROP["dayLO"]))
         except:
             print("Average Max Temperature: N/A")
         try:
-            print("Average Min Temperature: {}".format(round(mean(w_tmin),2)))
+            print("Average Min Temperature: {}".format(round(mean(w_tmin),1)))
             #print("-- Warmest Min Temperature: {}, {}".format(w_tminPROP["HI"],w_tminPROP["dayHI"]))
             #print("-- Coolest Min Temperature: {}, {}".format(w_tminPROP["LO"],w_tminPROP["dayLO"]))
         except:
             print("Average Min Temperature: N/A")
         print("-----")
-        
-    
 
 def monthStats(y,m):
+    """Report on recorded statistics for a month of interest. It accepts only arguments for the year and month of interest. Passed arguments MUST be integers. 
+    
+    monthStats(year,month)
+    
+    EXAMPLE: monthStats(2005,7) -> Returns a printout of month-based statistics from
+                                   July 2005.
+    """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     monthExists = checkDate(y,m)
     if monthExists:
@@ -817,6 +863,12 @@ def monthStats(y,m):
         print("-----")
 
 def yearStats(y):
+    """Report on recorded statistics for a year of interest. It accepts only an argument for the year. Passed argument MUST be an integer.
+
+    yearStats(year)
+
+    EXAMPLE: yearStats(1945) -> Returns a printout of year-based statistics from 1945
+    """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     # clmt[int(each[2][0:4])]["prcpPROP"] = {"day_max":[-1,[]],"month_max":[-1,[]],"month_min":[999,[]]}
     # clmt[int(each[2][0:4])]["snowPROP"] = {"day_max":[-1,[]],"month_max":[-1,[]]}
@@ -903,40 +955,435 @@ def yearStats(y):
             else: print("{}".format(calendar.month_name[clmt[y]["tminPROP"]["month_AVG_min"][1][x]]))
         print("-----")
 
-def valueSearch(*args,**kwargs):
-    valid_yrs = [x for x in clmt.keys() if type(x) == int]
-    for x in args:
-        if type(x) != int: return print("* ERROR! month/year values need to be integers! Try again. *")
-    if len(args) == 0: return print("* ERROR! input at least a month value *")
-    elif len(args) == 1:    # year OR month
-        if args[0] in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1): searchScope = "year"
-        elif args[0] not in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1) and args[0] > 1000: return print("* ERROR! Ensure year value between {} and {} *".format(valid_yrs[0],valid_yrs[len(valid_yrs)-1]))
-        elif args[0] in range(1,13): searchScope = "month"
-        elif args[0] not in range(1,13): return print("* ERROR! Ensure month value between 1 and 12 *")
-    elif len(args) == 2:    # year AND month
-        if args[0] in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1) and args[1] in range(1,13): searchScope = "yearmonth"
-        else:
-            return print("* ERROR! Ensure format of valueSearch(y,m,**kwargs) ::: Year must be between {} and {}; Month between 1 and 12 *".format(valid_yrs[0],valid_yrs[len(valid_yrs)-1]))
+def seasonStats(y,season):
+    """Report on recorded statistics for a meteorological season of interest from a specific year. It accepts only arguments for the inquired year, and season. The year must be an integer while the season must be in string format.
+
+    seasonStats(YYYY,SEASON)
+    
+    EXAMPLE: seasonStats(1933,"winter") -> Returns a printout of stats from the
+                                           Meteorological Winter of 1933 (inclusive
+                                           of December 1933 - February of 1934)
+    """
+    if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
+    if y not in metclmt: return print("Meteorological Year {} Not Found! Try again!".format(y))
+    if season.lower() not in ["spring","summer","fall","autumn","winter"]: return print("'{}' is not a valid season. Try again!".format(season))
+    if season.lower() == "autumn": season = "fall"
+    season = season.lower()     # Puts season into requisite lower case to match metclmt[y] season dictionaries
+    if metclmt[y][season]["recordqty"] <= excludeseason:
+        print("{:-^53}".format(""))
+        print("*** SEASONAL STATS LIKELY NOT COMPLETE FOR RELIANCE ON STATISTICS ***")
+    print("{:-^53}".format(""))
+    if season == "winter": print("Seasonal Statistics for Meteorological {} {}-{}".format(season.capitalize(),y,str(y+1)[2:]))
+    else: print("Seasonal Statistics for Meteorological {} {}".format(season.capitalize(),y))
+    print("{}: {}".format(metclmt["station"],metclmt["station_name"]))
+    print("Quantity of Records: {}".format(metclmt[y][season]["recordqty"]))
+    print("{:-^53}".format(""))
+    print("Total Precipitation: {}".format(round(sum(metclmt[y][season]["prcp"]),2)))
+    print("Total Precipitation Days (>= T): {}".format(metclmt[y][season]["prcpDAYS"]))
+    if round(sum(metclmt[y][season]["prcp"]),2) > 0:
+        print("-- Highest Daily Precip: {}".format(metclmt[y][season]["prcpPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(metclmt[y][season]["prcpPROP"]["day_max"][1])):
+            if x != len(metclmt[y][season]["prcpPROP"]["day_max"][1])-1: print("{},".format(metclmt[y][season]["prcpPROP"]["day_max"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y][season]["prcpPROP"]["day_max"][1][x].daystr))
+        print("-- Wettest Month: {}".format(round(metclmt[y][season]["prcpPROP"]["month_max"][0],2)),end=" ::: ")
+        for x in range(len(metclmt[y][season]["prcpPROP"]["month_max"][1])):
+            if x != len(metclmt[y][season]["prcpPROP"]["month_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["prcpPROP"]["month_max"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y][season]["prcpPROP"]["month_max"][1][x]]))
+        print("-- Driest Month: {}".format(round(metclmt[y][season]["prcpPROP"]["month_min"][0],2)),end=" ::: ")
+        for x in range(len(metclmt[y][season]["prcpPROP"]["month_min"][1])):
+            if x != len(metclmt[y][season]["prcpPROP"]["month_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["prcpPROP"]["month_min"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y][season]["prcpPROP"]["month_min"][1][x]]))
+    if round(sum(metclmt[y][season]["snow"]),2) > 0 or metclmt[y][season]["snowDAYS"] > 0:
+        print("Total Snow: {}".format(round(sum(metclmt[y][season]["snow"]),2)))
+        print("Total Snow Days (>= T): {}".format(metclmt[y][season]["snowDAYS"]))
+        if metclmt[y][season]["snowPROP"]["day_max"][0] > 0:
+            print("-- Highest Daily Snow: {}".format(metclmt[y][season]["snowPROP"]["day_max"][0]),end=" ::: ")
+            for x in range(len(metclmt[y][season]["snowPROP"]["day_max"][1])):
+                if x != len(metclmt[y][season]["snowPROP"]["day_max"][1])-1: print("{},".format(metclmt[y][season]["snowPROP"]["day_max"][1][x].daystr),end=" ")
+                else: print("{}".format(metclmt[y][season]["snowPROP"]["day_max"][1][x].daystr))
+            print("-- Snowiest Month: {}".format(round(metclmt[y][season]["snowPROP"]["month_max"][0],2)),end=" ::: ")
+            for x in range(len(metclmt[y][season]["snowPROP"]["month_max"][1])):
+                if x != len(metclmt[y][season]["snowPROP"]["month_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["snowPROP"]["month_max"][1][x]]),end=" ")
+                else: print("{}".format(calendar.month_name[metclmt[y][season]["snowPROP"]["month_max"][1][x]]))
+    if len(metclmt[y][season]["tempAVGlist"]) <= excludeseason_tavg and metclmt[y][season]["recordqty"] > excludeseason:
+        print("{:-^55}".format(""))
+        print("*** INSUFFICIENT TEMPERATURE DATA FOR SEASON LIKELY ***")
+        print("{:-^55}".format(""))
+    try: print("Average Temperature: {}".format(round(mean(metclmt[y][season]["tempAVGlist"]),1)))
+    except: pass
+    try:
+        print("Average Max Temperature: {}".format(round(mean(metclmt[y][season]["tmax"]),1)))
+        print("-- Warmest Daily Max Temperature: {}".format(metclmt[y][season]["tmaxPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(metclmt[y][season]["tmaxPROP"]["day_max"][1])):
+            if x != len(metclmt[y][season]["tmaxPROP"]["day_max"][1])-1: print("{},".format(metclmt[y][season]["tmaxPROP"]["day_max"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y][season]["tmaxPROP"]["day_max"][1][x].daystr))
+        print("-- Coolest Daily Max Temperature: {}".format(metclmt[y][season]["tmaxPROP"]["day_min"][0]),end=" ::: ")
+        for x in range(len(metclmt[y][season]["tmaxPROP"]["day_min"][1])):
+            if x != len(metclmt[y][season]["tmaxPROP"]["day_min"][1])-1: print("{},".format(metclmt[y][season]["tmaxPROP"]["day_min"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y][season]["tmaxPROP"]["day_min"][1][x].daystr))
+        print("-- Warmest AVG Monthly Max Temperature: {}".format(round(metclmt[y][season]["tmaxPROP"]["month_AVG_max"][0],1)),end=" ::: ")
+        for x in range(len(metclmt[y][season]["tmaxPROP"]["month_AVG_max"][1])):
+            if x != len(metclmt[y][season]["tmaxPROP"]["month_AVG_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["tmaxPROP"]["month_AVG_max"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y][season]["tmaxPROP"]["month_AVG_max"][1][x]]))
+        print("-- Coolest AVG Monthly Max Temperature: {}".format(round(metclmt[y][season]["tmaxPROP"]["month_AVG_min"][0],1)),end=" ::: ")
+        for x in range(len(metclmt[y][season]["tmaxPROP"]["month_AVG_min"][1])):
+            if x != len(metclmt[y][season]["tmaxPROP"]["month_AVG_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["tmaxPROP"]["month_AVG_min"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y][season]["tmaxPROP"]["month_AVG_min"][1][x]]))
+    except:
+        print("{:-^47}".format(""))
+        print("*** NO RELIABLE TMAX DATA FOR SEASON EXISTS ***")
+        print("{:-^47}".format(""))
+    try:
+        print("Average Min Temperature: {}".format(round(mean(metclmt[y][season]["tmin"]),1)))
+        print("-- Warmest Min Temperature: {}".format(metclmt[y][season]["tminPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(metclmt[y][season]["tminPROP"]["day_max"][1])):
+            if x != len(metclmt[y][season]["tminPROP"]["day_max"][1])-1: print("{},".format(metclmt[y][season]["tminPROP"]["day_max"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y][season]["tminPROP"]["day_max"][1][x].daystr))
+        print("-- Coolest Min Temperature: {}".format(metclmt[y][season]["tminPROP"]["day_min"][0]),end=" ::: ")
+        for x in range(len(metclmt[y][season]["tminPROP"]["day_min"][1])):
+            if x != len(metclmt[y][season]["tminPROP"]["day_min"][1])-1: print("{},".format(metclmt[y][season]["tminPROP"]["day_min"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y][season]["tminPROP"]["day_min"][1][x].daystr))
+        print("-- Warmest AVG Monthly Min Temperature: {}".format(round(metclmt[y][season]["tminPROP"]["month_AVG_max"][0],1)),end=" ::: ")
+        for x in range(len(metclmt[y][season]["tminPROP"]["month_AVG_max"][1])):
+            if x != len(metclmt[y][season]["tminPROP"]["month_AVG_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["tminPROP"]["month_AVG_max"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y][season]["tminPROP"]["month_AVG_max"][1][x]]))
+        print("-- Coolest AVG Monthly Min Temperature: {}".format(round(metclmt[y][season]["tminPROP"]["month_AVG_min"][0],1)),end=" ::: ")
+        for x in range(len(metclmt[y][season]["tminPROP"]["month_AVG_min"][1])):
+            if x != len(metclmt[y][season]["tminPROP"]["month_AVG_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["tminPROP"]["month_AVG_min"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y][season]["tminPROP"]["month_AVG_min"][1][x]]))
+    except:
+        print("{:-^47}".format(""))
+        print("*** NO RELIABLE TMIN DATA FOR SEASON EXISTS ***")
+        print("{:-^47}".format(""))
+    print("-----")
+
+def metYearStats(y):
+    """Report on recorded statistics for a meteorological year of interest. It only accepts an argument for the inquired year. Meteorological years run from March to February of the following year (Spring to Winter).The year must be an integer.
+    
+    metYearStats(YYYY)
+    
+    EXAMPLE: metYearStats(1985) -> Returns a printout of stats from the
+                                           Meteorological Year of 1985 (inclusive of
+                                           March 1985 - February of 1986)
+    """
+    if len(metclmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
+    if y not in metclmt: return print("* A record for {} not found in metclmt *".format(y))
+    if metclmt[y]["recordqty"] <= excludeyear:
+        print("-------------------------------------")
+        print("*** YEAR STATS MAY NOT BE COMPLETE FOR RELIANCE ON STATISTICS ***")
+    print("-------------------------------------")
+    print("Statistics for Meteorological Year {}".format(y))
+    print("{}: {}".format(metclmt["station"],metclmt["station_name"]))
+    print("Quantity of Records: {}".format(metclmt[y]["recordqty"]))
+    print("-----")
+    print("Total Precipitation: {}".format(round(sum(metclmt[y]["prcp"]),2)))
+    print("Total Precipitation Days (>= T): {}".format(metclmt[y]["prcpDAYS"]))
+    if sum(metclmt[y]["prcp"]) > 0:
+        print("-- Highest Daily Precip: {}".format(metclmt[y]["prcpPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(metclmt[y]["prcpPROP"]["day_max"][1])):
+            if x != len(metclmt[y]["prcpPROP"]["day_max"][1])-1: print("{},".format(metclmt[y]["prcpPROP"]["day_max"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y]["prcpPROP"]["day_max"][1][x].daystr))
+        print("-- Wettest Month: {}".format(round(metclmt[y]["prcpPROP"]["month_max"][0],2)),end=" ::: ")
+        for x in range(len(metclmt[y]["prcpPROP"]["month_max"][1])):
+            if x != len(metclmt[y]["prcpPROP"]["month_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["prcpPROP"]["month_max"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y]["prcpPROP"]["month_max"][1][x]]))
+        print("-- Driest Month: {}".format(round(metclmt[y]["prcpPROP"]["month_min"][0],2)),end=" ::: ")
+        for x in range(len(metclmt[y]["prcpPROP"]["month_min"][1])):
+            if x != len(metclmt[y]["prcpPROP"]["month_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["prcpPROP"]["month_min"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y]["prcpPROP"]["month_min"][1][x]]))
+    if sum(metclmt[y]["snow"]) > 0 or metclmt[y]["snowDAYS"] > 0:
+        print("Total Snow: {}".format(round(sum(metclmt[y]["snow"]),1)))
+        print("Total Snow Days (>= T): {}".format(metclmt[y]["snowDAYS"]))
+        if metclmt[y]["snowPROP"]["day_max"][0] > 0:
+            print("-- Highest Daily Snow: {}".format(metclmt[y]["snowPROP"]["day_max"][0]),end=" ::: ")
+            for x in range(len(metclmt[y]["snowPROP"]["day_max"][1])):
+                if x != len(metclmt[y]["snowPROP"]["day_max"][1])-1: print("{},".format(metclmt[y]["snowPROP"]["day_max"][1][x].daystr),end=" ")
+                else: print("{}".format(metclmt[y]["snowPROP"]["day_max"][1][x].daystr))
+            print("-- Snowiest Month: {}".format(round(metclmt[y]["snowPROP"]["month_max"][0],2)),end=" ::: ")
+            for x in range(len(metclmt[y]["snowPROP"]["month_max"][1])):
+                if x != len(metclmt[y]["snowPROP"]["month_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["snowPROP"]["month_max"][1][x]]),end=" ")
+                else: print("{}".format(calendar.month_name[metclmt[y]["snowPROP"]["month_max"][1][x]]))
+    if len(metclmt[y]["tempAVGlist"]) <= excludeyear_tavg:
+        print("{:-^53}".format(""))
+        print("*** INSUFFICIENT TEMPERATURE DATA FOR YEAR LIKELY ***")
+        print("{:-^53}".format(""))
+    try: print("Average Temperature: {}".format(round(mean(metclmt[y]["tempAVGlist"]),1)))
+    except: pass
+    try:
+        print("Average Max Temperature: {}".format(round(mean(metclmt[y]["tmax"]),1)))
+        print("-- Warmest Daily Max Temperature: {}".format(metclmt[y]["tmaxPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(metclmt[y]["tmaxPROP"]["day_max"][1])):
+            if x != len(metclmt[y]["tmaxPROP"]["day_max"][1])-1: print("{},".format(metclmt[y]["tmaxPROP"]["day_max"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y]["tmaxPROP"]["day_max"][1][x].daystr))
+        print("-- Coolest Daily Max Temperature: {}".format(metclmt[y]["tmaxPROP"]["day_min"][0]),end=" ::: ")
+        for x in range(len(metclmt[y]["tmaxPROP"]["day_min"][1])):
+            if x != len(metclmt[y]["tmaxPROP"]["day_min"][1])-1: print("{},".format(metclmt[y]["tmaxPROP"]["day_min"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y]["tmaxPROP"]["day_min"][1][x].daystr))
+        print("-- Warmest AVG Monthly Max Temperature: {}".format(round(metclmt[y]["tmaxPROP"]["month_AVG_max"][0],1)),end=" ::: ")
+        for x in range(len(metclmt[y]["tmaxPROP"]["month_AVG_max"][1])):
+            if x != len(metclmt[y]["tmaxPROP"]["month_AVG_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["tmaxPROP"]["month_AVG_max"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y]["tmaxPROP"]["month_AVG_max"][1][x]]))
+        print("-- Coolest AVG Monthly Max Temperature: {}".format(round(metclmt[y]["tmaxPROP"]["month_AVG_min"][0],1)),end=" ::: ")
+        for x in range(len(metclmt[y]["tmaxPROP"]["month_AVG_min"][1])):
+            if x != len(metclmt[y]["tmaxPROP"]["month_AVG_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["tmaxPROP"]["month_AVG_min"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y]["tmaxPROP"]["month_AVG_min"][1][x]]))
+    except:
+        print("{:-^45}".format(""))
+        print("*** NO RELIABLE TMAX DATA FOR YEAR EXISTS ***")
+        print("{:-^45}".format(""))
+    try:
+        print("Average Min Temperature: {}".format(round(mean(metclmt[y]["tmin"]),1)))
+        print("-- Warmest Min Temperature: {}".format(metclmt[y]["tminPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(metclmt[y]["tminPROP"]["day_max"][1])):
+            if x != len(metclmt[y]["tminPROP"]["day_max"][1])-1: print("{},".format(metclmt[y]["tminPROP"]["day_max"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y]["tminPROP"]["day_max"][1][x].daystr))
+        print("-- Coolest Min Temperature: {}".format(metclmt[y]["tminPROP"]["day_min"][0]),end=" ::: ")
+        for x in range(len(metclmt[y]["tminPROP"]["day_min"][1])):
+            if x != len(metclmt[y]["tminPROP"]["day_min"][1])-1: print("{},".format(metclmt[y]["tminPROP"]["day_min"][1][x].daystr),end=" ")
+            else: print("{}".format(metclmt[y]["tminPROP"]["day_min"][1][x].daystr))
+        print("-- Warmest AVG Monthly Min Temperature: {}".format(round(metclmt[y]["tminPROP"]["month_AVG_max"][0],1)),end=" ::: ")
+        for x in range(len(metclmt[y]["tminPROP"]["month_AVG_max"][1])):
+            if x != len(metclmt[y]["tminPROP"]["month_AVG_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["tminPROP"]["month_AVG_max"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y]["tminPROP"]["month_AVG_max"][1][x]]))
+        print("-- Coolest AVG Monthly Min Temperature: {}".format(round(metclmt[y]["tminPROP"]["month_AVG_min"][0],1)),end=" ::: ")
+        for x in range(len(metclmt[y]["tminPROP"]["month_AVG_min"][1])):
+            if x != len(metclmt[y]["tminPROP"]["month_AVG_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["tminPROP"]["month_AVG_min"][1][x]]),end=" ")
+            else: print("{}".format(calendar.month_name[metclmt[y]["tminPROP"]["month_AVG_min"][1][x]]))
+    except:
+        print("{:-^45}".format(""))
+        print("*** NO RELIABLE TMIN DATA FOR YEAR EXISTS ***")
+        print("{:-^45}".format(""))
+    print("-----")
+
+def customStats(y1,m1,d1,*date2):
+    """Report on a custom-length period of recorded statistics. All passed arguments MUST be integers. If the optional ending arguments are not included, the default ending will be December 31 of the calendar year, given by Y1.
+    
+    customStats(Y1,M1,D1,*[Y2,M2,D2])
+    
+    REQUIRED: Y1,M1,D1 --> Represent the beginning year, month, and date of the
+                           custom period.
+    OPT *args: Y2,M2,D2 --> These optional entries represent the ending year, month,
+                            and date of the period
+
+    EXAMPLE: customStats(1999,8,12) -> Returns a printout of statistics from August
+                                       12th, 1999 to December 31, 1999.
+    EXAMPLE: customStats(1955,10,1,1960,4,7) -> Returns stats on the period between
+                                                between October 1, 1955 and April 4,
+                                                1960.
+    """
+    if any(type(x) != int for x in [y1,m1,d1]): return print("*** OOPS! Ensure that only integers are entered ***")
+    valid1 = checkDate(y1,m1,d1)
+    if len(date2) == 0: pass
+    elif len(date2) != 3: return print("*** OOPS! For the 2nd (optional) date, ensure a Year, Month and Date are entered ***")
+    else:
+        if any(type(x) != int for x in [date2[0],date2[1],date2[2]]): return print("*** OOPS! Ensure that only integers are entered ***")
+        valid2 = checkDate(date2[0],date2[1],date2[2])
+
+    startday = datetime.date(y1,m1,d1)
+    incr_day = startday
+    if len(date2) == 3:
+        endday = datetime.date(date2[0],date2[1],date2[2])
+    else:
+        emo = max(M for M in clmt[startday.year] if type(M) == int)
+        edy = max(D for D in clmt[startday.year][emo] if type(D) == int)
+        endday = datetime.date(startday.year,emo,edy)
         
-    else: return print("* OOPS! Too many variables! Try again. *")
+    if endday <= startday: return print("*** OOPS! Pick an earlier start-day or (if applicable) a later end-day ***")
+    
+    c_prcp = []
+    c_prcpDAYS = 0
+    c_snow = []
+    c_snowDAYS = 0
+    c_snwd = []
+    c_temp = []
+    c_tmax = []
+    c_tmin = []
+    records_in_period = 0
+    c_records = {"prcpPROP":{"day_max":[-1,[]]},
+                 "snowPROP":{"day_max":[-1,[]]},
+                 "tempPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
+                 "tmaxPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
+                 "tminPROP":{"day_max":[-999,[]],"day_min":[999,[]]}}
+                 
+    while incr_day <= endday:
+        y = incr_day.year; m = incr_day.month; d = incr_day.day
+        if y in clmt and m in clmt[y] and d in clmt[y][m]:  # If a record for clmt[y][m][d] exists
+            records_in_period += 1
+            if clmt[y][m][d].prcpQ in ignoreflags and clmt[y][m][d].prcp not in ["9999","-9999",""]:
+                c_prcp.append(float(clmt[y][m][d].prcp))
+                if round(float(clmt[y][m][d].prcp),2) == c_records["prcpPROP"]["day_max"][0]:
+                    c_records["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
+                elif round(float(clmt[y][m][d].prcp),2) > c_records["prcpPROP"]["day_max"][0]:
+                    c_records["prcpPROP"]["day_max"][0] = round(float(clmt[y][m][d].prcp),2)
+                    c_records["prcpPROP"]["day_max"][1] = []
+                    c_records["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
+            if clmt[y][m][d].prcpQ in ignoreflags and clmt[y][m][d].prcp not in ["9999","-9999",""] and float(clmt[y][m][d].prcp) != 0 or clmt[y][m][d].prcpM == "T":
+                c_prcpDAYS += 1
+            if clmt[y][m][d].snowQ in ignoreflags and clmt[y][m][d].snow not in ["9999","-9999",""]:
+                c_snow.append(float(clmt[y][m][d].snow))
+                if round(float(clmt[y][m][d].snow),2) == c_records["snowPROP"]["day_max"][0]:
+                    c_records["snowPROP"]["day_max"][1].append(clmt[y][m][d])
+                elif round(float(clmt[y][m][d].snow),2) > c_records["snowPROP"]["day_max"][0]:
+                    c_records["snowPROP"]["day_max"][0] = round(float(clmt[y][m][d].snow),2)
+                    c_records["snowPROP"]["day_max"][1] = []
+                    c_records["snowPROP"]["day_max"][1].append(clmt[y][m][d])
+            if clmt[y][m][d].snowQ in ignoreflags and clmt[y][m][d].snow not in ["9999","-9999",""] and float(clmt[y][m][d].snow) != 0 or clmt[y][m][d].snowM == "T":
+                c_snowDAYS += 1
+            if clmt[y][m][d].snwdQ in ignoreflags and clmt[y][m][d].snwd not in ["9999","-9999",""]:
+                c_snwd.append(float(clmt[y][m][d].snwd))
+            if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""] and clmt[y][m][d].tmin not in ["9999","-9999",""]:
+                c_temp.append(int(clmt[y][m][d].tmax))
+                c_temp.append(int(clmt[y][m][d].tmin))
+                if round(mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]),1) == c_records["tempPROP"]["day_max"][0]:
+                    c_records["tempPROP"]["day_max"][1].append(clmt[y][m][d])
+                elif round(mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]),1) > c_records["tempPROP"]["day_max"][0]:
+                    c_records["tempPROP"]["day_max"][0] = round(mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]),1)
+                    c_records["tempPROP"]["day_max"][1] = []
+                    c_records["tempPROP"]["day_max"][1].append(clmt[y][m][d])
+                if round(mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]),1) == c_records["tempPROP"]["day_min"][0]:
+                    c_records["tempPROP"]["day_min"][1].append(clmt[y][m][d])
+                elif round(mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]),1) < c_records["tempPROP"]["day_min"][0]:
+                    c_records["tempPROP"]["day_min"][0] = round(mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]),1)
+                    c_records["tempPROP"]["day_min"][1] = []
+                    c_records["tempPROP"]["day_min"][1].append(clmt[y][m][d])
+            if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""]:
+                c_tmax.append(int(clmt[y][m][d].tmax))
+                if int(clmt[y][m][d].tmax) == c_records["tmaxPROP"]["day_max"][0]:
+                    c_records["tmaxPROP"]["day_max"][1].append(clmt[y][m][d])
+                elif int(clmt[y][m][d].tmax) > c_records["tmaxPROP"]["day_max"][0]:
+                    c_records["tmaxPROP"]["day_max"][0] = int(clmt[y][m][d].tmax)
+                    c_records["tmaxPROP"]["day_max"][1] = []
+                    c_records["tmaxPROP"]["day_max"][1].append(clmt[y][m][d])
+                if int(clmt[y][m][d].tmax) == c_records["tmaxPROP"]["day_min"][0]:
+                    c_records["tmaxPROP"]["day_min"][1].append(clmt[y][m][d])
+                elif int(clmt[y][m][d].tmax) < c_records["tmaxPROP"]["day_min"][0]:
+                    c_records["tmaxPROP"]["day_min"][0] = int(clmt[y][m][d].tmax)
+                    c_records["tmaxPROP"]["day_min"][1] = []
+                    c_records["tmaxPROP"]["day_min"][1].append(clmt[y][m][d])
+            if clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmin not in ["9999","-9999",""]:
+                c_tmin.append(int(clmt[y][m][d].tmin))
+                if int(clmt[y][m][d].tmin) == c_records["tminPROP"]["day_max"][0]:
+                    c_records["tminPROP"]["day_max"][1].append(clmt[y][m][d])
+                elif int(clmt[y][m][d].tmin) > c_records["tminPROP"]["day_max"][0]:
+                    c_records["tminPROP"]["day_max"][0] = int(clmt[y][m][d].tmin)
+                    c_records["tminPROP"]["day_max"][1] = []
+                    c_records["tminPROP"]["day_max"][1].append(clmt[y][m][d])
+                if int(clmt[y][m][d].tmin) == c_records["tminPROP"]["day_min"][0]:
+                    c_records["tminPROP"]["day_min"][1].append(clmt[y][m][d])
+                elif int(clmt[y][m][d].tmin) < c_records["tminPROP"]["day_min"][0]:
+                    c_records["tminPROP"]["day_min"][0] = int(clmt[y][m][d].tmin)
+                    c_records["tminPROP"]["day_min"][1] = []
+                    c_records["tminPROP"]["day_min"][1].append(clmt[y][m][d])
+        incr_day += datetime.timedelta(days=1)
+    
+    print("-------------------------------------")
+    print("Statistics for {}-{}-{} thru {}-{}-{}".format(startday.year,startday.month,startday.day,
+                                                         endday.year,endday.month,endday.day))
+    print("{}: {}".format(clmt["station"],clmt["station_name"]))
+    print("Quantity of Records: {}".format(records_in_period))
+    print("-----")
+    print("Total Precipitation: {}".format(round(sum(c_prcp),2)))
+    print("Total Precipitation Days (>= T): {} ({} %)".format(c_prcpDAYS, round(c_prcpDAYS/records_in_period * 100,1)))
+    if c_records["prcpPROP"]["day_max"][0] > 0:
+        print("Wettest Day: {}".format(c_records["prcpPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(c_records["prcpPROP"]["day_max"][1])):
+            if x != len(c_records["prcpPROP"]["day_max"][1]) - 1:
+                print("{},".format(c_records["prcpPROP"]["day_max"][1][x].daystr),end=" ")
+            else:
+                print("{}".format(c_records["prcpPROP"]["day_max"][1][x].daystr))
+        #print([x.daystr for x in c_records["prcpPROP"]["day_max"][1]])
+    if c_snowDAYS > 0:
+        print("Total Snow: {}".format(round(sum(c_snow),1)))
+        print("Total Snow Days (>= T): {}".format(c_snowDAYS))
+        if c_records["snowPROP"]["day_max"][0] > 0:
+            print("Snowiest Day: {}".format(c_records["snowPROP"]["day_max"][0]),end=" ::: ")
+            for x in range(len(c_records["snowPROP"]["day_max"][1])):
+                if x != len(c_records["snowPROP"]["day_max"][1]) - 1:
+                    print("{},".format(c_records["snowPROP"]["day_max"][1][x].daystr),end=" ")
+                else:
+                    print("{}".format(c_records["snowPROP"]["day_max"][1][x].daystr))
+            #print([x.daystr for x in c_records["snowPROP"]["day_max"][1]])
+    try:
+        print("Average Temperature: {}".format(round(mean(c_temp),1)))
+        print("-- Warmest Daily Avg Temperature: {},".format(c_records["tempPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(c_records["tempPROP"]["day_max"][1])):
+            if x != len(c_records["tempPROP"]["day_max"][1]) - 1:
+                print("{},".format(c_records["tempPROP"]["day_max"][1][x].daystr),end=" ")
+            else:
+                print("{}".format(c_records["tempPROP"]["day_max"][1][x].daystr))
+        print("-- Coolest Daily Avg Temperature: {},".format(c_records["tempPROP"]["day_min"][0]),end=" ::: ")
+        for x in range(len(c_records["tempPROP"]["day_min"][1])):
+            if x != len(c_records["tempPROP"]["day_min"][1]) - 1:
+                print("{},".format(c_records["tempPROP"]["day_min"][1][x].daystr),end=" ")
+            else:
+                print("{}".format(c_records["tempPROP"]["day_min"][1][x].daystr))
+    except:
+        print("Average Temperature: N/A")
+    try:
+        print("Average Max Temperature: {}".format(round(mean(c_tmax),1)))
+        print("-- Warmest Max Temperature: {},".format(c_records["tmaxPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(c_records["tmaxPROP"]["day_max"][1])):
+            if x != len(c_records["tmaxPROP"]["day_max"][1]) - 1:
+                print("{},".format(c_records["tmaxPROP"]["day_max"][1][x].daystr),end=" ")
+            else:
+                print("{}".format(c_records["tmaxPROP"]["day_max"][1][x].daystr))
+        #print([x.daystr for x in c_records["tmaxPROP"]["day_max"][1]])
+        print("-- Coolest Max Temperature: {},".format(c_records["tmaxPROP"]["day_min"][0]),end=" ::: ")
+        for x in range(len(c_records["tmaxPROP"]["day_min"][1])):
+            if x != len(c_records["tmaxPROP"]["day_min"][1]) - 1:
+                print("{},".format(c_records["tmaxPROP"]["day_min"][1][x].daystr),end=" ")
+            else:
+                print("{}".format(c_records["tmaxPROP"]["day_min"][1][x].daystr))
+        #print([x.daystr for x in c_records["tmaxPROP"]["day_min"][1]])
+    except:
+        print("*** NO HI TEMPERATURE DATA FOR RANGE ***")
+    try:
+        print("Average Min Temperature: {}".format(round(mean(c_tmin),1)))
+        print("-- Warmest Min Temperature: {},".format(c_records["tminPROP"]["day_max"][0]),end=" ::: ")
+        for x in range(len(c_records["tminPROP"]["day_max"][1])):
+            if x != len(c_records["tminPROP"]["day_max"][1]) - 1:
+                print("{},".format(c_records["tminPROP"]["day_max"][1][x].daystr),end=" ")
+            else:
+                print("{}".format(c_records["tminPROP"]["day_max"][1][x].daystr))
+        #print([x.daystr for x in c_records["tminPROP"]["day_max"][1]])
+        print("-- Coolest Min Temperature: {},".format(c_records["tminPROP"]["day_min"][0]),end=" ::: ")
+        for x in range(len(c_records["tminPROP"]["day_min"][1])):
+            if x != len(c_records["tminPROP"]["day_min"][1]) - 1:
+                print("{},".format(c_records["tminPROP"]["day_min"][1][x].daystr),end=" ")
+            else:
+                print("{}".format(c_records["tminPROP"]["day_min"][1][x].daystr))
+        #print([x.daystr for x in c_records["tminPROP"]["day_min"][1]])
+    except:
+        print("*** NO LOW TEMPERATURE DATA FOR RANGE ***")
+    print("-----")
 
 def dayReport(m,d):   # As of this version, this function will be valid for records from 1811 to 2040
+    """Detailed Climatological Report for recorded statistics of a specific day. It accepts only arguments for the month and day of interest. Passed arguments MUST be integers
+    
+    dayReport(month,day)
+    
+    EXAMPLE: dayReport(5,31) -> Returns a climatological report for May 31
+    """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
     for x in range(1811,2016,5):
         if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+29 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
-            climo30yrs[(x,x+29)] = dict(years=(x,x+29),prcp=[],prcpPROP={"day_max":[-1,[]]},
-                                        snow=[],snowPROP={"day_max":[-1,[]]},
-                                        tmax=[],tmaxPROP={"day_max":[-999,[]],"day_min":[999,[]]},
-                                        tmin=[],tminPROP={"day_max":[-999,[]],"day_min":[999,[]]})
+            climo30yrs[(x,x+29)] = {"years":(x,x+29),
+                                    "prcp": [],"prcpPROP":{"day_max":[-1,[]]},
+                                    "snow": [],"snowPROP":{"day_max":[-1,[]]},
+                                    "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
+                                    "tmax": [],"tmaxPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
+                                    "tmin": [],"tminPROP":{"day_max":[-999,[]],"day_min":[999,[]]}}
 
     alltime = {"years":(valid_yrs[0],valid_yrs[len(valid_yrs)-1]),
                "prcp": [],"prcpPROP":{"day_max":[-1,[]]},
                "snow": [],"snowPROP":{"day_max":[-1,[]]},
+               "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
                "tmax": [],"tmaxPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
                "tmin": [],"tminPROP":{"day_max":[-999,[]],"day_min":[999,[]]}}
+
     # {"day_max":[-1,[]],"month_max":[-1,[]],"month_min":[999,[]]}
     # {"day_max":[-999,[]],"day_min":[999,[]],"month_AVG_max":[-999,[]],"month_AVG_min":[999,[]]}
     # if clmt[int(each[2][0:4])][int(each[2][5:7])][int(each[2][8:10])].prcpQ in ignoreflags and clmt[int(each[2][0:4])][int(each[2][5:7])][int(each[2][8:10])].prcp not in ["9999","-9999",""]:
@@ -980,6 +1427,40 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
                             climo30yrs[c]["snowPROP"]["day_max"][0] = float(clmt[y][m][d].snow)
                             climo30yrs[c]["snowPROP"]["day_max"][1] = []
                             climo30yrs[c]["snowPROP"]["day_max"][1].append(clmt[y][m][d])
+        except:
+            pass
+        try:
+            if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""] and clmt[y][m][d].tmin not in ["9999","-9999",""] and int(clmt[y][m][d].tmax) >= int(clmt[y][m][d].tmin):
+                alltime["tempAVGlist"].append(int(clmt[y][m][d].tmax))
+                alltime["tempAVGlist"].append(int(clmt[y][m][d].tmin))
+                if mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]) == alltime["tavgPROP"]["day_max"][0]:
+                    alltime["tavgPROP"]["day_max"][1].append(clmt[y][m][d])
+                elif mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]) > alltime["tavgPROP"]["day_max"][0]:
+                    alltime["tavgPROP"]["day_max"][0] = mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)])
+                    alltime["tavgPROP"]["day_max"][1] = []
+                    alltime["tavgPROP"]["day_max"][1].append(clmt[y][m][d])
+                if mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]) == alltime["tavgPROP"]["day_min"][0]:
+                    alltime["tavgPROP"]["day_min"][1].append(clmt[y][m][d])
+                elif mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]) < alltime["tavgPROP"]["day_min"][0]:
+                    alltime["tavgPROP"]["day_min"][0] = mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)])
+                    alltime["tavgPROP"]["day_min"][1] = []
+                    alltime["tavgPROP"]["day_min"][1].append(clmt[y][m][d])
+                for c in climo30yrs:
+                    if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
+                        climo30yrs[c]["tempAVGlist"].append(int(clmt[y][m][d].tmax))
+                        climo30yrs[c]["tempAVGlist"].append(int(clmt[y][m][d].tmin))
+                        if mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]) == climo30yrs["tavgPROP"]["day_max"][0]:
+                            climo30yrs["tavgPROP"]["day_max"][1].append(clmt[y][m][d])
+                        elif mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]) > climo30yrs["tavgPROP"]["day_max"][0]:
+                            climo30yrs["tavgPROP"]["day_max"][0] = mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)])
+                            climo30yrs["tavgPROP"]["day_max"][1] = []
+                            climo30yrs["tavgPROP"]["day_max"][1].append(clmt[y][m][d])
+                        if mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]) == climo30yrs["tavgPROP"]["day_min"][0]:
+                            climo30yrs["tavgPROP"]["day_min"][1].append(clmt[y][m][d])
+                        elif mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)]) < climo30yrs["tavgPROP"]["day_min"][0]:
+                            climo30yrs["tavgPROP"]["day_min"][0] = mean([int(clmt[y][m][d].tmax),int(clmt[y][m][d].tmin)])
+                            climo30yrs["tavgPROP"]["day_min"][1] = []
+                            climo30yrs["tavgPROP"]["day_min"][1].append(clmt[y][m][d])
         except:
             pass
         try:
@@ -1085,8 +1566,36 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
         except:
             print(c)
     print("")
+    """
+    if "csv" in csv:
+        if csv["csv"] == True:
+            newfn = "dayReport_" + str(calendar.month_abbr[m]) + str(d) + "_" + FILE
+            with open(newfn,"w") as w:
+                headers = ["Climat. Period ({} {})".format(calendar.month_abbr[m],d),"Avg Temperature","Avg High","Avg Low"]
+                # HEADER
+                for x in range(len(headers)):
+                    if x != len(headers) - 1: w.write(headers[x]); w.write(",")
+                    else: w.write(headers[x]); w.write("\n")
+                w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
+                w.write("{:.1f}".format(round(mean(alltime["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
+                for x in climo30yrs:
+                    w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
+                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
+                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
+                print("*** csv output successful ***")
+    """
 
 def weekReport(m,d):
+    """Detailed Climatological Report for recorded statistics of a specific week of interest. Passed month and day will represent the center of the week. It accepts only arguments for the month and day of interest. Passed arguments MUST be integers
+    
+    weekReport(month,day)
+    
+    EXAMPLE: weekReport(9,29) -> Returns a climatological report for the week centered
+    on September 29. So data between Sept 26 and Oct 2 will be compiled
+    """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
@@ -1108,19 +1617,19 @@ def weekReport(m,d):
                "tmin": [],"tminPROP":{"week_max":[-999,[]],"week_min":[999,[]]}}
 
     if m == 2 and d == 29: d = 28
-    wkstart = datetime.date(1999,m,d) - datetime.timedelta(days=3)
-    currday = wkstart
-    wkend = datetime.date(1999,m,d) + datetime.timedelta(days=3)
     for y in valid_yrs:
+        wkstart = datetime.date(y,m,d) - datetime.timedelta(days=3)
+        currday = wkstart
+        wkend = datetime.date(y,m,d) + datetime.timedelta(days=3)
         wk = []
         wk_prcp = []
         wk_snow = []
         wk_tempAVGlist = []
         wk_tmax = []
         wk_tmin = []
-        while currday <= wkend:
+        for DAY in range(7):
             try:
-                wk.append(clmt[y][currday.month][currday.day])
+                wk.append(clmt[currday.year][currday.month][currday.day])
                 currday += datetime.timedelta(days=1)
             except:
                 currday += datetime.timedelta(days=1)
@@ -1372,8 +1881,40 @@ def weekReport(m,d):
         except Exception as e:
             print("ERROR: Era = {}; Exception = {}".format(c,e))
     print("")
+    """
+    if "csv" in csv:
+        if csv["csv"] == True:
+            newfn = "weekReport_" + str(calendar.month_abbr[m]) + str(d) + "_" + FILE
+            with open(newfn,"w") as w:
+                headers = ["Climat. Period ({:%b} {:%d} - {:%b} {:%d})".format(wkstart,wkstart,wkend,wkend),
+                           "Avg Precipitation",
+                           "Avg Snow",
+                           "Avg Temperature",
+                           "Avg High",
+                           "Avg Low"]
+                # HEADER
+                for x in range(len(headers)):
+                    if x != len(headers) - 1: w.write(headers[x]); w.write(",")
+                    else: w.write(headers[x]); w.write("\n")
+                w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
+                w.write("{:.1f}".format(round(mean(alltime["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
+                for x in climo30yrs:
+                    w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
+                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
+                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
+                print("*** csv output successful ***")
+    """
 
 def monthReport(m):
+    """Detailed Climatological Report for recorded statistics from a month of interest. It only accepts an argument for the month of interest. Passed argument MUST be an integer.
+    
+    monthReport(month)
+    
+    EXAMPLE: monthReport(11) -> Returns a climatological report for November.
+    """
     #print([x for x in clmt.keys()])
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
@@ -1426,22 +1967,22 @@ def monthReport(m):
                     climo30yrs[c]["prcp"].append(sum(clmt[y][m]["prcp"]))
                     climo30yrs[c]["prcpPROP"]["days"] += clmt[y][m]["prcpDAYS"]
                     climo30yrs[c]["total_days"] += clmt[y][m]["recordqty"]
+                    if clmt[y][m]["prcpDAYS"] == climo30yrs[c]["prcpPROP"]["month_max_days"][0]: climo30yrs[c]["prcpPROP"]["month_max_days"][1].append(y)
+                    elif clmt[y][m]["prcpDAYS"] > climo30yrs[c]["prcpPROP"]["month_max_days"][0]:
+                        climo30yrs[c]["prcpPROP"]["month_max_days"][0] = clmt[y][m]["prcpDAYS"]
+                        climo30yrs[c]["prcpPROP"]["month_max_days"][1] = []
+                        climo30yrs[c]["prcpPROP"]["month_max_days"][1].append(y)
+                    if sum(clmt[y][m]["prcp"]) == climo30yrs[c]["prcpPROP"]["month_max"][0]: climo30yrs[c]["prcpPROP"]["month_max"][1].append(y)
+                    elif sum(clmt[y][m]["prcp"]) > climo30yrs[c]["prcpPROP"]["month_max"][0]:
+                        climo30yrs[c]["prcpPROP"]["month_max"][0] = sum(clmt[y][m]["prcp"])
+                        climo30yrs[c]["prcpPROP"]["month_max"][1] = []
+                        climo30yrs[c]["prcpPROP"]["month_max"][1].append(y)
                     if clmt[y][m]["recordqty"] > excludemonth:
-                        if clmt[y][m]["prcpDAYS"] == climo30yrs[c]["prcpPROP"]["month_max_days"][0]: climo30yrs[c]["prcpPROP"]["month_max_days"][1].append(y)
-                        elif clmt[y][m]["prcpDAYS"] > climo30yrs[c]["prcpPROP"]["month_max_days"][0]:
-                            climo30yrs[c]["prcpPROP"]["month_max_days"][0] = clmt[y][m]["prcpDAYS"]
-                            climo30yrs[c]["prcpPROP"]["month_max_days"][1] = []
-                            climo30yrs[c]["prcpPROP"]["month_max_days"][1].append(y)
                         if clmt[y][m]["prcpDAYS"] == climo30yrs[c]["prcpPROP"]["month_min_days"][0]: climo30yrs[c]["prcpPROP"]["month_min_days"][1].append(y)
                         elif clmt[y][m]["prcpDAYS"] < climo30yrs[c]["prcpPROP"]["month_min_days"][0]:
                             climo30yrs[c]["prcpPROP"]["month_min_days"][0] = clmt[y][m]["prcpDAYS"]
                             climo30yrs[c]["prcpPROP"]["month_min_days"][1] = []
                             climo30yrs[c]["prcpPROP"]["month_min_days"][1].append(y)
-                        if sum(clmt[y][m]["prcp"]) == climo30yrs[c]["prcpPROP"]["month_max"][0]: climo30yrs[c]["prcpPROP"]["month_max"][1].append(y)
-                        elif sum(clmt[y][m]["prcp"]) > climo30yrs[c]["prcpPROP"]["month_max"][0]:
-                            climo30yrs[c]["prcpPROP"]["month_max"][0] = sum(clmt[y][m]["prcp"])
-                            climo30yrs[c]["prcpPROP"]["month_max"][1] = []
-                            climo30yrs[c]["prcpPROP"]["month_max"][1].append(y)
                         if sum(clmt[y][m]["prcp"]) == climo30yrs[c]["prcpPROP"]["month_min"][0]: climo30yrs[c]["prcpPROP"]["month_min"][1].append(y)
                         elif sum(clmt[y][m]["prcp"]) < climo30yrs[c]["prcpPROP"]["month_min"][0]:
                             climo30yrs[c]["prcpPROP"]["month_min"][0] = sum(clmt[y][m]["prcp"])
@@ -1451,32 +1992,30 @@ def monthReport(m):
             # SNOW
             alltime["snow"].append(sum(clmt[y][m]["snow"]))
             alltime["snowPROP"]["days"] += clmt[y][m]["snowDAYS"]
-            if clmt[y][m]["recordqty"] > excludemonth:
-                if clmt[y][m]["snowDAYS"] == alltime["snowPROP"]["month_max_days"][0]: alltime["snowPROP"]["month_max_days"][1].append(y)
-                elif clmt[y][m]["snowDAYS"] > alltime["snowPROP"]["month_max_days"][0]:
-                    alltime["snowPROP"]["month_max_days"][0] = clmt[y][m]["snowDAYS"]
-                    alltime["snowPROP"]["month_max_days"][1] = []
-                    alltime["snowPROP"]["month_max_days"][1].append(y)
-                if sum(clmt[y][m]["snow"]) == alltime["snowPROP"]["month_max"][0]: alltime["snowPROP"]["month_max"][1].append(y)
-                elif sum(clmt[y][m]["snow"]) > alltime["snowPROP"]["month_max"][0]:
-                    alltime["snowPROP"]["month_max"][0] = sum(clmt[y][m]["snow"])
-                    alltime["snowPROP"]["month_max"][1] = []
-                    alltime["snowPROP"]["month_max"][1].append(y)
+            if clmt[y][m]["snowDAYS"] == alltime["snowPROP"]["month_max_days"][0]: alltime["snowPROP"]["month_max_days"][1].append(y)
+            elif clmt[y][m]["snowDAYS"] > alltime["snowPROP"]["month_max_days"][0]:
+                alltime["snowPROP"]["month_max_days"][0] = clmt[y][m]["snowDAYS"]
+                alltime["snowPROP"]["month_max_days"][1] = []
+                alltime["snowPROP"]["month_max_days"][1].append(y)
+            if sum(clmt[y][m]["snow"]) == alltime["snowPROP"]["month_max"][0]: alltime["snowPROP"]["month_max"][1].append(y)
+            elif sum(clmt[y][m]["snow"]) > alltime["snowPROP"]["month_max"][0]:
+                alltime["snowPROP"]["month_max"][0] = sum(clmt[y][m]["snow"])
+                alltime["snowPROP"]["month_max"][1] = []
+                alltime["snowPROP"]["month_max"][1].append(y)
             for c in climo30yrs:
                 if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                     climo30yrs[c]["snow"].append(sum(clmt[y][m]["snow"]))
                     climo30yrs[c]["snowPROP"]["days"] += clmt[y][m]["snowDAYS"]
-                    if clmt[y][m]["recordqty"] > excludemonth:
-                        if clmt[y][m]["snowDAYS"] == climo30yrs[c]["snowPROP"]["month_max_days"][0]: climo30yrs[c]["snowPROP"]["month_max_days"][1].append(y)
-                        elif clmt[y][m]["snowDAYS"] > climo30yrs[c]["snowPROP"]["month_max_days"][0]:
-                            climo30yrs[c]["snowPROP"]["month_max_days"][0] = clmt[y][m]["snowDAYS"]
-                            climo30yrs[c]["snowPROP"]["month_max_days"][1] = []
-                            climo30yrs[c]["snowPROP"]["month_max_days"][1].append(y)
-                        if sum(clmt[y][m]["snow"]) == climo30yrs[c]["snowPROP"]["month_max"][0]: climo30yrs[c]["snowPROP"]["month_max"][1].append(y)
-                        elif sum(clmt[y][m]["snow"]) > climo30yrs[c]["snowPROP"]["month_max"][0]:
-                            climo30yrs[c]["snowPROP"]["month_max"][0] = sum(clmt[y][m]["snow"])
-                            climo30yrs[c]["snowPROP"]["month_max"][1] = []
-                            climo30yrs[c]["snowPROP"]["month_max"][1].append(y)
+                    if clmt[y][m]["snowDAYS"] == climo30yrs[c]["snowPROP"]["month_max_days"][0]: climo30yrs[c]["snowPROP"]["month_max_days"][1].append(y)
+                    elif clmt[y][m]["snowDAYS"] > climo30yrs[c]["snowPROP"]["month_max_days"][0]:
+                        climo30yrs[c]["snowPROP"]["month_max_days"][0] = clmt[y][m]["snowDAYS"]
+                        climo30yrs[c]["snowPROP"]["month_max_days"][1] = []
+                        climo30yrs[c]["snowPROP"]["month_max_days"][1].append(y)
+                    if sum(clmt[y][m]["snow"]) == climo30yrs[c]["snowPROP"]["month_max"][0]: climo30yrs[c]["snowPROP"]["month_max"][1].append(y)
+                    elif sum(clmt[y][m]["snow"]) > climo30yrs[c]["snowPROP"]["month_max"][0]:
+                        climo30yrs[c]["snowPROP"]["month_max"][0] = sum(clmt[y][m]["snow"])
+                        climo30yrs[c]["snowPROP"]["month_max"][1] = []
+                        climo30yrs[c]["snowPROP"]["month_max"][1].append(y)
     # 'recordqty', 'prcp', 'prcpDAYS', 'prcpPROP', 'snow', 'snowDAYS', 'snowPROP', 'tempAVGlist', 'tmax', 'tmaxPROP', 'tmin', 'tminPROP'
             # TAVG
             for x in clmt[y][m]["tempAVGlist"]: alltime["tempAVGlist_ind"].append(x)
@@ -1667,6 +2206,12 @@ def monthReport(m):
     print("")
 
 def yearReport():
+    """Detailed Climatological Report for recorded statistics from a year of interest. It only accepts an argument for the year of interest. Passed argument MUST be an integer.
+    
+    yearReport(year)
+    
+    EXAMPLE: yearReport(1909) -> Returns a climatological report for 1909.
+    """
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
@@ -1960,848 +2505,14 @@ def yearReport():
             print("ERROR: Era = {}; Exception = {}".format(c,e))
     print("")
 
-def dayRank(m,d,qty):
-    class day_attr:
-        def __init__(self,y,number):
-            self.year = y
-            self.number = number
-
-    if type(m) != int or type(d) != int or type(qty) != int: return print("* SORRY! Month AND Day need to be submitted as integers")
-    if m < 1 or m > 12: return print("* Sorry! Make sure month entry is in the range [1,12]")
-    if d < 1 or d > 31: return print("* Sorry! Invalid Day entered.")
-    if m in [4,6,9,11] and d == 31: return print("*Sorry! Only months numbered 1,3,5,7,8,10,12 have 31 days")
-    if m == 2 and d > 29: return print("* Sorry! February never has 30+ days")
-    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
-
-    DAYS_tmax = []
-    DAYS_tmin = []
-    DAYS_prcp = []
-    DAYS_snow = []
-    # YEARS.append(year_attr(y,round(mean(clmt[y][attribute]),1)))
-    for y in [YR for YR in clmt if type(YR) == int]:
-        try:
-            if clmt[y][m][d].tmaxQ in ignoreflags:
-                DAYS_tmax.append(day_attr(y,int(clmt[y][m][d].tmax)))
-        except:
-            pass
-        try:
-            if clmt[y][m][d].tminQ in ignoreflags:
-                DAYS_tmin.append(day_attr(y,int(clmt[y][m][d].tmin)))
-        except:
-            pass
-        try:
-            if clmt[y][m][d].prcpQ in ignoreflags:
-                DAYS_prcp.append(day_attr(y,round(float(clmt[y][m][d].prcp),2)))
-        except:
-            pass
-        try:
-            if clmt[y][m][d].snowQ in ignoreflags:
-                DAYS_snow.append(day_attr(y,round(float(clmt[y][m][d].snow),1)))
-        except:
-            pass
-    DAYS_tmax_asc = DAYS_tmax.copy()
-    DAYS_tmax.sort(key=lambda x:x.number,reverse=True)
-    DAYS_tmax_asc.sort(key=lambda x:x.number)
-    DAYS_tmin_asc = DAYS_tmin.copy()
-    DAYS_tmin.sort(key=lambda x:x.number,reverse=True)
-    DAYS_tmin_asc.sort(key=lambda x:x.number)
-    DAYS_prcp.sort(key=lambda x:x.number,reverse=True)
-    DAYS_snow.sort(key=lambda x:x.number,reverse=True)
-
-    # 15|17|17|15|19|16
-    # print("{:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}" TMAX and TMIN
-    # print("  {:2}{} {:4}  {:5}  |  {:2}{} {:4}  {:4}"     PRCP and SNOW
-
-    print("{:^39}".format("Precipitation Records for {} {}".format(calendar.month_name[m],d)))
-    print("{:^39}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-    print("{:-^39}".format(""))
-    print("{:^19}|{:^19}".format("Rain","Snow"))
-    print("{:-^19}|{:-^19}".format("",""))
-    i = 1
-    j = 1
-    ranked_i = []
-    ranked_j = []
-    for x in range(len(DAYS_prcp)):
-        if x == 0:
-            print("  {:2}{} {:4}  {:5.2f}  |  {:2}{} {:4}  {:5.1f}  ".format(1 if DAYS_prcp[x].number > 0 else "--",
-                                                                       "." if DAYS_prcp[x].number > 0 else " ",
-                                                                       DAYS_prcp[x].year if DAYS_prcp[x].number > 0 else "--",
-                                                                       DAYS_prcp[x].number,
-                                                                       1 if DAYS_snow[x].number > 0 else "--",
-                                                                       "." if DAYS_snow[x].number > 0 else " ",
-                                                                       DAYS_snow[x].year if DAYS_snow[x].number > 0 else "--",
-                                                                       DAYS_snow[x].number))
-            ranked_i.append(i)
-            ranked_j.append(j)
-        else:
-            if i not in ranked_i and i <= qty: ranked_i.append(i)
-            if j not in ranked_j and j <= qty: ranked_j.append(j)
-            if DAYS_prcp[x].number != DAYS_prcp[x-1].number: i += 1
-            try:
-                if DAYS_prcp[x].number == 0: i = qty + 1
-                if DAYS_snow[x].number == 0: j = qty + 1
-                if DAYS_snow[x].number != DAYS_snow[x-1].number: j += 1
-            except:
-                pass
-            if i <= qty or j <= qty:
-                try:
-                    print("  {:2}{} {:4}  {:5.2f}  |  {:2}{} {:4}  {:5.1f}  ".format(i if i not in ranked_i and i <= qty else "",
-                                                                               "." if i not in ranked_i and i <= qty else " ",
-                                                                               DAYS_prcp[x].year if i <= qty else "",
-                                                                               DAYS_prcp[x].number if i <= qty else "",
-                                                                               j if DAYS_snow[x].number > 0 and j not in ranked_j and j <= qty else "",
-                                                                               "." if DAYS_snow[x].number > 0 and j not in ranked_j and j <= qty else " ",
-                                                                               DAYS_snow[x].year if DAYS_snow[x].number > 0 and j <= qty else "",
-                                                                               DAYS_snow[x].number if DAYS_snow[x].number > 0 and j <= qty else ""))
-                except:
-                    if len(DAYS_prcp) > len(DAYS_snow):
-                        print("  {:2}{} {:4}  {:5.2f}  |                   ".format(i if i not in ranked_i and i <= qty else "",
-                                                                                   "." if i not in ranked_i and i <= qty else " ",
-                                                                                   DAYS_prcp[x].year if i <= qty else "",
-                                                                                   DAYS_prcp[x].number if i <= qty else ""))
-                    elif len(DAYS_snow) > len(DAYS_prcp):
-                        print("                   |  {:2}{} {:4}  {:5.1f}  ".format(j if j not in ranked_j and j <= qty else "",
-                                                                                   "." if j not in ranked_j and j <= qty else " ",
-                                                                                   DAYS_snow[x].year if DAYS_snow[x].number > 0 and j <= qty else "",
-                                                                                   DAYS_snow[x].number if DAYS_snow[x].number > 0 and j <= qty else ""))
-
-        if i > qty and j > qty: break
-    print("\n{:^65}".format("Temperature Records for {} {}".format(calendar.month_name[m],d)))
-    print("{:^65}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-    print("{:-^65}".format(""))
-    print("{:^32}|{:^32}".format("TMAX","TMIN"))
-    print("{:-^32}|{:-^32}".format("",""))
-    print("{:^15}|{:^16}|{:^16}|{:^15}".format("Warmest","Coolest","Warmest","Coolest"))
-    print("{:-^15}|{:-^16}|{:-^16}|{:-^15}".format("","","",""))
-    i = 1
-    j = 1
-    k = 1
-    l = 1
-    ranked_i = []
-    ranked_j = []
-    ranked_k = []
-    ranked_l = []
-    for x in range(len(DAYS_tmax)):
-        if x == 0:
-            print("{:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}".format(1,".",DAYS_tmax[x].year,DAYS_tmax[x].number,
-                                                                                                            1,".",DAYS_tmax_asc[x].year,DAYS_tmax_asc[x].number,
-                                                                                                            1,".",DAYS_tmin[x].year,DAYS_tmin[x].number,
-                                                                                                            1,".",DAYS_tmin_asc[x].year,DAYS_tmin_asc[x].number))
-            ranked_i.append(i)
-            ranked_j.append(j)
-            ranked_k.append(k)
-            ranked_l.append(l)
-        else:
-            if i not in ranked_i and i <= qty: ranked_i.append(i)
-            if j not in ranked_j and j <= qty: ranked_j.append(j)
-            if k not in ranked_k and k <= qty: ranked_k.append(k)
-            if l not in ranked_l and l <= qty: ranked_l.append(l)
-            if DAYS_tmax[x].number != DAYS_tmax[x-1].number: i += 1
-            if DAYS_tmax_asc[x].number != DAYS_tmax_asc[x-1].number: j += 1
-            if DAYS_tmin[x].number != DAYS_tmin[x-1].number: k += 1
-            if DAYS_tmin_asc[x].number != DAYS_tmin_asc[x-1].number: l += 1
-            if i <= qty or j <= qty or k <= qty or l <= qty:
-                print("{:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}".format(i if i not in ranked_i and i <= qty else "",
-                                                                                                                "." if i not in ranked_i and i <= qty else " ",
-                                                                                                                DAYS_tmax[x].year if i <= qty else "",
-                                                                                                                DAYS_tmax[x].number if i <= qty else "",
-                                                                                                                j if j not in ranked_j and j <= qty else "",
-                                                                                                                "." if j not in ranked_j and j <= qty else " ",
-                                                                                                                DAYS_tmax_asc[x].year if j <= qty else "",
-                                                                                                                DAYS_tmax_asc[x].number if j <= qty else "",
-                                                                                                                k if k not in ranked_k and k <= qty else "",
-                                                                                                                "." if k not in ranked_k and k <= qty else " ",
-                                                                                                                DAYS_tmin[x].year if k <= qty else "",
-                                                                                                                DAYS_tmin[x].number if k <= qty else "",
-                                                                                                                l if l not in ranked_l and l <= qty else "",
-                                                                                                                "." if l not in ranked_l and l <= qty else " ",
-                                                                                                                DAYS_tmin_asc[x].year if l <= qty else "",
-                                                                                                                DAYS_tmin_asc[x].number if l <= qty else ""))
-        if i > qty and j > qty and k > qty and l > qty: break
-
-def weekRank(mo,d,qty):
-    class week_attr:
-        def __init__(self,y,number):
-            self.year = y
-            self.number = number
-            
-    if type(mo) != int or type(d) != int or type(qty) != int: return print("* SORRY! Month AND Day need to be submitted as integers")
-    if mo < 1 or mo > 12: return print("* Sorry! Make sure month entry is in the range [1,12]")
-    if d < 1 or d > 31: return print("* Sorry! Invalid Day entered.")
-    if mo in [4,6,9,11] and d == 31: return print("*Sorry! Only months numbered 1,3,5,7,8,10,12 have 31 days")
-    if mo == 2 and d > 29: return print("* Sorry! February never has 30+ days")
-    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
-
-    WEEKS_prcp = []
-    WEEKS_snow = []
-    WEEKS_tavg = []
-    WEEKS_tmax = []
-    WEEKS_tmin = []
-    if mo == 2 and d == 29: d = 28
-    wkorig = datetime.date(1999,mo,d) - datetime.timedelta(days=3)
-    for y in [YR for YR in clmt if type(YR) == int]:
-        wkstart = datetime.date(y,mo,d) - datetime.timedelta(days=3)
-        wklist = []
-        wk_prcp = []
-        wk_snow = []
-        wk_tavg = []
-        wk_tmax = []
-        wk_tmin = []
-        for DAY in range(7):
-            wklist.append(wkstart)
-            wkstart += datetime.timedelta(days=1)
-        #input(wklist)
-        for DAY in wklist:
-            #input(clmt[y][DAY.month][DAY.day].daystr)
-            try:
-                #print(clmt[y][DAY.month][DAY.day].prcpQ in ignoreflags)
-                if clmt[y][DAY.month][DAY.day].prcpQ in ignoreflags:
-                    wk_prcp.append(float(clmt[y][DAY.month][DAY.day].prcp))
-            except:
-                pass
-            try:
-                if clmt[y][DAY.month][DAY.day].snowQ in ignoreflags:
-                    wk_snow.append(float(clmt[y][DAY.month][DAY.day].snow))
-            except:
-                pass
-            try:
-                if clmt[y][DAY.month][DAY.day].tmaxQ in ignoreflags and clmt[y][DAY.month][DAY.day].tmax not in ["9999","-9999",""] and clmt[y][DAY.month][DAY.day].tminQ in ignoreflags and clmt[y][DAY.month][DAY.day].tmin not in ["9999","-9999",""]:
-                    wk_tavg.append(int(clmt[y][DAY.month][DAY.day].tmax))
-                    wk_tavg.append(int(clmt[y][DAY.month][DAY.day].tmin))
-            except:
-                pass
-            try:
-                if clmt[y][DAY.month][DAY.day].tmaxQ in ignoreflags:
-                    wk_tmax.append(int(clmt[y][DAY.month][DAY.day].tmax))
-            except:
-                pass
-            try:
-                if clmt[y][DAY.month][DAY.day].tminQ in ignoreflags:
-                    wk_tmin.append(int(clmt[y][DAY.month][DAY.day].tmin))
-            except:
-                pass
-        try:
-            WEEKS_prcp.append(week_attr(y,round(sum(wk_prcp),2)))
-        except:
-            pass
-        try:
-            WEEKS_snow.append(week_attr(y,round(sum(wk_snow),1)))
-        except:
-            pass
-        if len(wk_tavg) > excludeweek_tavg:
-            try:
-                WEEKS_tavg.append(week_attr(y,round(mean(wk_tavg),1)))
-            except:
-                pass
-        if len(wk_tmax) > excludeweek:
-            try:
-                WEEKS_tmax.append(week_attr(y,round(mean(wk_tmax),1)))
-            except:
-                pass
-        if len(wk_tmin) > excludeweek:
-            try:
-                WEEKS_tmin.append(week_attr(y,round(mean(wk_tmin),1)))
-            except:
-                pass
-    #print(len(WEEKS_tavg),len(WEEKS_tmax),len(WEEKS_tmin),len(WEEKS_prcp),len(WEEKS_snow))
-    #input()
-    WEEKS_prcp.sort(key=lambda x:x.number,reverse=True)
-    WEEKS_snow.sort(key=lambda x:x.number,reverse=True)
-    WEEKS_tavg_asc = WEEKS_tavg.copy()
-    WEEKS_tavg.sort(key=lambda x:x.number,reverse=True)
-    WEEKS_tavg_asc.sort(key=lambda x:x.number)
-    WEEKS_tmax_asc = WEEKS_tmax.copy()
-    WEEKS_tmax.sort(key=lambda x:x.number,reverse=True)
-    WEEKS_tmax_asc.sort(key=lambda x:x.number)
-    WEEKS_tmin_asc = WEEKS_tmin.copy()
-    WEEKS_tmin.sort(key=lambda x:x.number,reverse=True)
-    WEEKS_tmin_asc.sort(key=lambda x:x.number)
-
-    #for x in WEEKS_tavg:
-        #print(x.year,"-",x.number)
-    #input()
-    print("")
-    print("{:^39}".format("Precipitation Records for the Week of {} {} - {} {}".format(calendar.month_abbr[wkorig.month],wkorig.day,
-                                                                                  calendar.month_abbr[(wkorig + datetime.timedelta(days=6)).month],(wkorig + datetime.timedelta(days=7)).day)))
-    print("{:^39}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-    print("{:-^39}".format(""))
-    print("{:^19}|{:^19}".format("Rain","Snow"))
-    print("{:-^19}|{:-^19}".format("",""))
-    i = 1
-    j = 1
-    ranked_i = []
-    ranked_j = []
-    for x in range(len(WEEKS_prcp)):
-        if x == 0:
-            print("  {:2}{} {:4}  {:5.2f}  |  {:2}{} {:4}  {:5.1f}  ".format(1 if WEEKS_prcp[x].number > 0 else "--",
-                                                                       "." if WEEKS_prcp[x].number > 0 else " ",
-                                                                       WEEKS_prcp[x].year if WEEKS_prcp[x].number > 0 else "--",
-                                                                       WEEKS_prcp[x].number,
-                                                                       1 if WEEKS_snow[x].number > 0 else "--",
-                                                                       "." if WEEKS_snow[x].number > 0 else " ",
-                                                                       WEEKS_snow[x].year if WEEKS_snow[x].number > 0 else "--",
-                                                                       WEEKS_snow[x].number))
-            ranked_i.append(i)
-            ranked_j.append(j)
-        else:
-            if i not in ranked_i and i <= qty: ranked_i.append(i)
-            if j not in ranked_j and j <= qty: ranked_j.append(j)
-            if WEEKS_prcp[x].number != WEEKS_prcp[x-1].number: i += 1
-            try:
-                if WEEKS_prcp[x].number == 0: i = qty + 1
-                if WEEKS_snow[x].number == 0: j = qty + 1
-                if WEEKS_snow[x].number != WEEKS_snow[x-1].number: j += 1
-            except:
-                pass
-            if i <= qty or j <= qty:
-                try:
-                    print("  {:2}{} {:4}  {:5.2f}  |  {:2}{} {:4}  {:5.1f}  ".format(i if i not in ranked_i and i <= qty else "",
-                                                                               "." if i not in ranked_i and i <= qty else " ",
-                                                                               WEEKS_prcp[x].year if i <= qty else "",
-                                                                               WEEKS_prcp[x].number if i <= qty else "",
-                                                                               j if WEEKS_snow[x].number > 0 and j not in ranked_j and j <= qty else "",
-                                                                               "." if WEEKS_snow[x].number > 0 and j not in ranked_j and j <= qty else " ",
-                                                                               WEEKS_snow[x].year if WEEKS_snow[x].number > 0 and j <= qty else "",
-                                                                               WEEKS_snow[x].number if WEEKS_snow[x].number > 0 and j <= qty else ""))
-                except:
-                    if len(WEEKS_prcp) > len(WEEKS_snow):
-                        print("  {:2}{} {:4}  {:5.2f}  |                   ".format(i if i not in ranked_i and i <= qty else "",
-                                                                                   "." if i not in ranked_i and i <= qty else " ",
-                                                                                   WEEKS_prcp[x].year if i <= qty else "",
-                                                                                   WEEKS_prcp[x].number if i <= qty else ""))
-                    elif len(WEEKS_snow) > len(WEEKS_prcp):
-                        print("                   |  {:2}{} {:4}  {:5.1f}  ".format(j if j not in ranked_j and j <= qty else "",
-                                                                                   "." if j not in ranked_j and j <= qty else " ",
-                                                                                   WEEKS_snow[x].year if WEEKS_snow[x].number > 0 and j <= qty else "",
-                                                                                   WEEKS_snow[x].number if WEEKS_snow[x].number > 0 and j <= qty else ""))
-
-        if i > qty and j > qty: break
-    print("\n{:^111}".format("Temperature Records for the Week of {} {} - {} {}".format(calendar.month_abbr[wkorig.month],wkorig.day,
-                                                                                calendar.month_abbr[(wkorig + datetime.timedelta(days=7)).month],(wkorig + datetime.timedelta(days=7)).day)))
-    print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-    print("{:^111}".format("Weeks with > {} Day(s) of Data".format(excludeweek)))
-    print("{:-^111}".format(""))
-    print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
-    print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
-    print("{:^17}|{:^18}|{:^18}|{:^18}|{:^18}|{:^17}".format("Warmest","Coolest","Warmest","Coolest","Warmest","Coolest"))
-    print("{:-^17}|{:-^18}|{:-^18}|{:-^18}|{:-^18}|{:-^17}".format("","","","","",""))
-    i = 1
-    j = 1
-    k = 1
-    l = 1
-    m = 1
-    n = 1
-    ranked_i = []
-    ranked_j = []
-    ranked_k = []
-    ranked_l = []
-    ranked_m = []
-    ranked_n = []
-    for x in range(len(WEEKS_tmax)):
-        if x == 0:
-            print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(1,
-                                                            ".",WEEKS_tavg[x].year,"{:.1f}".format(WEEKS_tavg[x].number),
-                                                            1,".",WEEKS_tavg_asc[x].year,"{:.1f}".format(WEEKS_tavg_asc[x].number),
-                                                            1,".",WEEKS_tmax[x].year,"{:.1f}".format(WEEKS_tmax[x].number),
-                                                            1,".",WEEKS_tmax_asc[x].year,"{:.1f}".format(WEEKS_tmax_asc[x].number),
-                                                            1,".",WEEKS_tmin[x].year,"{:.1f}".format(WEEKS_tmin[x].number),
-                                                            1,".",WEEKS_tmin_asc[x].year,"{:.1f}".format(WEEKS_tmin_asc[x].number)))
-            ranked_i.append(i)
-            ranked_j.append(j)
-            ranked_k.append(k)
-            ranked_l.append(l)
-            ranked_m.append(m)
-            ranked_n.append(n)
-        else:
-            if i not in ranked_i and i <= qty: ranked_i.append(i)
-            if j not in ranked_j and j <= qty: ranked_j.append(j)
-            if k not in ranked_k and k <= qty: ranked_k.append(k)
-            if l not in ranked_l and l <= qty: ranked_l.append(l)
-            if m not in ranked_m and m <= qty: ranked_m.append(m)
-            if n not in ranked_n and n <= qty: ranked_n.append(n)
-            if WEEKS_tavg[x].number != WEEKS_tavg[x-1].number: i += 1
-            if WEEKS_tavg_asc[x].number != WEEKS_tavg_asc[x-1].number: j += 1
-            if WEEKS_tmax[x].number != WEEKS_tmax[x-1].number: k += 1
-            if WEEKS_tmax_asc[x].number != WEEKS_tmax_asc[x-1].number: l += 1
-            if WEEKS_tmin[x].number != WEEKS_tmin[x-1].number: m += 1
-            if WEEKS_tmin_asc[x].number != WEEKS_tmin_asc[x-1].number: n += 1
-            if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
-                print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
-                        i if i not in ranked_i and i <= qty else "",
-                        "." if i not in ranked_i and i <= qty else " ",
-                        WEEKS_tavg[x].year if i <= qty else "",
-                        "{:.1f}".format(WEEKS_tavg[x].number) if i <= qty else "",
-                        j if j not in ranked_j and j <= qty else "",
-                        "." if j not in ranked_j and j <= qty else " ",
-                        WEEKS_tavg_asc[x].year if j <= qty else "",
-                        "{:.1f}".format(WEEKS_tavg_asc[x].number) if j <= qty else "",
-                        k if k not in ranked_k and k <= qty else "",
-                        "." if k not in ranked_k and k <= qty else " ",
-                        WEEKS_tmax[x].year if k <= qty else "",
-                        "{:.1f}".format(WEEKS_tmax[x].number) if k <= qty else "",
-                        l if l not in ranked_l and l <= qty else "",
-                        "." if l not in ranked_l and l <= qty else " ",
-                        WEEKS_tmax_asc[x].year if l <= qty else "",
-                        "{:.1f}".format(WEEKS_tmax_asc[x].number) if l <= qty else "",
-                        m if m not in ranked_m and m <= qty else "",
-                        "." if m not in ranked_m and m <= qty else " ",
-                        WEEKS_tmin[x].year if m <= qty else "",
-                        "{:.1f}".format(WEEKS_tmin[x].number) if m <= qty else "",
-                        n if n not in ranked_n and n <= qty else "",
-                        "." if n not in ranked_n and n <= qty else " ",
-                        WEEKS_tmin_asc[x].year if n <= qty else "",
-                        "{:.1f}".format(WEEKS_tmin_asc[x].number) if n <= qty else ""))
-        if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
-    print("")
-
-def monthRank(mo,attribute,qty):
-    class month_attr:
-        def __init__(self,y,mo,number):
-            self.year = y
-            self.month = mo
-            self.number = number
-
-    if type(mo) != int or mo < 1 or mo > 12: return print("* OOPS! {} is an invalid month. Ensure type(m) == int and is range [1,12]".format(mo))
-    if attribute not in ["temp","temps","temperature","temperatures","tmax","tmin","tavg","prcp","precip","rain","snow"]:
-        return print("* OOPS! Attribute must be 'temp' or 'prcp'. Try again!")
-    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
-    if attribute in ["prcp","precip","rain","snow"]: attribute = "prcp"
-    if attribute in ["temp","temps","temperature","temperatures","tmax","tmin","tavg"]: attribute = "temp"
-    
-    MONTHS_prcp = []
-    MONTHS_prcp_asc = []    # Declared here bc it will be compiled with in for-loop
-    MONTHS_prcpDAYS = []
-    MONTHS_prcpDAYS_asc = []    # Declared here bc it will be compiled with in for-loop
-    MONTHS_snow = []
-    MONTHS_snowDAYS = []
-    MONTHS_tavg = []
-    MONTHS_tmax = []
-    MONTHS_tmin = []
-    
-    for y in [YR for YR in clmt if type(YR) == int]:
-        try:
-            MONTHS_prcp.append(month_attr(y,mo,round(sum(clmt[y][mo]["prcp"]),2)))
-            MONTHS_prcpDAYS.append(month_attr(y,mo,clmt[y][mo]["prcpDAYS"]))
-            if clmt[y][mo]["recordqty"] > excludemonth:
-                MONTHS_prcp_asc.append(month_attr(y,mo,round(sum(clmt[y][mo]["prcp"]),2)))
-                MONTHS_prcpDAYS_asc.append(month_attr(y,mo,clmt[y][mo]["prcpDAYS"]))
-            MONTHS_snow.append(month_attr(y,mo,round(sum(clmt[y][mo]["snow"]),1)))
-            MONTHS_snowDAYS.append(month_attr(y,mo,clmt[y][mo]["snowDAYS"]))
-        except:
-            pass
-        try:
-            if len(clmt[y][mo]["tempAVGlist"]) > excludemonth_tavg:
-                MONTHS_tavg.append(month_attr(y,mo,round(mean(clmt[y][mo]["tempAVGlist"]),1)))
-        except:
-            pass
-        try:
-            if len(clmt[y][mo]["tmax"]) > excludemonth:
-                MONTHS_tmax.append(month_attr(y,mo,round(mean(clmt[y][mo]["tmax"]),1)))
-        except:
-            pass
-        try:
-            if len(clmt[y][mo]["tmin"]) > excludemonth:
-                MONTHS_tmin.append(month_attr(y,mo,round(mean(clmt[y][mo]["tmin"]),1)))
-        except:
-            pass
-
-    #MONTHS_prcp_asc = MONTHS_prcp.copy()
-    MONTHS_prcp.sort(key=lambda x:x.number,reverse=True)
-    MONTHS_prcp_asc.sort(key=lambda x:x.number)
-    #MONTHS_prcpDAYS_asc = MONTHS_prcpDAYS.copy()
-    MONTHS_prcpDAYS.sort(key=lambda x:x.number,reverse=True)
-    MONTHS_prcpDAYS_asc.sort(key=lambda x:x.number)
-    MONTHS_snow.sort(key=lambda x:x.number,reverse=True)
-    MONTHS_snowDAYS.sort(key=lambda x:x.number,reverse=True)
-    MONTHS_tavg_asc = MONTHS_tavg.copy()
-    MONTHS_tavg.sort(key=lambda x:x.number,reverse=True)
-    MONTHS_tavg_asc.sort(key=lambda x:x.number)
-    MONTHS_tmax_asc = MONTHS_tmax.copy()
-    MONTHS_tmax.sort(key=lambda x:x.number,reverse=True)
-    MONTHS_tmax_asc.sort(key=lambda x:x.number)
-    MONTHS_tmin_asc = MONTHS_tmin.copy()
-    MONTHS_tmin.sort(key=lambda x:x.number,reverse=True)
-    MONTHS_tmin_asc.sort(key=lambda x:x.number)
-    # print("{:67}|{:32}")
-    # print("{:18}|{:18}|{:14}|{:14}|{:17}|{:14}")
-    # print(" {:2}{} {:4}  {:6} | {:2}{} {:4}  {:6} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:5} | {:2}{} {:4}  {:2} "
-    # print("  {:2}{} {:4}  {:2}  |  {:2}{} {:4}  {:2}  "
-    print("")
-    if attribute == "prcp":
-        print("{:^100}".format("Ranked {} Monthly Precipitation Amounts and Days".format(calendar.month_name[mo])))
-        print("{:^100}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^100}".format("Months with > {} Day(s) of Data".format(excludemonth)))
-        print("{:-^100}".format(""))
-        print("{:^67}|{:^32}".format("Rain","Snow"))
-        print("{:-^67}|{:-^32}".format("",""))
-        print("{:^18}|{:^18}|{:^14}|{:^14}|{:^17}|{:^14}".format("Wettest","Driest","Most Days","Least Days","Snowiest","Most Days"))
-        print("{:-^18}|{:-^18}|{:-^14}|{:-^14}|{:-^17}|{:-^14}".format("","","","","",""))
-        i = 1;j = 1;k = 1;l = 1;m = 1;n = 1
-        ranked_i = [];ranked_j = [];ranked_k = [];ranked_l = [];ranked_m = [];ranked_n = []
-        for x in range(len(MONTHS_prcp)):
-            if x == 0:
-                print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>2} ".format(
-                    1,".",MONTHS_prcp[x].year,"{:.2f}".format(MONTHS_prcp[x].number),
-                    1,".",MONTHS_prcp_asc[x].year,"{:.2f}".format(MONTHS_prcp_asc[x].number),
-                    1,".",MONTHS_prcpDAYS[x].year,MONTHS_prcpDAYS[x].number,
-                    1,".",MONTHS_prcpDAYS_asc[x].year,MONTHS_prcpDAYS_asc[x].number,
-                    1 if MONTHS_snow[x].number else "","." if MONTHS_snow[x].number > 0 else " ",
-                    MONTHS_snow[x].year if MONTHS_snow[x].number > 0 else "","{:.1f}".format(MONTHS_snow[x].number) if MONTHS_snow[x].number > 0 else "",
-                    1 if MONTHS_snowDAYS[x].number > 0 else "","." if MONTHS_snowDAYS[x].number > 0 else " ",
-                    MONTHS_snowDAYS[x].year if MONTHS_snowDAYS[x].number > 0 else "",MONTHS_snowDAYS[x].number if MONTHS_snowDAYS[x].number > 0 else ""))
-                ranked_i.append(i);ranked_j.append(j);ranked_k.append(k);ranked_l.append(l);ranked_m.append(m);ranked_n.append(n)
-            else:
-                if i not in ranked_i and i <= qty: ranked_i.append(i)
-                if j not in ranked_j and j <= qty: ranked_j.append(j)
-                if k not in ranked_k and k <= qty: ranked_k.append(k)
-                if l not in ranked_l and l <= qty: ranked_l.append(l)
-                if m not in ranked_m and m <= qty: ranked_m.append(m)
-                if n not in ranked_n and n <= qty: ranked_n.append(n)
-                if MONTHS_prcp[x].number != MONTHS_prcp[x-1].number: i += 1
-                if MONTHS_prcp_asc[x].number != MONTHS_prcp_asc[x-1].number: j += 1
-                if MONTHS_prcpDAYS[x].number != MONTHS_prcpDAYS[x-1].number: k += 1
-                if MONTHS_prcpDAYS_asc[x].number != MONTHS_prcpDAYS_asc[x-1].number: l += 1
-                if MONTHS_snow[x].number != MONTHS_snow[x-1].number: m += 1
-                if MONTHS_snowDAYS[x].number != MONTHS_snowDAYS[x-1].number: n += 1
-                if MONTHS_prcp[x].number == 0: i = qty + 1
-                if MONTHS_prcpDAYS[x].number == 0: k = qty + 1
-                if MONTHS_snow[x].number == 0: m = qty + 1
-                if MONTHS_snowDAYS[x].number == 0: n = qty + 1
-                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
-                    print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>2} ".format(
-                        i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
-                        MONTHS_prcp[x].year if i <= qty else "","{:.2f}".format(MONTHS_prcp[x].number) if i <= qty else "",
-                        j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
-                        MONTHS_prcp_asc[x].year if j <= qty else "","{:.2f}".format(MONTHS_prcp_asc[x].number) if j <= qty else "",
-                        k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
-                        MONTHS_prcpDAYS[x].year if k <= qty else "",MONTHS_prcpDAYS[x].number if k <= qty else "",
-                        l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
-                        MONTHS_prcpDAYS_asc[x].year if l <= qty else "",MONTHS_prcpDAYS_asc[x].number if l <= qty else "",
-                        m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
-                        MONTHS_snow[x].year if m <= qty else "","{:.1f}".format(MONTHS_snow[x].number) if m <= qty else "",
-                        n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
-                        MONTHS_snowDAYS[x].year if n <= qty else "",MONTHS_snowDAYS[x].number if n <= qty else ""))
-            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
-    if attribute == "temp":
-        print("{:^111}".format("Ranked {} Monthly Temperatures".format(calendar.month_name[mo])))
-        print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^111}".format("Months with > {} Day(s) of Data".format(excludemonth)))
-        print("{:-^111}".format(""))
-        print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
-        print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
-        print("{:^17}|{:^18}|{:^18}|{:^18}|{:^18}|{:^17}".format("Warmest","Coolest","Warmest","Coolest","Warmest","Coolest"))
-        print("{:-^17}|{:-^18}|{:-^18}|{:-^18}|{:-^18}|{:-^17}".format("","","","","",""))
-        i = 1; j = 1; k = 1; l = 1; m = 1; n = 1
-        ranked_i = []; ranked_j = []; ranked_k = []; ranked_l = []; ranked_m = []; ranked_n = []
-        for x in range(len(MONTHS_tmax)):
-            if x == 0:
-                print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
-                                                                1,".",MONTHS_tavg[x].year,"{:.1f}".format(MONTHS_tavg[x].number),
-                                                                1,".",MONTHS_tavg_asc[x].year,"{:.1f}".format(MONTHS_tavg_asc[x].number),
-                                                                1,".",MONTHS_tmax[x].year,"{:.1f}".format(MONTHS_tmax[x].number),
-                                                                1,".",MONTHS_tmax_asc[x].year,"{:.1f}".format(MONTHS_tmax_asc[x].number),
-                                                                1,".",MONTHS_tmin[x].year,"{:.1f}".format(MONTHS_tmin[x].number),
-                                                                1,".",MONTHS_tmin_asc[x].year,"{:.1f}".format(MONTHS_tmin_asc[x].number)))
-                ranked_i.append(i); ranked_j.append(j); ranked_k.append(k); ranked_l.append(l); ranked_m.append(m); ranked_n.append(n)
-            else:
-                if i not in ranked_i and i <= qty: ranked_i.append(i)
-                if j not in ranked_j and j <= qty: ranked_j.append(j)
-                if k not in ranked_k and k <= qty: ranked_k.append(k)
-                if l not in ranked_l and l <= qty: ranked_l.append(l)
-                if m not in ranked_m and m <= qty: ranked_m.append(m)
-                if n not in ranked_n and n <= qty: ranked_n.append(n)
-                if MONTHS_tavg[x].number != MONTHS_tavg[x-1].number: i += 1
-                if MONTHS_tavg_asc[x].number != MONTHS_tavg_asc[x-1].number: j += 1
-                if MONTHS_tmax[x].number != MONTHS_tmax[x-1].number: k += 1
-                if MONTHS_tmax_asc[x].number != MONTHS_tmax_asc[x-1].number: l += 1
-                if MONTHS_tmin[x].number != MONTHS_tmin[x-1].number: m += 1
-                if MONTHS_tmin_asc[x].number != MONTHS_tmin_asc[x-1].number: n += 1
-                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
-                    print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
-                            i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
-                            MONTHS_tavg[x].year if i <= qty else "","{:.1f}".format(MONTHS_tavg[x].number) if i <= qty else "",
-                            j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
-                            MONTHS_tavg_asc[x].year if j <= qty else "","{:.1f}".format(MONTHS_tavg_asc[x].number) if j <= qty else "",
-                            k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
-                            MONTHS_tmax[x].year if k <= qty else "","{:.1f}".format(MONTHS_tmax[x].number) if k <= qty else "",
-                            l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
-                            MONTHS_tmax_asc[x].year if l <= qty else "","{:.1f}".format(MONTHS_tmax_asc[x].number) if l <= qty else "",
-                            m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
-                            MONTHS_tmin[x].year if m <= qty else "","{:.1f}".format(MONTHS_tmin[x].number) if m <= qty else "",
-                            n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
-                            MONTHS_tmin_asc[x].year if n <= qty else "","{:.1f}".format(MONTHS_tmin_asc[x].number) if n <= qty else ""))
-            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
-    print("")
-
-def yearRank(attribute,qty):
-    class month_attr:
-        def __init__(self,y,number):
-            self.year = y
-            self.number = number
-
-    if attribute not in ["temp","temps","temperature","temperatures","tmax","tmin","tavg","prcp","precip","rain","snow"]:
-        return print("* OOPS! Attribute must be 'temp' or 'prcp'. Try again!")
-    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
-    if attribute in ["prcp","precip","rain","snow"]: attribute = "prcp"
-    if attribute in ["temp","temps","temperature","temperatures","tmax","tmin","tavg"]: attribute = "temp"
-    
-    YEARS_prcp = []
-    YEARS_prcp_asc = []     # Declared here bc it will be compiled within for-loop
-    YEARS_prcpDAYS = []
-    YEARS_prcpDAYS_asc = [] # Declared here bc it will be compiled within for-loop
-    YEARS_snow = []
-    YEARS_snowDAYS = []
-    YEARS_tavg = []
-    YEARS_tmax = []
-    YEARS_tmin = []
-    
-    for y in [YR for YR in clmt if type(YR) == int]:
-        try:
-            YEARS_prcp.append(month_attr(y,round(sum(clmt[y]["prcp"]),2)))
-            YEARS_prcpDAYS.append(month_attr(y,clmt[y]["prcpDAYS"]))
-            if clmt[y]["recordqty"] > excludeyear:
-                YEARS_prcp_asc.append(month_attr(y,round(sum(clmt[y]["prcp"]),2)))
-                YEARS_prcpDAYS_asc.append(month_attr(y,clmt[y]["prcpDAYS"]))
-            YEARS_snow.append(month_attr(y,round(sum(clmt[y]["snow"]),1)))
-            YEARS_snowDAYS.append(month_attr(y,clmt[y]["snowDAYS"]))
-        except:
-            pass
-        try:
-            if len(clmt[y]["tempAVGlist"]) > excludeyear_tavg:
-                YEARS_tavg.append(month_attr(y,round(mean(clmt[y]["tempAVGlist"]),1)))
-        except:
-            pass
-        try:
-            if len(clmt[y]["tmax"]) > excludeyear:
-                YEARS_tmax.append(month_attr(y,round(mean(clmt[y]["tmax"]),1)))
-        except:
-            pass
-        try:
-            if len(clmt[y]["tmin"]) > excludeyear:
-                YEARS_tmin.append(month_attr(y,round(mean(clmt[y]["tmin"]),1)))
-        except:
-            pass
-
-    #YEARS_prcp_asc = YEARS_prcp.copy()
-    YEARS_prcp.sort(key=lambda x:x.number,reverse=True)
-    YEARS_prcp_asc.sort(key=lambda x:x.number)
-    #YEARS_prcpDAYS_asc = YEARS_prcpDAYS.copy()
-    YEARS_prcpDAYS.sort(key=lambda x:x.number,reverse=True)
-    YEARS_prcpDAYS_asc.sort(key=lambda x:x.number)
-    YEARS_snow.sort(key=lambda x:x.number,reverse=True)
-    YEARS_snowDAYS.sort(key=lambda x:x.number,reverse=True)
-    YEARS_tavg_asc = YEARS_tavg.copy()
-    YEARS_tavg.sort(key=lambda x:x.number,reverse=True)
-    YEARS_tavg_asc.sort(key=lambda x:x.number)
-    YEARS_tmax_asc = YEARS_tmax.copy()
-    YEARS_tmax.sort(key=lambda x:x.number,reverse=True)
-    YEARS_tmax_asc.sort(key=lambda x:x.number)
-    YEARS_tmin_asc = YEARS_tmin.copy()
-    YEARS_tmin.sort(key=lambda x:x.number,reverse=True)
-    YEARS_tmin_asc.sort(key=lambda x:x.number)
-    
-    print("")
-    if attribute == "prcp":
-        print("{:^103}".format("Ranked Yearly Precipitation Amounts and Days"))
-        print("{:^103}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^103}".format("Years with > {} day(s) of data".format(excludeyear)))
-        print("{:-^103}".format(""))
-        print("{:^69}|{:^33}".format("Rain","Snow"))
-        print("{:-^69}|{:-^33}".format("",""))
-        print("{:^18}|{:^18}|{:^15}|{:^15}|{:^17}|{:^15}".format("Wettest","Driest","Most Days","Least Days","Snowiest","Most Days"))
-        print("{:-^18}|{:-^18}|{:-^15}|{:-^15}|{:-^17}|{:-^15}".format("","","","","",""))
-        i = 1;j = 1;k = 1;l = 1;m = 1;n = 1
-        ranked_i = [];ranked_j = [];ranked_k = [];ranked_l = [];ranked_m = [];ranked_n = []
-        for x in range(len(YEARS_prcp)):
-            if x == 0:
-                print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
-                    1,".",YEARS_prcp[x].year,"{:.2f}".format(YEARS_prcp[x].number),
-                    1,".",YEARS_prcp_asc[x].year,"{:.2f}".format(YEARS_prcp_asc[x].number),
-                    1,".",YEARS_prcpDAYS[x].year,YEARS_prcpDAYS[x].number,
-                    1,".",YEARS_prcpDAYS_asc[x].year,YEARS_prcpDAYS_asc[x].number,
-                    1 if YEARS_snow[x].number else "","." if YEARS_snow[x].number > 0 else " ",
-                    YEARS_snow[x].year if YEARS_snow[x].number > 0 else "","{:.1f}".format(YEARS_snow[x].number) if YEARS_snow[x].number > 0 else "",
-                    1 if YEARS_snowDAYS[x].number > 0 else "","." if YEARS_snowDAYS[x].number > 0 else " ",
-                    YEARS_snowDAYS[x].year if YEARS_snowDAYS[x].number > 0 else "",YEARS_snowDAYS[x].number if YEARS_snowDAYS[x].number > 0 else ""))
-                ranked_i.append(i);ranked_j.append(j);ranked_k.append(k);ranked_l.append(l);ranked_m.append(m);ranked_n.append(n)
-            else:
-                if i not in ranked_i and i <= qty: ranked_i.append(i)
-                if j not in ranked_j and j <= qty: ranked_j.append(j)
-                if k not in ranked_k and k <= qty: ranked_k.append(k)
-                if l not in ranked_l and l <= qty: ranked_l.append(l)
-                if m not in ranked_m and m <= qty: ranked_m.append(m)
-                if n not in ranked_n and n <= qty: ranked_n.append(n)
-                if YEARS_prcp[x].number != YEARS_prcp[x-1].number: i += 1
-                if YEARS_prcp_asc[x].number != YEARS_prcp_asc[x-1].number: j += 1
-                if YEARS_prcpDAYS[x].number != YEARS_prcpDAYS[x-1].number: k += 1
-                if YEARS_prcpDAYS_asc[x].number != YEARS_prcpDAYS_asc[x-1].number: l += 1
-                if YEARS_snow[x].number != YEARS_snow[x-1].number: m += 1
-                if YEARS_snowDAYS[x].number != YEARS_snowDAYS[x-1].number: n += 1
-                if YEARS_prcp[x].number == 0: i = qty + 1
-                if YEARS_prcpDAYS[x].number == 0: k = qty + 1
-                if YEARS_snow[x].number == 0: m = qty + 1
-                if YEARS_snowDAYS[x].number == 0: n = qty + 1
-                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
-                    print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
-                        i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
-                        YEARS_prcp[x].year if i <= qty else "","{:.2f}".format(YEARS_prcp[x].number) if i <= qty else "",
-                        j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
-                        YEARS_prcp_asc[x].year if j <= qty else "","{:.2f}".format(YEARS_prcp_asc[x].number) if j <= qty else "",
-                        k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
-                        YEARS_prcpDAYS[x].year if k <= qty else "",YEARS_prcpDAYS[x].number if k <= qty else "",
-                        l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
-                        YEARS_prcpDAYS_asc[x].year if l <= qty else "",YEARS_prcpDAYS_asc[x].number if l <= qty else "",
-                        m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
-                        YEARS_snow[x].year if m <= qty else "","{:.1f}".format(YEARS_snow[x].number) if m <= qty else "",
-                        n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
-                        YEARS_snowDAYS[x].year if n <= qty else "",YEARS_snowDAYS[x].number if n <= qty else ""))
-            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
-    if attribute == "temp":
-        print("{:^111}".format("Ranked Yearly Temperatures"))
-        print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^111}".format("Years with > {} day(s) of data".format(excludeyear)))
-        print("{:-^111}".format(""))
-        print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
-        print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
-        print("{:^17}|{:^18}|{:^18}|{:^18}|{:^18}|{:^17}".format("Warmest","Coolest","Warmest","Coolest","Warmest","Coolest"))
-        print("{:-^17}|{:-^18}|{:-^18}|{:-^18}|{:-^18}|{:-^17}".format("","","","","",""))
-        i = 1; j = 1; k = 1; l = 1; m = 1; n = 1
-        ranked_i = []; ranked_j = []; ranked_k = []; ranked_l = []; ranked_m = []; ranked_n = []
-        for x in range(len(YEARS_tmax)):
-            if x == 0:
-                print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
-                                                                1,".",YEARS_tavg[x].year,"{:.1f}".format(YEARS_tavg[x].number),
-                                                                1,".",YEARS_tavg_asc[x].year,"{:.1f}".format(YEARS_tavg_asc[x].number),
-                                                                1,".",YEARS_tmax[x].year,"{:.1f}".format(YEARS_tmax[x].number),
-                                                                1,".",YEARS_tmax_asc[x].year,"{:.1f}".format(YEARS_tmax_asc[x].number),
-                                                                1,".",YEARS_tmin[x].year,"{:.1f}".format(YEARS_tmin[x].number),
-                                                                1,".",YEARS_tmin_asc[x].year,"{:.1f}".format(YEARS_tmin_asc[x].number)))
-                ranked_i.append(i); ranked_j.append(j); ranked_k.append(k); ranked_l.append(l); ranked_m.append(m); ranked_n.append(n)
-            else:
-                if i not in ranked_i and i <= qty: ranked_i.append(i)
-                if j not in ranked_j and j <= qty: ranked_j.append(j)
-                if k not in ranked_k and k <= qty: ranked_k.append(k)
-                if l not in ranked_l and l <= qty: ranked_l.append(l)
-                if m not in ranked_m and m <= qty: ranked_m.append(m)
-                if n not in ranked_n and n <= qty: ranked_n.append(n)
-                if YEARS_tavg[x].number != YEARS_tavg[x-1].number: i += 1
-                if YEARS_tavg_asc[x].number != YEARS_tavg_asc[x-1].number: j += 1
-                if YEARS_tmax[x].number != YEARS_tmax[x-1].number: k += 1
-                if YEARS_tmax_asc[x].number != YEARS_tmax_asc[x-1].number: l += 1
-                if YEARS_tmin[x].number != YEARS_tmin[x-1].number: m += 1
-                if YEARS_tmin_asc[x].number != YEARS_tmin_asc[x-1].number: n += 1
-                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
-                    print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
-                            i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
-                            YEARS_tavg[x].year if i <= qty else "","{:.1f}".format(YEARS_tavg[x].number) if i <= qty else "",
-                            j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
-                            YEARS_tavg_asc[x].year if j <= qty else "","{:.1f}".format(YEARS_tavg_asc[x].number) if j <= qty else "",
-                            k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
-                            YEARS_tmax[x].year if k <= qty else "","{:.1f}".format(YEARS_tmax[x].number) if k <= qty else "",
-                            l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
-                            YEARS_tmax_asc[x].year if l <= qty else "","{:.1f}".format(YEARS_tmax_asc[x].number) if l <= qty else "",
-                            m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
-                            YEARS_tmin[x].year if m <= qty else "","{:.1f}".format(YEARS_tmin[x].number) if m <= qty else "",
-                            n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
-                            YEARS_tmin_asc[x].year if n <= qty else "","{:.1f}".format(YEARS_tmin_asc[x].number) if n <= qty else ""))
-            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
-    print("")
-
-def seasonStats(y,season):
-    if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
-    if y not in metclmt: return print("Meteorological Year {} Not Found! Try again!".format(y))
-    if season.lower() not in ["spring","summer","fall","autumn","winter"]: return print("'{}' is not a valid season. Try again!".format(season))
-    if season.lower() == "autumn": season = "fall"
-    season = season.lower()     # Puts season into requisite lower case to match metclmt[y] season dictionaries
-    if metclmt[y][season]["recordqty"] <= excludeseason:
-        print("{:-^53}".format(""))
-        print("*** SEASONAL STATS LIKELY NOT COMPLETE FOR RELIANCE ON STATISTICS ***")
-    print("{:-^53}".format(""))
-    if season == "winter": print("Seasonal Statistics for Meteorological {} {}-{}".format(season.capitalize(),y,str(y+1)[2:]))
-    else: print("Seasonal Statistics for Meteorological {} {}".format(season.capitalize(),y))
-    print("{}: {}".format(metclmt["station"],metclmt["station_name"]))
-    print("Quantity of Records: {}".format(metclmt[y][season]["recordqty"]))
-    print("{:-^53}".format(""))
-    print("Total Precipitation: {}".format(round(sum(metclmt[y][season]["prcp"]),2)))
-    print("Total Precipitation Days (>= T): {}".format(metclmt[y][season]["prcpDAYS"]))
-    if round(sum(metclmt[y][season]["prcp"]),2) > 0:
-        print("-- Highest Daily Precip: {}".format(metclmt[y][season]["prcpPROP"]["day_max"][0]),end=" ::: ")
-        for x in range(len(metclmt[y][season]["prcpPROP"]["day_max"][1])):
-            if x != len(metclmt[y][season]["prcpPROP"]["day_max"][1])-1: print("{},".format(metclmt[y][season]["prcpPROP"]["day_max"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y][season]["prcpPROP"]["day_max"][1][x].daystr))
-        print("-- Wettest Month: {}".format(round(metclmt[y][season]["prcpPROP"]["month_max"][0],2)),end=" ::: ")
-        for x in range(len(metclmt[y][season]["prcpPROP"]["month_max"][1])):
-            if x != len(metclmt[y][season]["prcpPROP"]["month_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["prcpPROP"]["month_max"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y][season]["prcpPROP"]["month_max"][1][x]]))
-        print("-- Driest Month: {}".format(round(metclmt[y][season]["prcpPROP"]["month_min"][0],2)),end=" ::: ")
-        for x in range(len(metclmt[y][season]["prcpPROP"]["month_min"][1])):
-            if x != len(metclmt[y][season]["prcpPROP"]["month_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["prcpPROP"]["month_min"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y][season]["prcpPROP"]["month_min"][1][x]]))
-    if round(sum(metclmt[y][season]["snow"]),2) > 0 or metclmt[y][season]["snowDAYS"] > 0:
-        print("Total Snow: {}".format(round(sum(metclmt[y][season]["snow"]),2)))
-        print("Total Snow Days (>= T): {}".format(metclmt[y][season]["snowDAYS"]))
-        if metclmt[y][season]["snowPROP"]["day_max"][0] > 0:
-            print("-- Highest Daily Snow: {}".format(metclmt[y][season]["snowPROP"]["day_max"][0]),end=" ::: ")
-            for x in range(len(metclmt[y][season]["snowPROP"]["day_max"][1])):
-                if x != len(metclmt[y][season]["snowPROP"]["day_max"][1])-1: print("{},".format(metclmt[y][season]["snowPROP"]["day_max"][1][x].daystr),end=" ")
-                else: print("{}".format(metclmt[y][season]["snowPROP"]["day_max"][1][x].daystr))
-            print("-- Snowiest Month: {}".format(round(metclmt[y][season]["snowPROP"]["month_max"][0],2)),end=" ::: ")
-            for x in range(len(metclmt[y][season]["snowPROP"]["month_max"][1])):
-                if x != len(metclmt[y][season]["snowPROP"]["month_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["snowPROP"]["month_max"][1][x]]),end=" ")
-                else: print("{}".format(calendar.month_name[metclmt[y][season]["snowPROP"]["month_max"][1][x]]))
-    if len(metclmt[y][season]["tempAVGlist"]) <= excludeseason_tavg and metclmt[y][season]["recordqty"] > excludeseason:
-        print("{:-^55}".format(""))
-        print("*** INSUFFICIENT TEMPERATURE DATA FOR SEASON LIKELY ***")
-        print("{:-^55}".format(""))
-    try: print("Average Temperature: {}".format(round(mean(metclmt[y][season]["tempAVGlist"]),1)))
-    except: pass
-    try:
-        print("Average Max Temperature: {}".format(round(mean(metclmt[y][season]["tmax"]),1)))
-        print("-- Warmest Daily Max Temperature: {}".format(metclmt[y][season]["tmaxPROP"]["day_max"][0]),end=" ::: ")
-        for x in range(len(metclmt[y][season]["tmaxPROP"]["day_max"][1])):
-            if x != len(metclmt[y][season]["tmaxPROP"]["day_max"][1])-1: print("{},".format(metclmt[y][season]["tmaxPROP"]["day_max"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y][season]["tmaxPROP"]["day_max"][1][x].daystr))
-        print("-- Coolest Daily Max Temperature: {}".format(metclmt[y][season]["tmaxPROP"]["day_min"][0]),end=" ::: ")
-        for x in range(len(metclmt[y][season]["tmaxPROP"]["day_min"][1])):
-            if x != len(metclmt[y][season]["tmaxPROP"]["day_min"][1])-1: print("{},".format(metclmt[y][season]["tmaxPROP"]["day_min"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y][season]["tmaxPROP"]["day_min"][1][x].daystr))
-        print("-- Warmest AVG Monthly Max Temperature: {}".format(round(metclmt[y][season]["tmaxPROP"]["month_AVG_max"][0],1)),end=" ::: ")
-        for x in range(len(metclmt[y][season]["tmaxPROP"]["month_AVG_max"][1])):
-            if x != len(metclmt[y][season]["tmaxPROP"]["month_AVG_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["tmaxPROP"]["month_AVG_max"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y][season]["tmaxPROP"]["month_AVG_max"][1][x]]))
-        print("-- Coolest AVG Monthly Max Temperature: {}".format(round(metclmt[y][season]["tmaxPROP"]["month_AVG_min"][0],1)),end=" ::: ")
-        for x in range(len(metclmt[y][season]["tmaxPROP"]["month_AVG_min"][1])):
-            if x != len(metclmt[y][season]["tmaxPROP"]["month_AVG_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["tmaxPROP"]["month_AVG_min"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y][season]["tmaxPROP"]["month_AVG_min"][1][x]]))
-    except:
-        print("{:-^47}".format(""))
-        print("*** NO RELIABLE TMAX DATA FOR SEASON EXISTS ***")
-        print("{:-^47}".format(""))
-    try:
-        print("Average Min Temperature: {}".format(round(mean(metclmt[y][season]["tmin"]),1)))
-        print("-- Warmest Min Temperature: {}".format(metclmt[y][season]["tminPROP"]["day_max"][0]),end=" ::: ")
-        for x in range(len(metclmt[y][season]["tminPROP"]["day_max"][1])):
-            if x != len(metclmt[y][season]["tminPROP"]["day_max"][1])-1: print("{},".format(metclmt[y][season]["tminPROP"]["day_max"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y][season]["tminPROP"]["day_max"][1][x].daystr))
-        print("-- Coolest Min Temperature: {}".format(metclmt[y][season]["tminPROP"]["day_min"][0]),end=" ::: ")
-        for x in range(len(metclmt[y][season]["tminPROP"]["day_min"][1])):
-            if x != len(metclmt[y][season]["tminPROP"]["day_min"][1])-1: print("{},".format(metclmt[y][season]["tminPROP"]["day_min"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y][season]["tminPROP"]["day_min"][1][x].daystr))
-        print("-- Warmest AVG Monthly Min Temperature: {}".format(round(metclmt[y][season]["tminPROP"]["month_AVG_max"][0],1)),end=" ::: ")
-        for x in range(len(metclmt[y][season]["tminPROP"]["month_AVG_max"][1])):
-            if x != len(metclmt[y][season]["tminPROP"]["month_AVG_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["tminPROP"]["month_AVG_max"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y][season]["tminPROP"]["month_AVG_max"][1][x]]))
-        print("-- Coolest AVG Monthly Min Temperature: {}".format(round(metclmt[y][season]["tminPROP"]["month_AVG_min"][0],1)),end=" ::: ")
-        for x in range(len(metclmt[y][season]["tminPROP"]["month_AVG_min"][1])):
-            if x != len(metclmt[y][season]["tminPROP"]["month_AVG_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y][season]["tminPROP"]["month_AVG_min"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y][season]["tminPROP"]["month_AVG_min"][1][x]]))
-    except:
-        print("{:-^47}".format(""))
-        print("*** NO RELIABLE TMIN DATA FOR SEASON EXISTS ***")
-        print("{:-^47}".format(""))
-    print("-----")
-
 def seasonReport(season):
+    """Detailed Climatological Report for recorded statistics from a season of interest. It only accepts an argument for the season of interest which must be in string format (accepts "spring", "summer", "fall", or "winter").
+    
+    seasonReport(SEASON)
+    
+    EXAMPLE: seasonReport("summer") -> Returns a climatological report for all
+                                       meteorological summers (6,7,8) on record
+    """
     if season.lower() not in ["spring","summer","fall","autumn","winter"]: return print("* OOPS! {} is not a valid season. Try again!".format(season.capitalize()))
     if season.lower() == "autumn": season = "fall"
     season = season.lower()
@@ -3099,271 +2810,12 @@ def seasonReport(season):
             print("ERROR: Era = {}; Exception = {}".format(c,e))
     print("")
 
-def seasonRank(season,attribute,qty):
-    class month_attr:
-        def __init__(self,y,number):
-            self.year = y
-            self.number = number
-
-    if attribute not in ["temp","temps","temperature","temperatures","tmax","tmin","tavg","prcp","precip","rain","snow"]:
-        return print("* OOPS! Attribute must be 'temp' or 'prcp'. Try again!")
-    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
-    if attribute in ["prcp","precip","rain","snow"]: attribute = "prcp"
-    if attribute in ["temp","temps","temperature","temperatures","tmax","tmin","tavg"]: attribute = "temp"
-    
-    SEASON_prcp = []
-    SEASON_prcp_asc = []     # Declared here bc it will be compiled within for-loop
-    SEASON_prcpDAYS = []
-    SEASON_prcpDAYS_asc = [] # Declared here bc it will be compiled within for-loop
-    SEASON_snow = []
-    SEASON_snowDAYS = []
-    SEASON_tavg = []
-    SEASON_tmax = []
-    SEASON_tmin = []
-    
-    for y in [YR for YR in metclmt if type(YR) == int]:
-        try:
-            SEASON_prcp.append(month_attr(y,round(sum(metclmt[y][season]["prcp"]),2)))
-            SEASON_prcpDAYS.append(month_attr(y,metclmt[y][season]["prcpDAYS"]))
-            if metclmt[y][season]["recordqty"] > excludeseason:
-                SEASON_prcp_asc.append(month_attr(y,round(sum(metclmt[y][season]["prcp"]),2)))
-                SEASON_prcpDAYS_asc.append(month_attr(y,metclmt[y][season]["prcpDAYS"]))
-            SEASON_snow.append(month_attr(y,round(sum(metclmt[y][season]["snow"]),1)))
-            SEASON_snowDAYS.append(month_attr(y,metclmt[y][season]["snowDAYS"]))
-        except:
-            pass
-        try:
-            if len(metclmt[y][season]["tempAVGlist"]) > excludeseason_tavg:
-                SEASON_tavg.append(month_attr(y,round(mean(metclmt[y][season]["tempAVGlist"]),1)))
-        except:
-            pass
-        try:
-            if len(metclmt[y][season]["tmax"]) > excludeseason:
-                SEASON_tmax.append(month_attr(y,round(mean(metclmt[y][season]["tmax"]),1)))
-        except:
-            pass
-        try:
-            if len(metclmt[y][season]["tmin"]) > excludeseason:
-                SEASON_tmin.append(month_attr(y,round(mean(metclmt[y][season]["tmin"]),1)))
-        except:
-            pass
-
-    #SEASON_prcp_asc = SEASON_prcp.copy()
-    SEASON_prcp.sort(key=lambda x:x.number,reverse=True)
-    SEASON_prcp_asc.sort(key=lambda x:x.number)
-    #SEASON_prcpDAYS_asc = SEASON_prcpDAYS.copy()
-    SEASON_prcpDAYS.sort(key=lambda x:x.number,reverse=True)
-    SEASON_prcpDAYS_asc.sort(key=lambda x:x.number)
-    SEASON_snow.sort(key=lambda x:x.number,reverse=True)
-    SEASON_snowDAYS.sort(key=lambda x:x.number,reverse=True)
-    SEASON_tavg_asc = SEASON_tavg.copy()
-    SEASON_tavg.sort(key=lambda x:x.number,reverse=True)
-    SEASON_tavg_asc.sort(key=lambda x:x.number)
-    SEASON_tmax_asc = SEASON_tmax.copy()
-    SEASON_tmax.sort(key=lambda x:x.number,reverse=True)
-    SEASON_tmax_asc.sort(key=lambda x:x.number)
-    SEASON_tmin_asc = SEASON_tmin.copy()
-    SEASON_tmin.sort(key=lambda x:x.number,reverse=True)
-    SEASON_tmin_asc.sort(key=lambda x:x.number)
-    
-    print("")
-    if attribute == "prcp":
-        print("{:^103}".format("Meteorological {} Ranked Precipitation Amounts and Days".format(season.capitalize())))
-        print("{:^103}".format("{}, {}".format(metclmt["station"],metclmt["station_name"])))
-        print("{:^103}".format("Seasons with > {} day(s) of data".format(excludeseason)))
-        print("{:-^103}".format(""))
-        print("{:^69}|{:^33}".format("Rain","Snow"))
-        print("{:-^69}|{:-^33}".format("",""))
-        print("{:^18}|{:^18}|{:^15}|{:^15}|{:^17}|{:^15}".format("Wettest","Driest","Most Days","Least Days","Snowiest","Most Days"))
-        print("{:-^18}|{:-^18}|{:-^15}|{:-^15}|{:-^17}|{:-^15}".format("","","","","",""))
-        i = 1;j = 1;k = 1;l = 1;m = 1;n = 1
-        ranked_i = [];ranked_j = [];ranked_k = [];ranked_l = [];ranked_m = [];ranked_n = []
-        for x in range(len(SEASON_prcp)):
-            if x == 0:
-                print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
-                    1,".",SEASON_prcp[x].year,"{:.2f}".format(SEASON_prcp[x].number),
-                    1,".",SEASON_prcp_asc[x].year,"{:.2f}".format(SEASON_prcp_asc[x].number),
-                    1,".",SEASON_prcpDAYS[x].year,SEASON_prcpDAYS[x].number,
-                    1,".",SEASON_prcpDAYS_asc[x].year,SEASON_prcpDAYS_asc[x].number,
-                    1 if SEASON_snow[x].number else "","." if SEASON_snow[x].number > 0 else " ",
-                    SEASON_snow[x].year if SEASON_snow[x].number > 0 else "","{:.1f}".format(SEASON_snow[x].number) if SEASON_snow[x].number > 0 else "",
-                    1 if SEASON_snowDAYS[x].number > 0 else "","." if SEASON_snowDAYS[x].number > 0 else " ",
-                    SEASON_snowDAYS[x].year if SEASON_snowDAYS[x].number > 0 else "",SEASON_snowDAYS[x].number if SEASON_snowDAYS[x].number > 0 else ""))
-                ranked_i.append(i);ranked_j.append(j);ranked_k.append(k);ranked_l.append(l);ranked_m.append(m);ranked_n.append(n)
-            else:
-                if i not in ranked_i and i <= qty: ranked_i.append(i)
-                if j not in ranked_j and j <= qty: ranked_j.append(j)
-                if k not in ranked_k and k <= qty: ranked_k.append(k)
-                if l not in ranked_l and l <= qty: ranked_l.append(l)
-                if m not in ranked_m and m <= qty: ranked_m.append(m)
-                if n not in ranked_n and n <= qty: ranked_n.append(n)
-                if SEASON_prcp[x].number != SEASON_prcp[x-1].number: i += 1
-                if SEASON_prcp_asc[x].number != SEASON_prcp_asc[x-1].number: j += 1
-                if SEASON_prcpDAYS[x].number != SEASON_prcpDAYS[x-1].number: k += 1
-                if SEASON_prcpDAYS_asc[x].number != SEASON_prcpDAYS_asc[x-1].number: l += 1
-                if SEASON_snow[x].number != SEASON_snow[x-1].number: m += 1
-                if SEASON_snowDAYS[x].number != SEASON_snowDAYS[x-1].number: n += 1
-                if SEASON_prcp[x].number == 0: i = qty + 1
-                if SEASON_prcpDAYS[x].number == 0: k = qty + 1
-                if SEASON_snow[x].number == 0: m = qty + 1
-                if SEASON_snowDAYS[x].number == 0: n = qty + 1
-                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
-                    print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
-                        i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
-                        SEASON_prcp[x].year if i <= qty else "","{:.2f}".format(SEASON_prcp[x].number) if i <= qty else "",
-                        j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
-                        SEASON_prcp_asc[x].year if j <= qty else "","{:.2f}".format(SEASON_prcp_asc[x].number) if j <= qty else "",
-                        k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
-                        SEASON_prcpDAYS[x].year if k <= qty else "",SEASON_prcpDAYS[x].number if k <= qty else "",
-                        l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
-                        SEASON_prcpDAYS_asc[x].year if l <= qty else "",SEASON_prcpDAYS_asc[x].number if l <= qty else "",
-                        m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
-                        SEASON_snow[x].year if m <= qty else "","{:.1f}".format(SEASON_snow[x].number) if m <= qty else "",
-                        n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
-                        SEASON_snowDAYS[x].year if n <= qty else "",SEASON_snowDAYS[x].number if n <= qty else ""))
-            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
-    if attribute == "temp":
-        print("{:^111}".format("Meteorological {} Ranked Temperatures".format(season.capitalize())))
-        print("{:^111}".format("{}, {}".format(metclmt["station"],metclmt["station_name"])))
-        print("{:^111}".format("Seasons with > {} day(s) of data".format(excludeseason)))
-        print("{:-^111}".format(""))
-        print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
-        print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
-        print("{:^17}|{:^18}|{:^18}|{:^18}|{:^18}|{:^17}".format("Warmest","Coolest","Warmest","Coolest","Warmest","Coolest"))
-        print("{:-^17}|{:-^18}|{:-^18}|{:-^18}|{:-^18}|{:-^17}".format("","","","","",""))
-        i = 1; j = 1; k = 1; l = 1; m = 1; n = 1
-        ranked_i = []; ranked_j = []; ranked_k = []; ranked_l = []; ranked_m = []; ranked_n = []
-        for x in range(len(SEASON_tmax)):
-            if x == 0:
-                print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
-                                                                1,".",SEASON_tavg[x].year,"{:.1f}".format(SEASON_tavg[x].number),
-                                                                1,".",SEASON_tavg_asc[x].year,"{:.1f}".format(SEASON_tavg_asc[x].number),
-                                                                1,".",SEASON_tmax[x].year,"{:.1f}".format(SEASON_tmax[x].number),
-                                                                1,".",SEASON_tmax_asc[x].year,"{:.1f}".format(SEASON_tmax_asc[x].number),
-                                                                1,".",SEASON_tmin[x].year,"{:.1f}".format(SEASON_tmin[x].number),
-                                                                1,".",SEASON_tmin_asc[x].year,"{:.1f}".format(SEASON_tmin_asc[x].number)))
-                ranked_i.append(i); ranked_j.append(j); ranked_k.append(k); ranked_l.append(l); ranked_m.append(m); ranked_n.append(n)
-            else:
-                if i not in ranked_i and i <= qty: ranked_i.append(i)
-                if j not in ranked_j and j <= qty: ranked_j.append(j)
-                if k not in ranked_k and k <= qty: ranked_k.append(k)
-                if l not in ranked_l and l <= qty: ranked_l.append(l)
-                if m not in ranked_m and m <= qty: ranked_m.append(m)
-                if n not in ranked_n and n <= qty: ranked_n.append(n)
-                if SEASON_tavg[x].number != SEASON_tavg[x-1].number: i += 1
-                if SEASON_tavg_asc[x].number != SEASON_tavg_asc[x-1].number: j += 1
-                if SEASON_tmax[x].number != SEASON_tmax[x-1].number: k += 1
-                if SEASON_tmax_asc[x].number != SEASON_tmax_asc[x-1].number: l += 1
-                if SEASON_tmin[x].number != SEASON_tmin[x-1].number: m += 1
-                if SEASON_tmin_asc[x].number != SEASON_tmin_asc[x-1].number: n += 1
-                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
-                    print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
-                            i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
-                            SEASON_tavg[x].year if i <= qty else "","{:.1f}".format(SEASON_tavg[x].number) if i <= qty else "",
-                            j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
-                            SEASON_tavg_asc[x].year if j <= qty else "","{:.1f}".format(SEASON_tavg_asc[x].number) if j <= qty else "",
-                            k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
-                            SEASON_tmax[x].year if k <= qty else "","{:.1f}".format(SEASON_tmax[x].number) if k <= qty else "",
-                            l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
-                            SEASON_tmax_asc[x].year if l <= qty else "","{:.1f}".format(SEASON_tmax_asc[x].number) if l <= qty else "",
-                            m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
-                            SEASON_tmin[x].year if m <= qty else "","{:.1f}".format(SEASON_tmin[x].number) if m <= qty else "",
-                            n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
-                            SEASON_tmin_asc[x].year if n <= qty else "","{:.1f}".format(SEASON_tmin_asc[x].number) if n <= qty else ""))
-            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
-    print("")
-
-def metYearStats(y):
-    if len(metclmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
-    if y not in metclmt: return print("* A record for {} not found in metclmt *".format(y))
-    if metclmt[y]["recordqty"] <= excludeyear:
-        print("-------------------------------------")
-        print("*** YEAR STATS MAY NOT BE COMPLETE FOR RELIANCE ON STATISTICS ***")
-    print("-------------------------------------")
-    print("Statistics for Meteorological Year {}".format(y))
-    print("{}: {}".format(metclmt["station"],metclmt["station_name"]))
-    print("Quantity of Records: {}".format(metclmt[y]["recordqty"]))
-    print("-----")
-    print("Total Precipitation: {}".format(round(sum(metclmt[y]["prcp"]),2)))
-    print("Total Precipitation Days (>= T): {}".format(metclmt[y]["prcpDAYS"]))
-    if sum(metclmt[y]["prcp"]) > 0:
-        print("-- Highest Daily Precip: {}".format(metclmt[y]["prcpPROP"]["day_max"][0]),end=" ::: ")
-        for x in range(len(metclmt[y]["prcpPROP"]["day_max"][1])):
-            if x != len(metclmt[y]["prcpPROP"]["day_max"][1])-1: print("{},".format(metclmt[y]["prcpPROP"]["day_max"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y]["prcpPROP"]["day_max"][1][x].daystr))
-        print("-- Wettest Month: {}".format(round(metclmt[y]["prcpPROP"]["month_max"][0],2)),end=" ::: ")
-        for x in range(len(metclmt[y]["prcpPROP"]["month_max"][1])):
-            if x != len(metclmt[y]["prcpPROP"]["month_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["prcpPROP"]["month_max"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y]["prcpPROP"]["month_max"][1][x]]))
-        print("-- Driest Month: {}".format(round(metclmt[y]["prcpPROP"]["month_min"][0],2)),end=" ::: ")
-        for x in range(len(metclmt[y]["prcpPROP"]["month_min"][1])):
-            if x != len(metclmt[y]["prcpPROP"]["month_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["prcpPROP"]["month_min"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y]["prcpPROP"]["month_min"][1][x]]))
-    if sum(metclmt[y]["snow"]) > 0 or metclmt[y]["snowDAYS"] > 0:
-        print("Total Snow: {}".format(round(sum(metclmt[y]["snow"]),1)))
-        print("Total Snow Days (>= T): {}".format(metclmt[y]["snowDAYS"]))
-        if metclmt[y]["snowPROP"]["day_max"][0] > 0:
-            print("-- Highest Daily Snow: {}".format(metclmt[y]["snowPROP"]["day_max"][0]),end=" ::: ")
-            for x in range(len(metclmt[y]["snowPROP"]["day_max"][1])):
-                if x != len(metclmt[y]["snowPROP"]["day_max"][1])-1: print("{},".format(metclmt[y]["snowPROP"]["day_max"][1][x].daystr),end=" ")
-                else: print("{}".format(metclmt[y]["snowPROP"]["day_max"][1][x].daystr))
-            print("-- Snowiest Month: {}".format(round(metclmt[y]["snowPROP"]["month_max"][0],2)),end=" ::: ")
-            for x in range(len(metclmt[y]["snowPROP"]["month_max"][1])):
-                if x != len(metclmt[y]["snowPROP"]["month_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["snowPROP"]["month_max"][1][x]]),end=" ")
-                else: print("{}".format(calendar.month_name[metclmt[y]["snowPROP"]["month_max"][1][x]]))
-    if len(metclmt[y]["tempAVGlist"]) <= excludeyear_tavg:
-        print("{:-^53}".format(""))
-        print("*** INSUFFICIENT TEMPERATURE DATA FOR YEAR LIKELY ***")
-        print("{:-^53}".format(""))
-    try: print("Average Temperature: {}".format(round(mean(metclmt[y]["tempAVGlist"]),1)))
-    except: pass
-    try:
-        print("Average Max Temperature: {}".format(round(mean(metclmt[y]["tmax"]),1)))
-        print("-- Warmest Daily Max Temperature: {}".format(metclmt[y]["tmaxPROP"]["day_max"][0]),end=" ::: ")
-        for x in range(len(metclmt[y]["tmaxPROP"]["day_max"][1])):
-            if x != len(metclmt[y]["tmaxPROP"]["day_max"][1])-1: print("{},".format(metclmt[y]["tmaxPROP"]["day_max"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y]["tmaxPROP"]["day_max"][1][x].daystr))
-        print("-- Coolest Daily Max Temperature: {}".format(metclmt[y]["tmaxPROP"]["day_min"][0]),end=" ::: ")
-        for x in range(len(metclmt[y]["tmaxPROP"]["day_min"][1])):
-            if x != len(metclmt[y]["tmaxPROP"]["day_min"][1])-1: print("{},".format(metclmt[y]["tmaxPROP"]["day_min"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y]["tmaxPROP"]["day_min"][1][x].daystr))
-        print("-- Warmest AVG Monthly Max Temperature: {}".format(round(metclmt[y]["tmaxPROP"]["month_AVG_max"][0],1)),end=" ::: ")
-        for x in range(len(metclmt[y]["tmaxPROP"]["month_AVG_max"][1])):
-            if x != len(metclmt[y]["tmaxPROP"]["month_AVG_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["tmaxPROP"]["month_AVG_max"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y]["tmaxPROP"]["month_AVG_max"][1][x]]))
-        print("-- Coolest AVG Monthly Max Temperature: {}".format(round(metclmt[y]["tmaxPROP"]["month_AVG_min"][0],1)),end=" ::: ")
-        for x in range(len(metclmt[y]["tmaxPROP"]["month_AVG_min"][1])):
-            if x != len(metclmt[y]["tmaxPROP"]["month_AVG_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["tmaxPROP"]["month_AVG_min"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y]["tmaxPROP"]["month_AVG_min"][1][x]]))
-    except:
-        print("{:-^45}".format(""))
-        print("*** NO RELIABLE TMAX DATA FOR YEAR EXISTS ***")
-        print("{:-^45}".format(""))
-    try:
-        print("Average Min Temperature: {}".format(round(mean(metclmt[y]["tmin"]),1)))
-        print("-- Warmest Min Temperature: {}".format(metclmt[y]["tminPROP"]["day_max"][0]),end=" ::: ")
-        for x in range(len(metclmt[y]["tminPROP"]["day_max"][1])):
-            if x != len(metclmt[y]["tminPROP"]["day_max"][1])-1: print("{},".format(metclmt[y]["tminPROP"]["day_max"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y]["tminPROP"]["day_max"][1][x].daystr))
-        print("-- Coolest Min Temperature: {}".format(metclmt[y]["tminPROP"]["day_min"][0]),end=" ::: ")
-        for x in range(len(metclmt[y]["tminPROP"]["day_min"][1])):
-            if x != len(metclmt[y]["tminPROP"]["day_min"][1])-1: print("{},".format(metclmt[y]["tminPROP"]["day_min"][1][x].daystr),end=" ")
-            else: print("{}".format(metclmt[y]["tminPROP"]["day_min"][1][x].daystr))
-        print("-- Warmest AVG Monthly Min Temperature: {}".format(round(metclmt[y]["tminPROP"]["month_AVG_max"][0],1)),end=" ::: ")
-        for x in range(len(metclmt[y]["tminPROP"]["month_AVG_max"][1])):
-            if x != len(metclmt[y]["tminPROP"]["month_AVG_max"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["tminPROP"]["month_AVG_max"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y]["tminPROP"]["month_AVG_max"][1][x]]))
-        print("-- Coolest AVG Monthly Min Temperature: {}".format(round(metclmt[y]["tminPROP"]["month_AVG_min"][0],1)),end=" ::: ")
-        for x in range(len(metclmt[y]["tminPROP"]["month_AVG_min"][1])):
-            if x != len(metclmt[y]["tminPROP"]["month_AVG_min"][1])-1: print("{},".format(calendar.month_name[metclmt[y]["tminPROP"]["month_AVG_min"][1][x]]),end=" ")
-            else: print("{}".format(calendar.month_name[metclmt[y]["tminPROP"]["month_AVG_min"][1][x]]))
-    except:
-        print("{:-^45}".format(""))
-        print("*** NO RELIABLE TMIN DATA FOR YEAR EXISTS ***")
-        print("{:-^45}".format(""))
-    print("-----")
-    
 def metYearReport():
+    """Detailed Climatological Report for recorded statistics from a meteorlogical year (March to February) of interest. No arguments are needed to be passed.
+    
+    EXAMPLE: MetYearReport() -> Returns a climatological report for all
+                                meteorological years on record.
+    """
     valid_yrs = [x for x in metclmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
@@ -3657,7 +3109,1369 @@ def metYearReport():
             print("ERROR: Era = {}; Exception = {}".format(c,e))
     print("")
 
+def customReport(m1,d1,*date2):
+    """Detailed Climatological Report on a custom-length period of statistics. All passed arguments MUST be integers. If the optional ending arguments are not
+    included, the default ending will be December 31. If the end day given occurs before the start day in the calendar year, the end day of the following year will be used in compiling stats.
+    
+    customReport(M1,D1,*[M2,D2])
+    
+    REQUIRED: M1,D1 --> Represent the beginning month, and day of the custom period.
+    OPT *args: M2,D2 --> These optional entries represent the ending month, and day
+                         of the period
+
+    EXAMPLE: customReport(10,23) -> Returns a climatological report for the period
+                                    between October 23 and December 31
+    EXAMPLE: customReport(6,1,11,30) -> Returns a climatological report for the
+                                        period between June 1 and November 30
+    """
+    if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
+    valid_yrs = [x for x in clmt.keys() if type(x) == int]
+    valid_yrs.sort()
+    
+    if any(type(x) != int for x in [m1,d1]): return print("*** OOPS! Ensure that only integers are entered ***")
+    if len(date2) == 0: pass
+    elif len(date2) != 2: return print("*** OOPS! For the 2nd (optional) date, ensure only a Month and Date are entered ***")
+    elif any(type(x) != int for x in [date2[0],date2[1]]): return print("*** OOPS! Ensure that only integers are entered ***")
+    
+    if len(date2) == 2:
+        m2 = date2[0]
+        d2 = date2[1]
+    else:
+        m2 = 12
+        d2 = 31
+    
+    if m2 == m1:
+        if d2 == d1: return print("*** OOPS! Ensure different dates! ***")
+    
+    if m1 == 2 and d1 == 29: d1 = 28
+    if m2 == 2 and d2 == 29: d2 = 28
+
+    # Determine total length of period (used for exclusion calculation)
+    s = datetime.date(1900,m1,d1)
+    test = datetime.date(1900,m2,d2)
+    if test > s: e = test
+    else: e = datetime.date(1901,m2,d2)
+    timelength = (e - s).days + 1
+    if timelength < 7: EXCLD = 1
+    elif timelength == 7: EXCLD = excludeweek
+    elif timelength in [28,29,30,31]: EXCLD = excludemonth
+    elif timelength >= 350: EXCLD = excludeyear
+    else: EXCLD = round(excludecustom * timelength)
+    
+    print("EXCLUDING PERIODS OF <= {} DAYS".format(EXCLD))
+    
+    climo30yrs = {}
+    for x in range(1811,2016,5):
+        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+29 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
+            climo30yrs[(x,x+29)] = {"years":(x,x+29),"total_days":0,
+                                    "prcp": [],"prcpPROP":{"days":0,"e_max_days":[-1,[]],"e_min_days":[999,[]],"e_max":[-1,[]],"e_min":[999,[]]},
+                                    "snow": [],"snowPROP":{"days":0,"e_max_days":[-1,[]],"e_max":[-1,[]]},
+                                    "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"e_max":[-999,[]],"e_min":[999,[]]},
+                                    "tmax": [],"tmaxPROP":{"e_max":[-999,[]],"e_min":[999,[]]},
+                                    "tmin": [],"tminPROP":{"e_max":[-999,[]],"e_min":[999,[]]}}
+
+    alltime = {"years":(valid_yrs[0],valid_yrs[len(valid_yrs)-1]),"total_days":0,
+               "prcp": [],"prcpPROP":{"days":0,"e_max_days":[-1,[]],"e_min_days":[999,[]],"e_max":[-1,[]],"e_min":[999,[]]},
+               "snow": [],"snowPROP":{"days":0,"e_max_days":[-1,[]],"e_max":[-1,[]]},
+               "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"e_max":[-999,[]],"e_min":[999,[]]},
+               "tmax": [],"tmaxPROP":{"e_max":[-999,[]],"e_min":[999,[]]},
+               "tmin": [],"tminPROP":{"e_max":[-999,[]],"e_min":[999,[]]}}
+
+    e = {}  # Will hold the date-to-date (represented by a parent year) stats
+
+    print("*** Be Patient. This could take a few moments ***")
+    
+
+
+    for YYYY in valid_yrs:
+        startday = datetime.date(YYYY,m1,d1)
+        incr_day = startday
+        if m2 < m1: endday = datetime.date(YYYY+1,m2,d2)   # if end month is less, the results will bleed into the following year
+        elif m2 == m1:  # Deals with if the months of the dates are exactly the same
+            if d2 < d1: endday = datetime.date(YYYY+1,m2,d2)     # like above, if month is the same, but date is less, results will bleed into following year
+            else: endday = datetime.date(YYYY,m2,d2)               # OTHERWISE, it is assumed the same year
+        else: endday = datetime.date(YYYY,m2,d2)       # If month2 is > than month 1, the active year will be used
+        
+        if endday.year > max(valid_yrs): break
+
+        #if YYYY not in e:
+        e[YYYY] = {"recordqty":0,
+                   "prcp":[],"prcpDAYS":0,"snow":[],"snowDAYS":0,
+                   "tempAVGlist":[],"tmax":[],"tmin":[]}
+        
+        while incr_day <= endday:
+            y = incr_day.year; m = incr_day.month; d = incr_day.day
+            if y in clmt and m in clmt[y] and d in clmt[y][m]:
+                e[YYYY]["recordqty"] += 1
+                # PRCP
+                if clmt[y][m][d].prcpQ in ignoreflags and clmt[y][m][d].prcp not in ["9999","-9999",""]:
+                    if float(clmt[y][m][d].prcp) > 0: e[YYYY]["prcp"].append(round(float(clmt[y][m][d].prcp),2))
+                    if float(clmt[y][m][d].prcp) > 0 or clmt[y][m][d].prcpM == "T": e[YYYY]["prcpDAYS"] += 1
+                if clmt[y][m][d].prcpQ in ignoreflags and clmt[y][m][d].prcp == "" and clmt[y][m][d].prcpM == "T": e[YYYY]["prcpDAYS"] += 1
+                # SNOW
+                if clmt[y][m][d].snowQ in ignoreflags and clmt[y][m][d].snow not in ["9999","-9999",""]:
+                    if float(clmt[y][m][d].snow) > 0: e[YYYY]["snow"].append(round(float(clmt[y][m][d].snow),2))
+                    if float(clmt[y][m][d].snow) > 0 or clmt[y][m][d].snowM == "T": e[YYYY]["snowDAYS"] += 1
+                if clmt[y][m][d].snowQ in ignoreflags and clmt[y][m][d].snow == "" and clmt[y][m][d].snowM == "T": e[YYYY]["snowDAYS"] += 1
+                # TAVG
+                if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""] and clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmin not in ["9999","-9999",""] and int(clmt[y][m][d].tmax) >= int(clmt[y][m][d].tmin):
+                    e[YYYY]["tempAVGlist"].append(int(clmt[y][m][d].tmax))
+                    e[YYYY]["tempAVGlist"].append(int(clmt[y][m][d].tmin))
+                # TMAX
+                if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""]:
+                    if clmt[y][m][d].tmin != "" and int(clmt[y][m][d].tmax) >= int(clmt[y][m][d].tmin):
+                        e[YYYY]["tmax"].append(int(clmt[y][m][d].tmax))
+                # TMIN
+                if clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmin not in ["9999","-9999",""]:
+                    if clmt[y][m][d].tmax != "" and int(clmt[y][m][d].tmin) <= int(clmt[y][m][d].tmax):
+                        e[YYYY]["tmin"].append(int(clmt[y][m][d].tmin))
+            incr_day += datetime.timedelta(days=1)  # GO ON TO TEST NEXT DAY
+
+    for YYYY in e:
+        #print('e[{}]["prcpDAYS"] = {}'.format(YYYY,e[YYYY]["prcpDAYS"]))
+        #print('sum(e[{}]["prcp"] = {})'.format(YYYY,sum(e[YYYY]["prcp"])))
+        #print("----")
+        #print('alltime["prcpPROP"]["e_max_days"][0] = {}'.format(alltime["prcpPROP"]["e_max_days"][0]))
+        #print('alltime["prcpPROP"]["e_max_days"][1] = {}'.format(alltime["prcpPROP"]["e_max_days"][1]))
+        #print('alltime["prcpPROP"]["e_max"][0] = {}'.format(alltime["prcpPROP"]["e_max"][0]))
+        #print('alltime["prcpPROP"]["e_max"][1] = {}'.format(alltime["prcpPROP"]["e_max"][1]))
+        #input("----")
+        
+        alltime["total_days"] += e[YYYY]["recordqty"]
+        # PRCP
+        alltime["prcp"].append(sum(e[YYYY]["prcp"]))
+        alltime["prcpPROP"]["days"] += e[YYYY]["prcpDAYS"]
+        if e[YYYY]["prcpDAYS"] == alltime["prcpPROP"]["e_max_days"][0]: alltime["prcpPROP"]["e_max_days"][1].append(YYYY)
+        elif e[YYYY]["prcpDAYS"] > alltime["prcpPROP"]["e_max_days"][0]:
+            alltime["prcpPROP"]["e_max_days"][0] = e[YYYY]["prcpDAYS"]
+            alltime["prcpPROP"]["e_max_days"][1] = []
+            alltime["prcpPROP"]["e_max_days"][1].append(YYYY)
+        if sum(e[YYYY]["prcp"]) == alltime["prcpPROP"]["e_max"][0]: alltime["prcpPROP"]["e_max"][1].append(YYYY)
+        elif sum(e[YYYY]["prcp"]) > alltime["prcpPROP"]["e_max"][0]:
+            alltime["prcpPROP"]["e_max"][0] = sum(e[YYYY]["prcp"])
+            alltime["prcpPROP"]["e_max"][1] = []
+            alltime["prcpPROP"]["e_max"][1].append(YYYY)
+        if e[YYYY]["recordqty"] > EXCLD:
+            if e[YYYY]["prcpDAYS"] == alltime["prcpPROP"]["e_min_days"][0]: alltime["prcpPROP"]["e_min_days"][1].append(YYYY)
+            elif e[YYYY]["prcpDAYS"] < alltime["prcpPROP"]["e_min_days"][0]:
+                alltime["prcpPROP"]["e_min_days"][0] = e[YYYY]["prcpDAYS"]
+                alltime["prcpPROP"]["e_min_days"][1] = []
+                alltime["prcpPROP"]["e_min_days"][1].append(YYYY)
+            if sum(e[YYYY]["prcp"]) == alltime["prcpPROP"]["e_min"][0]: alltime["prcpPROP"]["e_min"][1].append(YYYY)
+            elif sum(e[YYYY]["prcp"]) < alltime["prcpPROP"]["e_min"][0]:
+                alltime["prcpPROP"]["e_min"][0] = sum(e[YYYY]["prcp"])
+                alltime["prcpPROP"]["e_min"][1] = []
+                alltime["prcpPROP"]["e_min"][1].append(YYYY)
+        for c in climo30yrs:
+            if YYYY >= c[0] and YYYY <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
+                climo30yrs[c]["prcp"].append(sum(e[YYYY]["prcp"]))
+                climo30yrs[c]["prcpPROP"]["days"] += e[YYYY]["prcpDAYS"]
+                climo30yrs[c]["total_days"] += e[YYYY]["recordqty"]
+                if e[YYYY]["prcpDAYS"] == climo30yrs[c]["prcpPROP"]["e_max_days"][0]: climo30yrs[c]["prcpPROP"]["e_max_days"][1].append(YYYY)
+                elif e[YYYY]["prcpDAYS"] > climo30yrs[c]["prcpPROP"]["e_max_days"][0]:
+                    climo30yrs[c]["prcpPROP"]["e_max_days"][0] = e[YYYY]["prcpDAYS"]
+                    climo30yrs[c]["prcpPROP"]["e_max_days"][1] = []
+                    climo30yrs[c]["prcpPROP"]["e_max_days"][1].append(YYYY)
+                if sum(e[YYYY]["prcp"]) == climo30yrs[c]["prcpPROP"]["e_max"][0]: climo30yrs[c]["prcpPROP"]["e_max"][1].append(YYYY)
+                elif sum(e[YYYY]["prcp"]) > climo30yrs[c]["prcpPROP"]["e_max"][0]:
+                    climo30yrs[c]["prcpPROP"]["e_max"][0] = sum(e[YYYY]["prcp"])
+                    climo30yrs[c]["prcpPROP"]["e_max"][1] = []
+                    climo30yrs[c]["prcpPROP"]["e_max"][1].append(YYYY)
+                if e[YYYY]["recordqty"] > EXCLD:
+                    if e[YYYY]["prcpDAYS"] == climo30yrs[c]["prcpPROP"]["e_min_days"][0]: climo30yrs[c]["prcpPROP"]["e_min_days"][1].append(YYYY)
+                    elif e[YYYY]["prcpDAYS"] < climo30yrs[c]["prcpPROP"]["e_min_days"][0]:
+                        climo30yrs[c]["prcpPROP"]["e_min_days"][0] = e[YYYY]["prcpDAYS"]
+                        climo30yrs[c]["prcpPROP"]["e_min_days"][1] = []
+                        climo30yrs[c]["prcpPROP"]["e_min_days"][1].append(YYYY)
+                    if sum(e[YYYY]["prcp"]) == climo30yrs[c]["prcpPROP"]["e_min"][0]: climo30yrs[c]["prcpPROP"]["e_min"][1].append(YYYY)
+                    elif sum(e[YYYY]["prcp"]) < climo30yrs[c]["prcpPROP"]["e_min"][0]:
+                        climo30yrs[c]["prcpPROP"]["e_min"][0] = sum(e[YYYY]["prcp"])
+                        climo30yrs[c]["prcpPROP"]["e_min"][1] = []
+                        climo30yrs[c]["prcpPROP"]["e_min"][1].append(YYYY)
+
+        # SNOW
+        alltime["snow"].append(sum(e[YYYY]["snow"]))
+        alltime["snowPROP"]["days"] += e[YYYY]["snowDAYS"]
+        if e[YYYY]["snowDAYS"] == alltime["snowPROP"]["e_max_days"][0]: alltime["snowPROP"]["e_max_days"][1].append(YYYY)
+        elif e[YYYY]["snowDAYS"] > alltime["snowPROP"]["e_max_days"][0]:
+            alltime["snowPROP"]["e_max_days"][0] = e[YYYY]["snowDAYS"]
+            alltime["snowPROP"]["e_max_days"][1] = []
+            alltime["snowPROP"]["e_max_days"][1].append(YYYY)
+        if sum(e[YYYY]["snow"]) == alltime["snowPROP"]["e_max"][0]: alltime["snowPROP"]["e_max"][1].append(YYYY)
+        elif sum(e[YYYY]["snow"]) > alltime["snowPROP"]["e_max"][0]:
+            alltime["snowPROP"]["e_max"][0] = sum(e[YYYY]["snow"])
+            alltime["snowPROP"]["e_max"][1] = []
+            alltime["snowPROP"]["e_max"][1].append(YYYY)
+        for c in climo30yrs:
+            if YYYY >= c[0] and YYYY <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
+                climo30yrs[c]["snow"].append(sum(e[YYYY]["snow"]))
+                climo30yrs[c]["snowPROP"]["days"] += e[YYYY]["snowDAYS"]
+                if e[YYYY]["snowDAYS"] == climo30yrs[c]["snowPROP"]["e_max_days"][0]: climo30yrs[c]["snowPROP"]["e_max_days"][1].append(YYYY)
+                elif e[YYYY]["snowDAYS"] > climo30yrs[c]["snowPROP"]["e_max_days"][0]:
+                    climo30yrs[c]["snowPROP"]["e_max_days"][0] = e[YYYY]["snowDAYS"]
+                    climo30yrs[c]["snowPROP"]["e_max_days"][1] = []
+                    climo30yrs[c]["snowPROP"]["e_max_days"][1].append(YYYY)
+                if sum(e[YYYY]["snow"]) == climo30yrs[c]["snowPROP"]["e_max"][0]: climo30yrs[c]["snowPROP"]["e_max"][1].append(YYYY)
+                elif sum(e[YYYY]["snow"]) > climo30yrs[c]["snowPROP"]["e_max"][0]:
+                    climo30yrs[c]["snowPROP"]["e_max"][0] = sum(e[YYYY]["snow"])
+                    climo30yrs[c]["snowPROP"]["e_max"][1] = []
+                    climo30yrs[c]["snowPROP"]["e_max"][1].append(YYYY)
+# 'recordqty', 'prcp', 'prcpDAYS', 'prcpPROP', 'snow', 'snowDAYS', 'snowPROP', 'tempAVGlist', 'tmax', 'tmaxPROP', 'tmin', 'tminPROP'
+        # TAVG
+        for x in e[YYYY]["tempAVGlist"]: alltime["tempAVGlist_ind"].append(x)
+        if len(e[YYYY]["tempAVGlist"]) > EXCLD * 2:
+            alltime["tempAVGlist"].append(mean(e[YYYY]["tempAVGlist"]))
+            if mean(e[YYYY]["tempAVGlist"]) == alltime["tavgPROP"]["e_max"][0]: alltime["tavgPROP"]["e_max"][1].append(YYYY)
+            elif mean(e[YYYY]["tempAVGlist"]) > alltime["tavgPROP"]["e_max"][0]:
+                alltime["tavgPROP"]["e_max"][0] = mean(e[YYYY]["tempAVGlist"])
+                alltime["tavgPROP"]["e_max"][1] = []
+                alltime["tavgPROP"]["e_max"][1].append(YYYY)
+            if mean(e[YYYY]["tempAVGlist"]) == alltime["tavgPROP"]["e_min"][0]: alltime["tavgPROP"]["e_min"][1].append(YYYY)
+            elif mean(e[YYYY]["tempAVGlist"]) < alltime["tavgPROP"]["e_min"][0]:
+                alltime["tavgPROP"]["e_min"][0] = mean(e[YYYY]["tempAVGlist"])
+                alltime["tavgPROP"]["e_min"][1] = []
+                alltime["tavgPROP"]["e_min"][1].append(YYYY)
+        for c in climo30yrs:
+            if YYYY >= c[0] and YYYY <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
+                for x in e[YYYY]["tempAVGlist"]:climo30yrs[c]["tempAVGlist_ind"].append(x)
+                if len(e[YYYY]["tempAVGlist"]) > EXCLD * 2:
+                    climo30yrs[c]["tempAVGlist"].append(mean(e[YYYY]["tempAVGlist"]))                    
+                    if mean(e[YYYY]["tempAVGlist"]) == climo30yrs[c]["tavgPROP"]["e_max"][0]: climo30yrs[c]["tavgPROP"]["e_max"][1].append(YYYY)
+                    elif mean(e[YYYY]["tempAVGlist"]) > climo30yrs[c]["tavgPROP"]["e_max"][0]:
+                        climo30yrs[c]["tavgPROP"]["e_max"][0] = mean(e[YYYY]["tempAVGlist"])
+                        climo30yrs[c]["tavgPROP"]["e_max"][1] = []
+                        climo30yrs[c]["tavgPROP"]["e_max"][1].append(YYYY)
+                    if mean(e[YYYY]["tempAVGlist"]) == climo30yrs[c]["tavgPROP"]["e_min"][0]: climo30yrs[c]["tavgPROP"]["e_min"][1].append(YYYY)
+                    elif mean(e[YYYY]["tempAVGlist"]) < climo30yrs[c]["tavgPROP"]["e_min"][0]:
+                        climo30yrs[c]["tavgPROP"]["e_min"][0] = mean(e[YYYY]["tempAVGlist"])
+                        climo30yrs[c]["tavgPROP"]["e_min"][1] = []
+                        climo30yrs[c]["tavgPROP"]["e_min"][1].append(YYYY)
+        # TMAX
+        for x in e[YYYY]["tmax"]: alltime["tmax"].append(x)
+        if len(e[YYYY]["tmax"]) > EXCLD:
+            if mean(e[YYYY]["tmax"]) == alltime["tmaxPROP"]["e_max"][0]: alltime["tmaxPROP"]["e_max"][1].append(YYYY)
+            elif mean(e[YYYY]["tmax"]) > alltime["tmaxPROP"]["e_max"][0]:
+                alltime["tmaxPROP"]["e_max"][0] = mean(e[YYYY]["tmax"])
+                alltime["tmaxPROP"]["e_max"][1] = []
+                alltime["tmaxPROP"]["e_max"][1].append(YYYY)
+            if mean(e[YYYY]["tmax"]) == alltime["tmaxPROP"]["e_min"][0]: alltime["tmaxPROP"]["e_min"][1].append(YYYY)
+            elif mean(e[YYYY]["tmax"]) < alltime["tmaxPROP"]["e_min"][0]:
+                alltime["tmaxPROP"]["e_min"][0] = mean(e[YYYY]["tmax"])
+                alltime["tmaxPROP"]["e_min"][1] = []
+                alltime["tmaxPROP"]["e_min"][1].append(YYYY)
+        for c in climo30yrs:
+            if YYYY >= c[0] and YYYY <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
+                for x in e[YYYY]["tmax"]: climo30yrs[c]["tmax"].append(x)
+                if len(e[YYYY]["tmax"]) > EXCLD:
+                    if mean(e[YYYY]["tmax"]) == climo30yrs[c]["tmaxPROP"]["e_max"][0]: climo30yrs[c]["tmaxPROP"]["e_max"][1].append(YYYY)
+                    elif mean(e[YYYY]["tmax"]) > climo30yrs[c]["tmaxPROP"]["e_max"][0]:
+                        climo30yrs[c]["tmaxPROP"]["e_max"][0] = mean(e[YYYY]["tmax"])
+                        climo30yrs[c]["tmaxPROP"]["e_max"][1] = []
+                        climo30yrs[c]["tmaxPROP"]["e_max"][1].append(YYYY)
+                    if mean(e[YYYY]["tmax"]) == climo30yrs[c]["tmaxPROP"]["e_min"][0]: climo30yrs[c]["tmaxPROP"]["e_min"][1].append(YYYY)
+                    elif mean(e[YYYY]["tmax"]) < climo30yrs[c]["tmaxPROP"]["e_min"][0]:
+                        climo30yrs[c]["tmaxPROP"]["e_min"][0] = mean(e[YYYY]["tmax"])
+                        climo30yrs[c]["tmaxPROP"]["e_min"][1] = []
+                        climo30yrs[c]["tmaxPROP"]["e_min"][1].append(YYYY)
+        # TMIN
+        for x in e[YYYY]["tmin"]: alltime["tmin"].append(x)
+        if len(e[YYYY]["tmin"]) > EXCLD:
+            if mean(e[YYYY]["tmin"]) == alltime["tminPROP"]["e_max"][0]: alltime["tminPROP"]["e_max"][1].append(YYYY)
+            elif mean(e[YYYY]["tmin"]) > alltime["tminPROP"]["e_max"][0]:
+                alltime["tminPROP"]["e_max"][0] = mean(e[YYYY]["tmin"])
+                alltime["tminPROP"]["e_max"][1] = []
+                alltime["tminPROP"]["e_max"][1].append(YYYY)
+            if mean(e[YYYY]["tmin"]) == alltime["tminPROP"]["e_min"][0]: alltime["tminPROP"]["e_min"][1].append(YYYY)
+            elif mean(e[YYYY]["tmin"]) < alltime["tminPROP"]["e_min"][0]:
+                alltime["tminPROP"]["e_min"][0] = mean(e[YYYY]["tmin"])
+                alltime["tminPROP"]["e_min"][1] = []
+                alltime["tminPROP"]["e_min"][1].append(YYYY)
+        for c in climo30yrs:
+            if YYYY >= c[0] and YYYY <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
+                for x in e[YYYY]["tmin"]: climo30yrs[c]["tmin"].append(x)
+                if len(e[YYYY]["tmin"]) > EXCLD:
+                    if mean(e[YYYY]["tmin"]) == climo30yrs[c]["tminPROP"]["e_max"][0]: climo30yrs[c]["tminPROP"]["e_max"][1].append(YYYY)
+                    elif mean(e[YYYY]["tmin"]) > climo30yrs[c]["tminPROP"]["e_max"][0]:
+                        climo30yrs[c]["tminPROP"]["e_max"][0] = mean(e[YYYY]["tmin"])
+                        climo30yrs[c]["tminPROP"]["e_max"][1] = []
+                        climo30yrs[c]["tminPROP"]["e_max"][1].append(YYYY)
+                    if mean(e[YYYY]["tmin"]) == climo30yrs[c]["tminPROP"]["e_min"][0]: climo30yrs[c]["tminPROP"]["e_min"][1].append(YYYY)
+                    elif mean(e[YYYY]["tmin"]) < climo30yrs[c]["tminPROP"]["e_min"][0]:
+                        climo30yrs[c]["tminPROP"]["e_min"][0] = mean(e[YYYY]["tmin"])
+                        climo30yrs[c]["tminPROP"]["e_min"][1] = []
+                        climo30yrs[c]["tminPROP"]["e_min"][1].append(YYYY)
+
+    # PRINT REPORT
+    print("---------------------------------")
+    print("Climatology Report for {} {} thru {} {}".format(calendar.month_abbr[startday.month],startday.day,calendar.month_abbr[endday.month],endday.day))
+    print("City: {}, {}".format(clmt["station"],clmt["station_name"]))
+    print("---------------------------------")
+    print("Part 1: Precipitation Stats")
+    print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9} {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^12} |".format("Years","PRCP","PRCP","PRCP","PRCP","PRCP","PRCP","SNOW","SNOW","SNOW","SNOW"))
+    print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9} {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^12} |".format("","DAYS","DAYS MAX","DAYS MIN","AVG", "MAX","MIN","DAYS","DAYS MAX","AVG", "MAX"))
+    #         Y     PD       PDx    PDn      PA      PM     Pmin      SD     SDx       SA      SM
+    print("{:-^9} {:-^12}  {:-^9}  {:-^9} {:-^6} {:-^12} {:-^12} | {:-^11}  {:-^9} {:-^6} {:-^12} |".format("","","","","","","","","","",""))
+    print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4} {:^6.2f} {:>5.2f}, {:^5} {:>5}, {:^5} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^5} |".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+        alltime["prcpPROP"]["days"],
+        round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1),
+        alltime["prcpPROP"]["e_max_days"][0],
+        alltime["prcpPROP"]["e_max_days"][1][0] if len(alltime["prcpPROP"]["e_max_days"][1]) == 1 else len(alltime["prcpPROP"]["e_max_days"][1]),
+        alltime["prcpPROP"]["e_min_days"][0],
+        alltime["prcpPROP"]["e_min_days"][1][0] if len(alltime["prcpPROP"]["e_min_days"][1]) == 1 else len(alltime["prcpPROP"]["e_min_days"][1]),
+        round(mean(alltime["prcp"]),2) if len(alltime["prcp"]) > 0 else "--",
+        round(alltime["prcpPROP"]["e_max"][0],2),
+        alltime["prcpPROP"]["e_max"][1][0] if len(alltime["prcpPROP"]["e_max"][1]) == 1 else len(alltime["prcpPROP"]["e_max"][1]),
+        round(alltime["prcpPROP"]["e_min"][0],2),
+        alltime["prcpPROP"]["e_min"][1][0] if len(alltime["prcpPROP"]["e_min"][1]) == 1 else len(alltime["prcpPROP"]["e_min"][1]),
+        alltime["snowPROP"]["days"] if alltime["snowPROP"]["days"] > 0 else "--",
+        round(100 * alltime["snowPROP"]["days"] / alltime["total_days"],1) if alltime["snowPROP"]["days"] > 0 else "--",
+        alltime["snowPROP"]["e_max_days"][0],
+        alltime["snowPROP"]["e_max_days"][1][0] if len(alltime["snowPROP"]["e_max_days"][1]) == 1 else len(alltime["snowPROP"]["e_max_days"][1]),
+        round(mean(alltime["snow"]),1) if len(alltime["snow"]) > 0 else "--",
+        round(alltime["snowPROP"]["e_max"][0],2),
+        alltime["snowPROP"]["e_max"][1][0] if len(alltime["snowPROP"]["e_max"][1]) == 1 else len(alltime["snowPROP"]["e_max"][1])))
+    for c in climo30yrs:
+        try:
+            print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4} {:^6.2f} {:>5.2f}, {:^5} {:>5}, {:^5} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^5} |".format(str(climo30yrs[c]["years"][0])+"-"+str(climo30yrs[c]["years"][1]),
+            climo30yrs[c]["prcpPROP"]["days"],
+            round(100 * climo30yrs[c]["prcpPROP"]["days"] / climo30yrs[c]["total_days"],1),
+            climo30yrs[c]["prcpPROP"]["e_max_days"][0],
+            climo30yrs[c]["prcpPROP"]["e_max_days"][1][0] if len(climo30yrs[c]["prcpPROP"]["e_max_days"][1]) == 1 else len(climo30yrs[c]["prcpPROP"]["e_max_days"][1]),
+            climo30yrs[c]["prcpPROP"]["e_min_days"][0],
+            climo30yrs[c]["prcpPROP"]["e_min_days"][1][0] if len(climo30yrs[c]["prcpPROP"]["e_min_days"][1]) == 1 else len(climo30yrs[c]["prcpPROP"]["e_min_days"][1]),
+            round(mean(climo30yrs[c]["prcp"]),2),
+            round(climo30yrs[c]["prcpPROP"]["e_max"][0],2),
+            climo30yrs[c]["prcpPROP"]["e_max"][1][0] if len(climo30yrs[c]["prcpPROP"]["e_max"][1]) == 1 else len(climo30yrs[c]["prcpPROP"]["e_max"][1]),
+            round(climo30yrs[c]["prcpPROP"]["e_min"][0],2),
+            climo30yrs[c]["prcpPROP"]["e_min"][1][0] if len(climo30yrs[c]["prcpPROP"]["e_min"][1]) == 1 else len(climo30yrs[c]["prcpPROP"]["e_min"][1]),
+            climo30yrs[c]["snowPROP"]["days"] if climo30yrs[c]["snowPROP"]["days"] > 0 else "--",
+            round(100 * climo30yrs[c]["snowPROP"]["days"] / climo30yrs[c]["total_days"],1) if climo30yrs[c]["snowPROP"]["days"] > 0 else "--",
+            climo30yrs[c]["snowPROP"]["e_max_days"][0],
+            climo30yrs[c]["snowPROP"]["e_max_days"][1][0] if len(climo30yrs[c]["snowPROP"]["e_max_days"][1]) == 1 else len(climo30yrs[c]["snowPROP"]["e_max_days"][1]),
+            round(mean(climo30yrs[c]["snow"]),1) if len(climo30yrs[c]["snow"]) > 0 else "--",
+            round(climo30yrs[c]["snowPROP"]["e_max"][0],2),
+            climo30yrs[c]["snowPROP"]["e_max"][1][0] if len(climo30yrs[c]["snowPROP"]["e_max"][1]) == 1 else len(climo30yrs[c]["snowPROP"]["e_max"][1])))
+        except Exception as e:
+            print("ERROR: Era = {}; Exception = {}".format(c,e))
+
+    print("\nPart 2: Temperature Stats")
+    print("{:▒^9} {:▒^37} | {:▒^37} | {:▒^37}".format("Years","AVG TEMP","TMAX","TMIN"))
+    print("{:▒^9} {:▒<5} {:▒^5} {:▒^12} {:▒^12} | {:▒<5} {:▒^5} {:▒^12} {:▒^12} | {:▒<5} {:▒^5} {:▒^12} {:▒^12}".format("","STDEV","AVG","MAX","MIN","STDEV","AVG","MAX","MIN","STDEV","AVG","MAX","MIN"))
+    #         Y    TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn    
+    # "tempAVGlist": [],"tavgPROP":{"e_max":[-999,[]],"e_min":[999,[]]},
+    print("{:-^9} {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12}".format("","","","","","","","","","","","",""))
+    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+        round(pstdev(alltime["tempAVGlist"]),1),
+        round(mean(alltime["tempAVGlist_ind"]),1),
+        round(alltime["tavgPROP"]["e_max"][0],1),
+        alltime["tavgPROP"]["e_max"][1][0] if len(alltime["tavgPROP"]["e_max"][1]) == 1 else len(alltime["tavgPROP"]["e_max"][1]),
+        round(alltime["tavgPROP"]["e_min"][0],1),
+        alltime["tavgPROP"]["e_min"][1][0] if len(alltime["tavgPROP"]["e_min"][1]) == 1 else len(alltime["tavgPROP"]["e_min"][1]),
+        round(pstdev(alltime["tmax"]),1),
+        round(mean(alltime["tmax"]),1),
+        round(alltime["tmaxPROP"]["e_max"][0],1),
+        alltime["tmaxPROP"]["e_max"][1][0] if len(alltime["tmaxPROP"]["e_max"][1]) == 1 else len(alltime["tmaxPROP"]["e_max"][1]),
+        round(alltime["tmaxPROP"]["e_min"][0],1),
+        alltime["tmaxPROP"]["e_min"][1][0] if len(alltime["tmaxPROP"]["e_min"][1]) == 1 else len(alltime["tmaxPROP"]["e_min"][1]),
+        round(pstdev(alltime["tmin"]),1),
+        round(mean(alltime["tmin"]),1),
+        round(alltime["tminPROP"]["e_max"][0],1),
+        alltime["tminPROP"]["e_max"][1][0] if len(alltime["tminPROP"]["e_max"][1]) == 1 else len(alltime["tminPROP"]["e_max"][1]),
+        round(alltime["tminPROP"]["e_min"][0],1),
+        alltime["tminPROP"]["e_min"][1][0] if len(alltime["tminPROP"]["e_min"][1]) == 1 else len(alltime["tminPROP"]["e_min"][1])))
+    for c in climo30yrs:
+        try:
+            print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format(str(climo30yrs[c]["years"][0])+"-"+str(climo30yrs[c]["years"][1]),
+                round(pstdev(climo30yrs[c]["tempAVGlist"]),1),
+                round(mean(climo30yrs[c]["tempAVGlist_ind"]),1),
+                round(climo30yrs[c]["tavgPROP"]["e_max"][0],1),
+                climo30yrs[c]["tavgPROP"]["e_max"][1][0] if len(climo30yrs[c]["tavgPROP"]["e_max"][1]) == 1 else len(climo30yrs[c]["tavgPROP"]["e_max"][1]),
+                round(climo30yrs[c]["tavgPROP"]["e_min"][0],1),
+                climo30yrs[c]["tavgPROP"]["e_min"][1][0] if len(climo30yrs[c]["tavgPROP"]["e_min"][1]) == 1 else len(climo30yrs[c]["tavgPROP"]["e_min"][1]),
+                round(pstdev(climo30yrs[c]["tmax"]),1),
+                round(mean(climo30yrs[c]["tmax"]),1),
+                round(climo30yrs[c]["tmaxPROP"]["e_max"][0],1),
+                climo30yrs[c]["tmaxPROP"]["e_max"][1][0] if len(climo30yrs[c]["tmaxPROP"]["e_max"][1]) == 1 else len(climo30yrs[c]["tmaxPROP"]["e_max"][1]),
+                round(climo30yrs[c]["tmaxPROP"]["e_min"][0],1),
+                climo30yrs[c]["tmaxPROP"]["e_min"][1][0] if len(climo30yrs[c]["tmaxPROP"]["e_min"][1]) == 1 else len(climo30yrs[c]["tmaxPROP"]["e_min"][1]),
+                round(pstdev(climo30yrs[c]["tmin"]),1),
+                round(mean(climo30yrs[c]["tmin"]),1),
+                round(climo30yrs[c]["tminPROP"]["e_max"][0],1),
+                climo30yrs[c]["tminPROP"]["e_max"][1][0] if len(climo30yrs[c]["tminPROP"]["e_max"][1]) == 1 else len(climo30yrs[c]["tminPROP"]["e_max"][1]),
+                round(climo30yrs[c]["tminPROP"]["e_min"][0],1),
+                climo30yrs[c]["tminPROP"]["e_min"][1][0] if len(climo30yrs[c]["tminPROP"]["e_min"][1]) == 1 else len(climo30yrs[c]["tminPROP"]["e_min"][1])))
+        except Exception as er:
+            print("ERROR: Era = {}; Exception = {}".format(c,er))
+    print("")
+
+def dayRank(m,d,qty):
+    """Returns a list of rankings (maxs and mins) based on a specific day of a specific
+    month. It only accepts arguments for the month, day, and the how many rankings
+    you want to list (ie, top 10; 15; etc). Passed arguments MUST be integers.
+    
+    dayRank(month,day,quantity)
+    
+    EXAMPLE: dayRank(6,27) -> Returns rankings for June 27
+    """
+    class day_attr:
+        def __init__(self,y,number):
+            self.year = y
+            self.number = number
+
+    if type(m) != int or type(d) != int or type(qty) != int: return print("* SORRY! Month AND Day need to be submitted as integers")
+    if m < 1 or m > 12: return print("* Sorry! Make sure month entry is in the range [1,12]")
+    if d < 1 or d > 31: return print("* Sorry! Invalid Day entered.")
+    if m in [4,6,9,11] and d == 31: return print("*Sorry! Only months numbered 1,3,5,7,8,10,12 have 31 days")
+    if m == 2 and d > 29: return print("* Sorry! February never has 30+ days")
+    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
+
+    DAYS_tmax = []
+    DAYS_tmin = []
+    DAYS_prcp = []
+    DAYS_snow = []
+    # YEARS.append(year_attr(y,round(mean(clmt[y][attribute]),1)))
+    for y in [YR for YR in clmt if type(YR) == int]:
+        try:
+            if clmt[y][m][d].tmaxQ in ignoreflags:
+                DAYS_tmax.append(day_attr(y,int(clmt[y][m][d].tmax)))
+        except:
+            pass
+        try:
+            if clmt[y][m][d].tminQ in ignoreflags:
+                DAYS_tmin.append(day_attr(y,int(clmt[y][m][d].tmin)))
+        except:
+            pass
+        try:
+            if clmt[y][m][d].prcpQ in ignoreflags:
+                DAYS_prcp.append(day_attr(y,round(float(clmt[y][m][d].prcp),2)))
+        except:
+            pass
+        try:
+            if clmt[y][m][d].snowQ in ignoreflags:
+                DAYS_snow.append(day_attr(y,round(float(clmt[y][m][d].snow),1)))
+        except:
+            pass
+    DAYS_tmax_asc = DAYS_tmax.copy()
+    DAYS_tmax.sort(key=lambda x:x.number,reverse=True)
+    DAYS_tmax_asc.sort(key=lambda x:x.number)
+    DAYS_tmin_asc = DAYS_tmin.copy()
+    DAYS_tmin.sort(key=lambda x:x.number,reverse=True)
+    DAYS_tmin_asc.sort(key=lambda x:x.number)
+    DAYS_prcp.sort(key=lambda x:x.number,reverse=True)
+    DAYS_snow.sort(key=lambda x:x.number,reverse=True)
+
+    # 15|17|17|15|19|16
+    # print("{:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}" TMAX and TMIN
+    # print("  {:2}{} {:4}  {:5}  |  {:2}{} {:4}  {:4}"     PRCP and SNOW
+
+    print("{:^39}".format("Precipitation Records for {} {}".format(calendar.month_name[m],d)))
+    print("{:^39}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+    print("{:-^39}".format(""))
+    print("{:^19}|{:^19}".format("Rain","Snow"))
+    print("{:-^19}|{:-^19}".format("",""))
+    i = 1
+    j = 1
+    ranked_i = []
+    ranked_j = []
+    for x in range(len(DAYS_prcp)):
+        if x == 0:
+            print("  {:2}{} {:4}  {:5.2f}  |  {:2}{} {:4}  {:5.1f}  ".format(1 if DAYS_prcp[x].number > 0 else "--",
+                                                                       "." if DAYS_prcp[x].number > 0 else " ",
+                                                                       DAYS_prcp[x].year if DAYS_prcp[x].number > 0 else "--",
+                                                                       DAYS_prcp[x].number,
+                                                                       1 if DAYS_snow[x].number > 0 else "--",
+                                                                       "." if DAYS_snow[x].number > 0 else " ",
+                                                                       DAYS_snow[x].year if DAYS_snow[x].number > 0 else "--",
+                                                                       DAYS_snow[x].number))
+            ranked_i.append(i)
+            ranked_j.append(j)
+        else:
+            if i not in ranked_i and i <= qty: ranked_i.append(i)
+            if j not in ranked_j and j <= qty: ranked_j.append(j)
+            if DAYS_prcp[x].number != DAYS_prcp[x-1].number: i += 1
+            try:
+                if DAYS_prcp[x].number == 0: i = qty + 1
+                if DAYS_snow[x].number == 0: j = qty + 1
+                if DAYS_snow[x].number != DAYS_snow[x-1].number: j += 1
+            except:
+                pass
+            if i <= qty or j <= qty:
+                try:
+                    print("  {:2}{} {:4}  {:5.2f}  |  {:2}{} {:4}  {:5.1f}  ".format(i if i not in ranked_i and i <= qty else "",
+                                                                               "." if i not in ranked_i and i <= qty else " ",
+                                                                               DAYS_prcp[x].year if i <= qty else "",
+                                                                               DAYS_prcp[x].number if i <= qty else "",
+                                                                               j if DAYS_snow[x].number > 0 and j not in ranked_j and j <= qty else "",
+                                                                               "." if DAYS_snow[x].number > 0 and j not in ranked_j and j <= qty else " ",
+                                                                               DAYS_snow[x].year if DAYS_snow[x].number > 0 and j <= qty else "",
+                                                                               DAYS_snow[x].number if DAYS_snow[x].number > 0 and j <= qty else ""))
+                except:
+                    if len(DAYS_prcp) > len(DAYS_snow):
+                        print("  {:2}{} {:4}  {:5.2f}  |                   ".format(i if i not in ranked_i and i <= qty else "",
+                                                                                   "." if i not in ranked_i and i <= qty else " ",
+                                                                                   DAYS_prcp[x].year if i <= qty else "",
+                                                                                   DAYS_prcp[x].number if i <= qty else ""))
+                    elif len(DAYS_snow) > len(DAYS_prcp):
+                        print("                   |  {:2}{} {:4}  {:5.1f}  ".format(j if j not in ranked_j and j <= qty else "",
+                                                                                   "." if j not in ranked_j and j <= qty else " ",
+                                                                                   DAYS_snow[x].year if DAYS_snow[x].number > 0 and j <= qty else "",
+                                                                                   DAYS_snow[x].number if DAYS_snow[x].number > 0 and j <= qty else ""))
+
+        if i > qty and j > qty: break
+    print("\n{:^65}".format("Temperature Records for {} {}".format(calendar.month_name[m],d)))
+    print("{:^65}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+    print("{:-^65}".format(""))
+    print("{:^32}|{:^32}".format("TMAX","TMIN"))
+    print("{:-^32}|{:-^32}".format("",""))
+    print("{:^15}|{:^16}|{:^16}|{:^15}".format("Warmest","Coolest","Warmest","Coolest"))
+    print("{:-^15}|{:-^16}|{:-^16}|{:-^15}".format("","","",""))
+    i = 1
+    j = 1
+    k = 1
+    l = 1
+    ranked_i = []
+    ranked_j = []
+    ranked_k = []
+    ranked_l = []
+    for x in range(len(DAYS_tmax)):
+        if x == 0:
+            print("{:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}".format(1,".",DAYS_tmax[x].year,DAYS_tmax[x].number,
+                                                                                                            1,".",DAYS_tmax_asc[x].year,DAYS_tmax_asc[x].number,
+                                                                                                            1,".",DAYS_tmin[x].year,DAYS_tmin[x].number,
+                                                                                                            1,".",DAYS_tmin_asc[x].year,DAYS_tmin_asc[x].number))
+            ranked_i.append(i)
+            ranked_j.append(j)
+            ranked_k.append(k)
+            ranked_l.append(l)
+        else:
+            if i not in ranked_i and i <= qty: ranked_i.append(i)
+            if j not in ranked_j and j <= qty: ranked_j.append(j)
+            if k not in ranked_k and k <= qty: ranked_k.append(k)
+            if l not in ranked_l and l <= qty: ranked_l.append(l)
+            if DAYS_tmax[x].number != DAYS_tmax[x-1].number: i += 1
+            if DAYS_tmax_asc[x].number != DAYS_tmax_asc[x-1].number: j += 1
+            if DAYS_tmin[x].number != DAYS_tmin[x-1].number: k += 1
+            if DAYS_tmin_asc[x].number != DAYS_tmin_asc[x-1].number: l += 1
+            if i <= qty or j <= qty or k <= qty or l <= qty:
+                print("{:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}  | {:2}{} {:4}  {:3}".format(i if i not in ranked_i and i <= qty else "",
+                                                                                                                "." if i not in ranked_i and i <= qty else " ",
+                                                                                                                DAYS_tmax[x].year if i <= qty else "",
+                                                                                                                DAYS_tmax[x].number if i <= qty else "",
+                                                                                                                j if j not in ranked_j and j <= qty else "",
+                                                                                                                "." if j not in ranked_j and j <= qty else " ",
+                                                                                                                DAYS_tmax_asc[x].year if j <= qty else "",
+                                                                                                                DAYS_tmax_asc[x].number if j <= qty else "",
+                                                                                                                k if k not in ranked_k and k <= qty else "",
+                                                                                                                "." if k not in ranked_k and k <= qty else " ",
+                                                                                                                DAYS_tmin[x].year if k <= qty else "",
+                                                                                                                DAYS_tmin[x].number if k <= qty else "",
+                                                                                                                l if l not in ranked_l and l <= qty else "",
+                                                                                                                "." if l not in ranked_l and l <= qty else " ",
+                                                                                                                DAYS_tmin_asc[x].year if l <= qty else "",
+                                                                                                                DAYS_tmin_asc[x].number if l <= qty else ""))
+        if i > qty and j > qty and k > qty and l > qty: break
+
+def weekRank(mo,d,qty):
+    """Returns a list of rankings (maxs and mins) based on a specific week. The passed arguments of month and day will be the center of the week. It only accepts arguments for the month, day, and the how many rankings you want to list (ie, top 10; 15; etc). Passed arguments MUST be integers.
+    
+    weekRank(month,day,quantity)
+    
+    EXAMPLE: weekRank(1,30) -> Returns rankings for the week centered on January 30
+                               (from Jan 27 to Feb 2)
+    """
+    class week_attr:
+        def __init__(self,y,number):
+            self.year = y
+            self.number = number
+            
+    if type(mo) != int or type(d) != int or type(qty) != int: return print("* SORRY! Month AND Day need to be submitted as integers")
+    if mo < 1 or mo > 12: return print("* Sorry! Make sure month entry is in the range [1,12]")
+    if d < 1 or d > 31: return print("* Sorry! Invalid Day entered.")
+    if mo in [4,6,9,11] and d == 31: return print("*Sorry! Only months numbered 1,3,5,7,8,10,12 have 31 days")
+    if mo == 2 and d > 29: return print("* Sorry! February never has 30+ days")
+    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
+
+    WEEKS_prcp = []
+    WEEKS_snow = []
+    WEEKS_tavg = []
+    WEEKS_tmax = []
+    WEEKS_tmin = []
+    if mo == 2 and d == 29: d = 28
+    wkorig = datetime.date(1999,mo,d) - datetime.timedelta(days=3)
+    for y in [YR for YR in clmt if type(YR) == int]:
+        wkstart = datetime.date(y,mo,d) - datetime.timedelta(days=3)
+        wklist = []
+        wk_prcp = []
+        wk_snow = []
+        wk_tavg = []
+        wk_tmax = []
+        wk_tmin = []
+        for DAY in range(7):
+            wklist.append(wkstart)
+            wkstart += datetime.timedelta(days=1)
+        for DAY in wklist:
+            #input(clmt[y][DAY.month][DAY.day].daystr)
+            #if y == 1984:
+                #print("HI TEMP: {}; DAY: {}".format(clmt[y][DAY.month][DAY.day].tmax,clmt[y][DAY.month][DAY.day].daystr))
+            try:
+                #print(clmt[y][DAY.month][DAY.day].prcpQ in ignoreflags)
+                if clmt[DAY.year][DAY.month][DAY.day].prcpQ in ignoreflags:
+                    wk_prcp.append(float(clmt[DAY.year][DAY.month][DAY.day].prcp))
+            except:
+                pass
+            try:
+                if clmt[DAY.year][DAY.month][DAY.day].snowQ in ignoreflags:
+                    wk_snow.append(float(clmt[DAY.year][DAY.month][DAY.day].snow))
+            except:
+                pass
+            try:
+                if clmt[DAY.year][DAY.month][DAY.day].tmaxQ in ignoreflags and clmt[DAY.year][DAY.month][DAY.day].tmax not in ["9999","-9999",""] and clmt[DAY.year][DAY.month][DAY.day].tminQ in ignoreflags and clmt[DAY.year][DAY.month][DAY.day].tmin not in ["9999","-9999",""]:
+                    wk_tavg.append(int(clmt[DAY.year][DAY.month][DAY.day].tmax))
+                    wk_tavg.append(int(clmt[DAY.year][DAY.month][DAY.day].tmin))
+            except:
+                pass
+            try:
+                if clmt[DAY.year][DAY.month][DAY.day].tmaxQ in ignoreflags:
+                    wk_tmax.append(int(clmt[DAY.year][DAY.month][DAY.day].tmax))
+            except:
+                pass
+            try:
+                if clmt[DAY.year][DAY.month][DAY.day].tminQ in ignoreflags:
+                    wk_tmin.append(int(clmt[DAY.year][DAY.month][DAY.day].tmin))
+            except:
+                pass
+        try:
+            WEEKS_prcp.append(week_attr(y,round(sum(wk_prcp),2)))
+        except:
+            pass
+        try:
+            WEEKS_snow.append(week_attr(y,round(sum(wk_snow),1)))
+        except:
+            pass
+        if len(wk_tavg) > excludeweek_tavg:
+            try:
+                WEEKS_tavg.append(week_attr(y,round(mean(wk_tavg),1)))
+            except:
+                pass
+        if len(wk_tmax) > excludeweek:
+            try:
+                WEEKS_tmax.append(week_attr(y,round(mean(wk_tmax),1)))
+                #if y == 1984: print(round(mean(wk_tmax),1))
+            except:
+                pass
+        if len(wk_tmin) > excludeweek:
+            try:
+                WEEKS_tmin.append(week_attr(y,round(mean(wk_tmin),1)))
+            except:
+                pass
+    #print(len(WEEKS_tavg),len(WEEKS_tmax),len(WEEKS_tmin),len(WEEKS_prcp),len(WEEKS_snow))
+    #input()
+    WEEKS_prcp.sort(key=lambda x:x.number,reverse=True)
+    WEEKS_snow.sort(key=lambda x:x.number,reverse=True)
+    WEEKS_tavg_asc = WEEKS_tavg.copy()
+    WEEKS_tavg.sort(key=lambda x:x.number,reverse=True)
+    WEEKS_tavg_asc.sort(key=lambda x:x.number)
+    WEEKS_tmax_asc = WEEKS_tmax.copy()
+    WEEKS_tmax.sort(key=lambda x:x.number,reverse=True)
+    WEEKS_tmax_asc.sort(key=lambda x:x.number)
+    WEEKS_tmin_asc = WEEKS_tmin.copy()
+    WEEKS_tmin.sort(key=lambda x:x.number,reverse=True)
+    WEEKS_tmin_asc.sort(key=lambda x:x.number)
+
+    #for x in WEEKS_tavg:
+        #print(x.year,"-",x.number)
+    #input()
+    print("")
+    print("{:^39}".format("Precipitation Records for the Week of {} {} - {} {}".format(calendar.month_abbr[wkorig.month],wkorig.day,
+                                                                                  calendar.month_abbr[(wkorig + datetime.timedelta(days=6)).month],(wkorig + datetime.timedelta(days=6)).day)))
+    print("{:^39}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+    print("{:-^39}".format(""))
+    print("{:^19}|{:^19}".format("Rain","Snow"))
+    print("{:-^19}|{:-^19}".format("",""))
+    i = 1
+    j = 1
+    ranked_i = []
+    ranked_j = []
+    for x in range(len(WEEKS_prcp)):
+        if x == 0:
+            print("  {:2}{} {:4}  {:5.2f}  |  {:2}{} {:4}  {:5.1f}  ".format(1 if WEEKS_prcp[x].number > 0 else "--",
+                                                                       "." if WEEKS_prcp[x].number > 0 else " ",
+                                                                       WEEKS_prcp[x].year if WEEKS_prcp[x].number > 0 else "--",
+                                                                       WEEKS_prcp[x].number,
+                                                                       1 if WEEKS_snow[x].number > 0 else "--",
+                                                                       "." if WEEKS_snow[x].number > 0 else " ",
+                                                                       WEEKS_snow[x].year if WEEKS_snow[x].number > 0 else "--",
+                                                                       WEEKS_snow[x].number))
+            ranked_i.append(i)
+            ranked_j.append(j)
+        else:
+            if i not in ranked_i and i <= qty: ranked_i.append(i)
+            if j not in ranked_j and j <= qty: ranked_j.append(j)
+            if WEEKS_prcp[x].number != WEEKS_prcp[x-1].number: i += 1
+            try:
+                if WEEKS_prcp[x].number == 0: i = qty + 1
+                if WEEKS_snow[x].number == 0: j = qty + 1
+                if WEEKS_snow[x].number != WEEKS_snow[x-1].number: j += 1
+            except:
+                pass
+            if i <= qty or j <= qty:
+                try:
+                    print("  {:2}{} {:4}  {:5.2f}  |  {:2}{} {:4}  {:5.1f}  ".format(i if i not in ranked_i and i <= qty else "",
+                                                                               "." if i not in ranked_i and i <= qty else " ",
+                                                                               WEEKS_prcp[x].year if i <= qty else "",
+                                                                               WEEKS_prcp[x].number if i <= qty else "",
+                                                                               j if WEEKS_snow[x].number > 0 and j not in ranked_j and j <= qty else "",
+                                                                               "." if WEEKS_snow[x].number > 0 and j not in ranked_j and j <= qty else " ",
+                                                                               WEEKS_snow[x].year if WEEKS_snow[x].number > 0 and j <= qty else "",
+                                                                               WEEKS_snow[x].number if WEEKS_snow[x].number > 0 and j <= qty else ""))
+                except:
+                    if len(WEEKS_prcp) > len(WEEKS_snow):
+                        print("  {:2}{} {:4}  {:5.2f}  |                   ".format(i if i not in ranked_i and i <= qty else "",
+                                                                                   "." if i not in ranked_i and i <= qty else " ",
+                                                                                   WEEKS_prcp[x].year if i <= qty else "",
+                                                                                   WEEKS_prcp[x].number if i <= qty else ""))
+                    elif len(WEEKS_snow) > len(WEEKS_prcp):
+                        print("                   |  {:2}{} {:4}  {:5.1f}  ".format(j if j not in ranked_j and j <= qty else "",
+                                                                                   "." if j not in ranked_j and j <= qty else " ",
+                                                                                   WEEKS_snow[x].year if WEEKS_snow[x].number > 0 and j <= qty else "",
+                                                                                   WEEKS_snow[x].number if WEEKS_snow[x].number > 0 and j <= qty else ""))
+
+        if i > qty and j > qty: break
+    print("\n{:^111}".format("Temperature Records for the Week of {} {} - {} {}".format(calendar.month_abbr[wkorig.month],wkorig.day,
+                                                                                calendar.month_abbr[(wkorig + datetime.timedelta(days=6)).month],(wkorig + datetime.timedelta(days=6)).day)))
+    print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+    print("{:^111}".format("Weeks with > {} Day(s) of Data".format(excludeweek)))
+    print("{:-^111}".format(""))
+    print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
+    print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
+    print("{:^17}|{:^18}|{:^18}|{:^18}|{:^18}|{:^17}".format("Warmest","Coolest","Warmest","Coolest","Warmest","Coolest"))
+    print("{:-^17}|{:-^18}|{:-^18}|{:-^18}|{:-^18}|{:-^17}".format("","","","","",""))
+    i = 1
+    j = 1
+    k = 1
+    l = 1
+    m = 1
+    n = 1
+    ranked_i = []
+    ranked_j = []
+    ranked_k = []
+    ranked_l = []
+    ranked_m = []
+    ranked_n = []
+    for x in range(len(WEEKS_tmax)):
+        if x == 0:
+            print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(1,
+                                                            ".",WEEKS_tavg[x].year,"{:.1f}".format(WEEKS_tavg[x].number),
+                                                            1,".",WEEKS_tavg_asc[x].year,"{:.1f}".format(WEEKS_tavg_asc[x].number),
+                                                            1,".",WEEKS_tmax[x].year,"{:.1f}".format(WEEKS_tmax[x].number),
+                                                            1,".",WEEKS_tmax_asc[x].year,"{:.1f}".format(WEEKS_tmax_asc[x].number),
+                                                            1,".",WEEKS_tmin[x].year,"{:.1f}".format(WEEKS_tmin[x].number),
+                                                            1,".",WEEKS_tmin_asc[x].year,"{:.1f}".format(WEEKS_tmin_asc[x].number)))
+            ranked_i.append(i)
+            ranked_j.append(j)
+            ranked_k.append(k)
+            ranked_l.append(l)
+            ranked_m.append(m)
+            ranked_n.append(n)
+        else:
+            if i not in ranked_i and i <= qty: ranked_i.append(i)
+            if j not in ranked_j and j <= qty: ranked_j.append(j)
+            if k not in ranked_k and k <= qty: ranked_k.append(k)
+            if l not in ranked_l and l <= qty: ranked_l.append(l)
+            if m not in ranked_m and m <= qty: ranked_m.append(m)
+            if n not in ranked_n and n <= qty: ranked_n.append(n)
+            if WEEKS_tavg[x].number != WEEKS_tavg[x-1].number: i += 1
+            if WEEKS_tavg_asc[x].number != WEEKS_tavg_asc[x-1].number: j += 1
+            if WEEKS_tmax[x].number != WEEKS_tmax[x-1].number: k += 1
+            if WEEKS_tmax_asc[x].number != WEEKS_tmax_asc[x-1].number: l += 1
+            if WEEKS_tmin[x].number != WEEKS_tmin[x-1].number: m += 1
+            if WEEKS_tmin_asc[x].number != WEEKS_tmin_asc[x-1].number: n += 1
+            if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
+                print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
+                        i if i not in ranked_i and i <= qty else "",
+                        "." if i not in ranked_i and i <= qty else " ",
+                        WEEKS_tavg[x].year if i <= qty else "",
+                        "{:.1f}".format(WEEKS_tavg[x].number) if i <= qty else "",
+                        j if j not in ranked_j and j <= qty else "",
+                        "." if j not in ranked_j and j <= qty else " ",
+                        WEEKS_tavg_asc[x].year if j <= qty else "",
+                        "{:.1f}".format(WEEKS_tavg_asc[x].number) if j <= qty else "",
+                        k if k not in ranked_k and k <= qty else "",
+                        "." if k not in ranked_k and k <= qty else " ",
+                        WEEKS_tmax[x].year if k <= qty else "",
+                        "{:.1f}".format(WEEKS_tmax[x].number) if k <= qty else "",
+                        l if l not in ranked_l and l <= qty else "",
+                        "." if l not in ranked_l and l <= qty else " ",
+                        WEEKS_tmax_asc[x].year if l <= qty else "",
+                        "{:.1f}".format(WEEKS_tmax_asc[x].number) if l <= qty else "",
+                        m if m not in ranked_m and m <= qty else "",
+                        "." if m not in ranked_m and m <= qty else " ",
+                        WEEKS_tmin[x].year if m <= qty else "",
+                        "{:.1f}".format(WEEKS_tmin[x].number) if m <= qty else "",
+                        n if n not in ranked_n and n <= qty else "",
+                        "." if n not in ranked_n and n <= qty else " ",
+                        WEEKS_tmin_asc[x].year if n <= qty else "",
+                        "{:.1f}".format(WEEKS_tmin_asc[x].number) if n <= qty else ""))
+        if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
+    print("")
+
+def monthRank(mo,attribute,qty):
+    """Returns a list of rankings (maxs and mins) based on a specific month. It only accepts arguments for the month, the kind of stats ("prcp" or "temps"), and how many rankings you want to list (ie, top 10; 15; etc). The attribute MUST be in string format, while the month and quantity MUST be integers.
+    
+    monthRank(month,attribute,quantity)
+    
+    EXAMPLE: monthRank(3,"rain",20) -> Returns the "Top 20" Precipitation Rankings
+                                       for March
+    """
+    class month_attr:
+        def __init__(self,y,mo,number):
+            self.year = y
+            self.month = mo
+            self.number = number
+
+    if type(mo) != int or mo < 1 or mo > 12: return print("* OOPS! {} is an invalid month. Ensure type(m) == int and is range [1,12]".format(mo))
+    if attribute not in ["temp","temps","temperature","temperatures","tmax","tmin","tavg","prcp","precip","rain","snow"]:
+        return print("* OOPS! Attribute must be 'temp' or 'prcp'. Try again!")
+    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
+    if attribute in ["prcp","precip","rain","snow"]: attribute = "prcp"
+    if attribute in ["temp","temps","temperature","temperatures","tmax","tmin","tavg"]: attribute = "temp"
+    
+    MONTHS_prcp = []
+    MONTHS_prcp_asc = []    # Declared here bc it will be compiled with in for-loop
+    MONTHS_prcpDAYS = []
+    MONTHS_prcpDAYS_asc = []    # Declared here bc it will be compiled with in for-loop
+    MONTHS_snow = []
+    MONTHS_snowDAYS = []
+    MONTHS_tavg = []
+    MONTHS_tmax = []
+    MONTHS_tmin = []
+    
+    for y in [YR for YR in clmt if type(YR) == int]:
+        try:
+            MONTHS_prcp.append(month_attr(y,mo,round(sum(clmt[y][mo]["prcp"]),2)))
+            MONTHS_prcpDAYS.append(month_attr(y,mo,clmt[y][mo]["prcpDAYS"]))
+            if clmt[y][mo]["recordqty"] > excludemonth:
+                MONTHS_prcp_asc.append(month_attr(y,mo,round(sum(clmt[y][mo]["prcp"]),2)))
+                MONTHS_prcpDAYS_asc.append(month_attr(y,mo,clmt[y][mo]["prcpDAYS"]))
+            MONTHS_snow.append(month_attr(y,mo,round(sum(clmt[y][mo]["snow"]),1)))
+            MONTHS_snowDAYS.append(month_attr(y,mo,clmt[y][mo]["snowDAYS"]))
+        except:
+            pass
+        try:
+            if len(clmt[y][mo]["tempAVGlist"]) > excludemonth_tavg:
+                MONTHS_tavg.append(month_attr(y,mo,round(mean(clmt[y][mo]["tempAVGlist"]),1)))
+        except:
+            pass
+        try:
+            if len(clmt[y][mo]["tmax"]) > excludemonth:
+                MONTHS_tmax.append(month_attr(y,mo,round(mean(clmt[y][mo]["tmax"]),1)))
+        except:
+            pass
+        try:
+            if len(clmt[y][mo]["tmin"]) > excludemonth:
+                MONTHS_tmin.append(month_attr(y,mo,round(mean(clmt[y][mo]["tmin"]),1)))
+        except:
+            pass
+
+    #MONTHS_prcp_asc = MONTHS_prcp.copy()
+    MONTHS_prcp.sort(key=lambda x:x.number,reverse=True)
+    MONTHS_prcp_asc.sort(key=lambda x:x.number)
+    #MONTHS_prcpDAYS_asc = MONTHS_prcpDAYS.copy()
+    MONTHS_prcpDAYS.sort(key=lambda x:x.number,reverse=True)
+    MONTHS_prcpDAYS_asc.sort(key=lambda x:x.number)
+    MONTHS_snow.sort(key=lambda x:x.number,reverse=True)
+    MONTHS_snowDAYS.sort(key=lambda x:x.number,reverse=True)
+    MONTHS_tavg_asc = MONTHS_tavg.copy()
+    MONTHS_tavg.sort(key=lambda x:x.number,reverse=True)
+    MONTHS_tavg_asc.sort(key=lambda x:x.number)
+    MONTHS_tmax_asc = MONTHS_tmax.copy()
+    MONTHS_tmax.sort(key=lambda x:x.number,reverse=True)
+    MONTHS_tmax_asc.sort(key=lambda x:x.number)
+    MONTHS_tmin_asc = MONTHS_tmin.copy()
+    MONTHS_tmin.sort(key=lambda x:x.number,reverse=True)
+    MONTHS_tmin_asc.sort(key=lambda x:x.number)
+    # print("{:67}|{:32}")
+    # print("{:18}|{:18}|{:14}|{:14}|{:17}|{:14}")
+    # print(" {:2}{} {:4}  {:6} | {:2}{} {:4}  {:6} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:5} | {:2}{} {:4}  {:2} "
+    # print("  {:2}{} {:4}  {:2}  |  {:2}{} {:4}  {:2}  "
+    print("")
+    if attribute == "prcp":
+        print("{:^100}".format("Ranked {} Monthly Precipitation Amounts and Days".format(calendar.month_name[mo])))
+        print("{:^100}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+        print("{:^100}".format("Months with > {} Day(s) of Data".format(excludemonth)))
+        print("{:-^100}".format(""))
+        print("{:^67}|{:^32}".format("Rain","Snow"))
+        print("{:-^67}|{:-^32}".format("",""))
+        print("{:^18}|{:^18}|{:^14}|{:^14}|{:^17}|{:^14}".format("Wettest","Driest","Most Days","Least Days","Snowiest","Most Days"))
+        print("{:-^18}|{:-^18}|{:-^14}|{:-^14}|{:-^17}|{:-^14}".format("","","","","",""))
+        i = 1;j = 1;k = 1;l = 1;m = 1;n = 1
+        ranked_i = [];ranked_j = [];ranked_k = [];ranked_l = [];ranked_m = [];ranked_n = []
+        for x in range(len(MONTHS_prcp)):
+            if x == 0:
+                print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>2} ".format(
+                    1,".",MONTHS_prcp[x].year,"{:.2f}".format(MONTHS_prcp[x].number),
+                    1,".",MONTHS_prcp_asc[x].year,"{:.2f}".format(MONTHS_prcp_asc[x].number),
+                    1,".",MONTHS_prcpDAYS[x].year,MONTHS_prcpDAYS[x].number,
+                    1,".",MONTHS_prcpDAYS_asc[x].year,MONTHS_prcpDAYS_asc[x].number,
+                    1 if MONTHS_snow[x].number else "","." if MONTHS_snow[x].number > 0 else " ",
+                    MONTHS_snow[x].year if MONTHS_snow[x].number > 0 else "","{:.1f}".format(MONTHS_snow[x].number) if MONTHS_snow[x].number > 0 else "",
+                    1 if MONTHS_snowDAYS[x].number > 0 else "","." if MONTHS_snowDAYS[x].number > 0 else " ",
+                    MONTHS_snowDAYS[x].year if MONTHS_snowDAYS[x].number > 0 else "",MONTHS_snowDAYS[x].number if MONTHS_snowDAYS[x].number > 0 else ""))
+                ranked_i.append(i);ranked_j.append(j);ranked_k.append(k);ranked_l.append(l);ranked_m.append(m);ranked_n.append(n)
+            else:
+                if i not in ranked_i and i <= qty: ranked_i.append(i)
+                if j not in ranked_j and j <= qty: ranked_j.append(j)
+                if k not in ranked_k and k <= qty: ranked_k.append(k)
+                if l not in ranked_l and l <= qty: ranked_l.append(l)
+                if m not in ranked_m and m <= qty: ranked_m.append(m)
+                if n not in ranked_n and n <= qty: ranked_n.append(n)
+                if MONTHS_prcp[x].number != MONTHS_prcp[x-1].number: i += 1
+                if MONTHS_prcp_asc[x].number != MONTHS_prcp_asc[x-1].number: j += 1
+                if MONTHS_prcpDAYS[x].number != MONTHS_prcpDAYS[x-1].number: k += 1
+                if MONTHS_prcpDAYS_asc[x].number != MONTHS_prcpDAYS_asc[x-1].number: l += 1
+                if MONTHS_snow[x].number != MONTHS_snow[x-1].number: m += 1
+                if MONTHS_snowDAYS[x].number != MONTHS_snowDAYS[x-1].number: n += 1
+                if MONTHS_prcp[x].number == 0: i = qty + 1
+                if MONTHS_prcpDAYS[x].number == 0: k = qty + 1
+                if MONTHS_snow[x].number == 0: m = qty + 1
+                if MONTHS_snowDAYS[x].number == 0: n = qty + 1
+                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
+                    print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:2} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>2} ".format(
+                        i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
+                        MONTHS_prcp[x].year if i <= qty else "","{:.2f}".format(MONTHS_prcp[x].number) if i <= qty else "",
+                        j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
+                        MONTHS_prcp_asc[x].year if j <= qty else "","{:.2f}".format(MONTHS_prcp_asc[x].number) if j <= qty else "",
+                        k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
+                        MONTHS_prcpDAYS[x].year if k <= qty else "",MONTHS_prcpDAYS[x].number if k <= qty else "",
+                        l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
+                        MONTHS_prcpDAYS_asc[x].year if l <= qty else "",MONTHS_prcpDAYS_asc[x].number if l <= qty else "",
+                        m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
+                        MONTHS_snow[x].year if m <= qty else "","{:.1f}".format(MONTHS_snow[x].number) if m <= qty else "",
+                        n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
+                        MONTHS_snowDAYS[x].year if n <= qty else "",MONTHS_snowDAYS[x].number if n <= qty else ""))
+            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
+    if attribute == "temp":
+        print("{:^111}".format("Ranked {} Monthly Temperatures".format(calendar.month_name[mo])))
+        print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+        print("{:^111}".format("Months with > {} Day(s) of Data".format(excludemonth)))
+        print("{:-^111}".format(""))
+        print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
+        print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
+        print("{:^17}|{:^18}|{:^18}|{:^18}|{:^18}|{:^17}".format("Warmest","Coolest","Warmest","Coolest","Warmest","Coolest"))
+        print("{:-^17}|{:-^18}|{:-^18}|{:-^18}|{:-^18}|{:-^17}".format("","","","","",""))
+        i = 1; j = 1; k = 1; l = 1; m = 1; n = 1
+        ranked_i = []; ranked_j = []; ranked_k = []; ranked_l = []; ranked_m = []; ranked_n = []
+        for x in range(len(MONTHS_tmax)):
+            if x == 0:
+                print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
+                                                                1,".",MONTHS_tavg[x].year,"{:.1f}".format(MONTHS_tavg[x].number),
+                                                                1,".",MONTHS_tavg_asc[x].year,"{:.1f}".format(MONTHS_tavg_asc[x].number),
+                                                                1,".",MONTHS_tmax[x].year,"{:.1f}".format(MONTHS_tmax[x].number),
+                                                                1,".",MONTHS_tmax_asc[x].year,"{:.1f}".format(MONTHS_tmax_asc[x].number),
+                                                                1,".",MONTHS_tmin[x].year,"{:.1f}".format(MONTHS_tmin[x].number),
+                                                                1,".",MONTHS_tmin_asc[x].year,"{:.1f}".format(MONTHS_tmin_asc[x].number)))
+                ranked_i.append(i); ranked_j.append(j); ranked_k.append(k); ranked_l.append(l); ranked_m.append(m); ranked_n.append(n)
+            else:
+                if i not in ranked_i and i <= qty: ranked_i.append(i)
+                if j not in ranked_j and j <= qty: ranked_j.append(j)
+                if k not in ranked_k and k <= qty: ranked_k.append(k)
+                if l not in ranked_l and l <= qty: ranked_l.append(l)
+                if m not in ranked_m and m <= qty: ranked_m.append(m)
+                if n not in ranked_n and n <= qty: ranked_n.append(n)
+                if MONTHS_tavg[x].number != MONTHS_tavg[x-1].number: i += 1
+                if MONTHS_tavg_asc[x].number != MONTHS_tavg_asc[x-1].number: j += 1
+                if MONTHS_tmax[x].number != MONTHS_tmax[x-1].number: k += 1
+                if MONTHS_tmax_asc[x].number != MONTHS_tmax_asc[x-1].number: l += 1
+                if MONTHS_tmin[x].number != MONTHS_tmin[x-1].number: m += 1
+                if MONTHS_tmin_asc[x].number != MONTHS_tmin_asc[x-1].number: n += 1
+                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
+                    print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
+                            i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
+                            MONTHS_tavg[x].year if i <= qty else "","{:.1f}".format(MONTHS_tavg[x].number) if i <= qty else "",
+                            j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
+                            MONTHS_tavg_asc[x].year if j <= qty else "","{:.1f}".format(MONTHS_tavg_asc[x].number) if j <= qty else "",
+                            k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
+                            MONTHS_tmax[x].year if k <= qty else "","{:.1f}".format(MONTHS_tmax[x].number) if k <= qty else "",
+                            l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
+                            MONTHS_tmax_asc[x].year if l <= qty else "","{:.1f}".format(MONTHS_tmax_asc[x].number) if l <= qty else "",
+                            m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
+                            MONTHS_tmin[x].year if m <= qty else "","{:.1f}".format(MONTHS_tmin[x].number) if m <= qty else "",
+                            n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
+                            MONTHS_tmin_asc[x].year if n <= qty else "","{:.1f}".format(MONTHS_tmin_asc[x].number) if n <= qty else ""))
+            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
+    print("")
+
+def yearRank(attribute,qty):
+    """Returns a list of rankings (maxs and mins) for all years on record. It only accepts arguments for the kind of stats ("prcp" or "temps") desired, and how many rankings you want to list (ie, top 10; 15; etc). The attribute MUST be in string format, while the quantity MUST be an integer.
+    
+    yearRank(attribute,quantity)
+    
+    EXAMPLE: yearRank("temp",15) -> Returns the "Top 15" Temperature-based Rankings
+                                    for all calendar years on record
+    """
+    class month_attr:
+        def __init__(self,y,number):
+            self.year = y
+            self.number = number
+
+    if attribute not in ["temp","temps","temperature","temperatures","tmax","tmin","tavg","prcp","precip","rain","snow"]:
+        return print("* OOPS! Attribute must be 'temp' or 'prcp'. Try again!")
+    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
+    if attribute in ["prcp","precip","rain","snow"]: attribute = "prcp"
+    if attribute in ["temp","temps","temperature","temperatures","tmax","tmin","tavg"]: attribute = "temp"
+    
+    YEARS_prcp = []
+    YEARS_prcp_asc = []     # Declared here bc it will be compiled within for-loop
+    YEARS_prcpDAYS = []
+    YEARS_prcpDAYS_asc = [] # Declared here bc it will be compiled within for-loop
+    YEARS_snow = []
+    YEARS_snowDAYS = []
+    YEARS_tavg = []
+    YEARS_tmax = []
+    YEARS_tmin = []
+    
+    for y in [YR for YR in clmt if type(YR) == int]:
+        try:
+            YEARS_prcp.append(month_attr(y,round(sum(clmt[y]["prcp"]),2)))
+            YEARS_prcpDAYS.append(month_attr(y,clmt[y]["prcpDAYS"]))
+            if clmt[y]["recordqty"] > excludeyear:
+                YEARS_prcp_asc.append(month_attr(y,round(sum(clmt[y]["prcp"]),2)))
+                YEARS_prcpDAYS_asc.append(month_attr(y,clmt[y]["prcpDAYS"]))
+            YEARS_snow.append(month_attr(y,round(sum(clmt[y]["snow"]),1)))
+            YEARS_snowDAYS.append(month_attr(y,clmt[y]["snowDAYS"]))
+        except:
+            pass
+        try:
+            if len(clmt[y]["tempAVGlist"]) > excludeyear_tavg:
+                YEARS_tavg.append(month_attr(y,round(mean(clmt[y]["tempAVGlist"]),1)))
+        except:
+            pass
+        try:
+            if len(clmt[y]["tmax"]) > excludeyear:
+                YEARS_tmax.append(month_attr(y,round(mean(clmt[y]["tmax"]),1)))
+        except:
+            pass
+        try:
+            if len(clmt[y]["tmin"]) > excludeyear:
+                YEARS_tmin.append(month_attr(y,round(mean(clmt[y]["tmin"]),1)))
+        except:
+            pass
+
+    #YEARS_prcp_asc = YEARS_prcp.copy()
+    YEARS_prcp.sort(key=lambda x:x.number,reverse=True)
+    YEARS_prcp_asc.sort(key=lambda x:x.number)
+    #YEARS_prcpDAYS_asc = YEARS_prcpDAYS.copy()
+    YEARS_prcpDAYS.sort(key=lambda x:x.number,reverse=True)
+    YEARS_prcpDAYS_asc.sort(key=lambda x:x.number)
+    YEARS_snow.sort(key=lambda x:x.number,reverse=True)
+    YEARS_snowDAYS.sort(key=lambda x:x.number,reverse=True)
+    YEARS_tavg_asc = YEARS_tavg.copy()
+    YEARS_tavg.sort(key=lambda x:x.number,reverse=True)
+    YEARS_tavg_asc.sort(key=lambda x:x.number)
+    YEARS_tmax_asc = YEARS_tmax.copy()
+    YEARS_tmax.sort(key=lambda x:x.number,reverse=True)
+    YEARS_tmax_asc.sort(key=lambda x:x.number)
+    YEARS_tmin_asc = YEARS_tmin.copy()
+    YEARS_tmin.sort(key=lambda x:x.number,reverse=True)
+    YEARS_tmin_asc.sort(key=lambda x:x.number)
+    
+    print("")
+    if attribute == "prcp":
+        print("{:^103}".format("Ranked Yearly Precipitation Amounts and Days"))
+        print("{:^103}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+        print("{:^103}".format("Years with > {} day(s) of data".format(excludeyear)))
+        print("{:-^103}".format(""))
+        print("{:^69}|{:^33}".format("Rain","Snow"))
+        print("{:-^69}|{:-^33}".format("",""))
+        print("{:^18}|{:^18}|{:^15}|{:^15}|{:^17}|{:^15}".format("Wettest","Driest","Most Days","Least Days","Snowiest","Most Days"))
+        print("{:-^18}|{:-^18}|{:-^15}|{:-^15}|{:-^17}|{:-^15}".format("","","","","",""))
+        i = 1;j = 1;k = 1;l = 1;m = 1;n = 1
+        ranked_i = [];ranked_j = [];ranked_k = [];ranked_l = [];ranked_m = [];ranked_n = []
+        for x in range(len(YEARS_prcp)):
+            if x == 0:
+                print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
+                    1,".",YEARS_prcp[x].year,"{:.2f}".format(YEARS_prcp[x].number),
+                    1,".",YEARS_prcp_asc[x].year,"{:.2f}".format(YEARS_prcp_asc[x].number),
+                    1,".",YEARS_prcpDAYS[x].year,YEARS_prcpDAYS[x].number,
+                    1,".",YEARS_prcpDAYS_asc[x].year,YEARS_prcpDAYS_asc[x].number,
+                    1 if YEARS_snow[x].number else "","." if YEARS_snow[x].number > 0 else " ",
+                    YEARS_snow[x].year if YEARS_snow[x].number > 0 else "","{:.1f}".format(YEARS_snow[x].number) if YEARS_snow[x].number > 0 else "",
+                    1 if YEARS_snowDAYS[x].number > 0 else "","." if YEARS_snowDAYS[x].number > 0 else " ",
+                    YEARS_snowDAYS[x].year if YEARS_snowDAYS[x].number > 0 else "",YEARS_snowDAYS[x].number if YEARS_snowDAYS[x].number > 0 else ""))
+                ranked_i.append(i);ranked_j.append(j);ranked_k.append(k);ranked_l.append(l);ranked_m.append(m);ranked_n.append(n)
+            else:
+                if i not in ranked_i and i <= qty: ranked_i.append(i)
+                if j not in ranked_j and j <= qty: ranked_j.append(j)
+                if k not in ranked_k and k <= qty: ranked_k.append(k)
+                if l not in ranked_l and l <= qty: ranked_l.append(l)
+                if m not in ranked_m and m <= qty: ranked_m.append(m)
+                if n not in ranked_n and n <= qty: ranked_n.append(n)
+                if YEARS_prcp[x].number != YEARS_prcp[x-1].number: i += 1
+                if YEARS_prcp_asc[x].number != YEARS_prcp_asc[x-1].number: j += 1
+                if YEARS_prcpDAYS[x].number != YEARS_prcpDAYS[x-1].number: k += 1
+                if YEARS_prcpDAYS_asc[x].number != YEARS_prcpDAYS_asc[x-1].number: l += 1
+                if YEARS_snow[x].number != YEARS_snow[x-1].number: m += 1
+                if YEARS_snowDAYS[x].number != YEARS_snowDAYS[x-1].number: n += 1
+                if YEARS_prcp[x].number == 0: i = qty + 1
+                if YEARS_prcpDAYS[x].number == 0: k = qty + 1
+                if YEARS_snow[x].number == 0: m = qty + 1
+                if YEARS_snowDAYS[x].number == 0: n = qty + 1
+                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
+                    print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
+                        i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
+                        YEARS_prcp[x].year if i <= qty else "","{:.2f}".format(YEARS_prcp[x].number) if i <= qty else "",
+                        j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
+                        YEARS_prcp_asc[x].year if j <= qty else "","{:.2f}".format(YEARS_prcp_asc[x].number) if j <= qty else "",
+                        k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
+                        YEARS_prcpDAYS[x].year if k <= qty else "",YEARS_prcpDAYS[x].number if k <= qty else "",
+                        l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
+                        YEARS_prcpDAYS_asc[x].year if l <= qty else "",YEARS_prcpDAYS_asc[x].number if l <= qty else "",
+                        m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
+                        YEARS_snow[x].year if m <= qty else "","{:.1f}".format(YEARS_snow[x].number) if m <= qty else "",
+                        n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
+                        YEARS_snowDAYS[x].year if n <= qty else "",YEARS_snowDAYS[x].number if n <= qty else ""))
+            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
+    if attribute == "temp":
+        print("{:^111}".format("Ranked Yearly Temperatures"))
+        print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+        print("{:^111}".format("Years with > {} day(s) of data".format(excludeyear)))
+        print("{:-^111}".format(""))
+        print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
+        print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
+        print("{:^17}|{:^18}|{:^18}|{:^18}|{:^18}|{:^17}".format("Warmest","Coolest","Warmest","Coolest","Warmest","Coolest"))
+        print("{:-^17}|{:-^18}|{:-^18}|{:-^18}|{:-^18}|{:-^17}".format("","","","","",""))
+        i = 1; j = 1; k = 1; l = 1; m = 1; n = 1
+        ranked_i = []; ranked_j = []; ranked_k = []; ranked_l = []; ranked_m = []; ranked_n = []
+        for x in range(len(YEARS_tmax)):
+            if x == 0:
+                print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
+                                                                1,".",YEARS_tavg[x].year,"{:.1f}".format(YEARS_tavg[x].number),
+                                                                1,".",YEARS_tavg_asc[x].year,"{:.1f}".format(YEARS_tavg_asc[x].number),
+                                                                1,".",YEARS_tmax[x].year,"{:.1f}".format(YEARS_tmax[x].number),
+                                                                1,".",YEARS_tmax_asc[x].year,"{:.1f}".format(YEARS_tmax_asc[x].number),
+                                                                1,".",YEARS_tmin[x].year,"{:.1f}".format(YEARS_tmin[x].number),
+                                                                1,".",YEARS_tmin_asc[x].year,"{:.1f}".format(YEARS_tmin_asc[x].number)))
+                ranked_i.append(i); ranked_j.append(j); ranked_k.append(k); ranked_l.append(l); ranked_m.append(m); ranked_n.append(n)
+            else:
+                if i not in ranked_i and i <= qty: ranked_i.append(i)
+                if j not in ranked_j and j <= qty: ranked_j.append(j)
+                if k not in ranked_k and k <= qty: ranked_k.append(k)
+                if l not in ranked_l and l <= qty: ranked_l.append(l)
+                if m not in ranked_m and m <= qty: ranked_m.append(m)
+                if n not in ranked_n and n <= qty: ranked_n.append(n)
+                if YEARS_tavg[x].number != YEARS_tavg[x-1].number: i += 1
+                if YEARS_tavg_asc[x].number != YEARS_tavg_asc[x-1].number: j += 1
+                if YEARS_tmax[x].number != YEARS_tmax[x-1].number: k += 1
+                if YEARS_tmax_asc[x].number != YEARS_tmax_asc[x-1].number: l += 1
+                if YEARS_tmin[x].number != YEARS_tmin[x-1].number: m += 1
+                if YEARS_tmin_asc[x].number != YEARS_tmin_asc[x-1].number: n += 1
+                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
+                    print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
+                            i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
+                            YEARS_tavg[x].year if i <= qty else "","{:.1f}".format(YEARS_tavg[x].number) if i <= qty else "",
+                            j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
+                            YEARS_tavg_asc[x].year if j <= qty else "","{:.1f}".format(YEARS_tavg_asc[x].number) if j <= qty else "",
+                            k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
+                            YEARS_tmax[x].year if k <= qty else "","{:.1f}".format(YEARS_tmax[x].number) if k <= qty else "",
+                            l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
+                            YEARS_tmax_asc[x].year if l <= qty else "","{:.1f}".format(YEARS_tmax_asc[x].number) if l <= qty else "",
+                            m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
+                            YEARS_tmin[x].year if m <= qty else "","{:.1f}".format(YEARS_tmin[x].number) if m <= qty else "",
+                            n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
+                            YEARS_tmin_asc[x].year if n <= qty else "","{:.1f}".format(YEARS_tmin_asc[x].number) if n <= qty else ""))
+            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
+    print("")
+
+def seasonRank(season,attribute,qty):
+    """Returns a list of rankings (maxs and mins) for all specified meteorological seasons on record. The season ("spring","summer","fall","winter") and attribute ("prcp" or "temp") must be in string format. The quantity, denoting how many rankings you desire, must be an integer.
+    
+    seasonRank(season,attribute,quantity)
+    
+    EXAMPLE: seasonRank("Spring","temp",5) -> Returns the "Top 5" Temperature-based
+                                              Rankings for all Meteorological Springs
+                                              on record
+    """
+    class month_attr:
+        def __init__(self,y,number):
+            self.year = y
+            self.number = number
+
+    if attribute not in ["temp","temps","temperature","temperatures","tmax","tmin","tavg","prcp","precip","rain","snow"]:
+        return print("* OOPS! Attribute must be 'temp' or 'prcp'. Try again!")
+    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
+    if attribute in ["prcp","precip","rain","snow"]: attribute = "prcp"
+    if attribute in ["temp","temps","temperature","temperatures","tmax","tmin","tavg"]: attribute = "temp"
+    
+    SEASON_prcp = []
+    SEASON_prcp_asc = []     # Declared here bc it will be compiled within for-loop
+    SEASON_prcpDAYS = []
+    SEASON_prcpDAYS_asc = [] # Declared here bc it will be compiled within for-loop
+    SEASON_snow = []
+    SEASON_snowDAYS = []
+    SEASON_tavg = []
+    SEASON_tmax = []
+    SEASON_tmin = []
+    
+    for y in [YR for YR in metclmt if type(YR) == int]:
+        try:
+            SEASON_prcp.append(month_attr(y,round(sum(metclmt[y][season]["prcp"]),2)))
+            SEASON_prcpDAYS.append(month_attr(y,metclmt[y][season]["prcpDAYS"]))
+            if metclmt[y][season]["recordqty"] > excludeseason:
+                SEASON_prcp_asc.append(month_attr(y,round(sum(metclmt[y][season]["prcp"]),2)))
+                SEASON_prcpDAYS_asc.append(month_attr(y,metclmt[y][season]["prcpDAYS"]))
+            SEASON_snow.append(month_attr(y,round(sum(metclmt[y][season]["snow"]),1)))
+            SEASON_snowDAYS.append(month_attr(y,metclmt[y][season]["snowDAYS"]))
+        except:
+            pass
+        try:
+            if len(metclmt[y][season]["tempAVGlist"]) > excludeseason_tavg:
+                SEASON_tavg.append(month_attr(y,round(mean(metclmt[y][season]["tempAVGlist"]),1)))
+        except:
+            pass
+        try:
+            if len(metclmt[y][season]["tmax"]) > excludeseason:
+                SEASON_tmax.append(month_attr(y,round(mean(metclmt[y][season]["tmax"]),1)))
+        except:
+            pass
+        try:
+            if len(metclmt[y][season]["tmin"]) > excludeseason:
+                SEASON_tmin.append(month_attr(y,round(mean(metclmt[y][season]["tmin"]),1)))
+        except:
+            pass
+
+    #SEASON_prcp_asc = SEASON_prcp.copy()
+    SEASON_prcp.sort(key=lambda x:x.number,reverse=True)
+    SEASON_prcp_asc.sort(key=lambda x:x.number)
+    #SEASON_prcpDAYS_asc = SEASON_prcpDAYS.copy()
+    SEASON_prcpDAYS.sort(key=lambda x:x.number,reverse=True)
+    SEASON_prcpDAYS_asc.sort(key=lambda x:x.number)
+    SEASON_snow.sort(key=lambda x:x.number,reverse=True)
+    SEASON_snowDAYS.sort(key=lambda x:x.number,reverse=True)
+    SEASON_tavg_asc = SEASON_tavg.copy()
+    SEASON_tavg.sort(key=lambda x:x.number,reverse=True)
+    SEASON_tavg_asc.sort(key=lambda x:x.number)
+    SEASON_tmax_asc = SEASON_tmax.copy()
+    SEASON_tmax.sort(key=lambda x:x.number,reverse=True)
+    SEASON_tmax_asc.sort(key=lambda x:x.number)
+    SEASON_tmin_asc = SEASON_tmin.copy()
+    SEASON_tmin.sort(key=lambda x:x.number,reverse=True)
+    SEASON_tmin_asc.sort(key=lambda x:x.number)
+    
+    print("")
+    if attribute == "prcp":
+        print("{:^103}".format("Meteorological {} Ranked Precipitation Amounts and Days".format(season.capitalize())))
+        print("{:^103}".format("{}, {}".format(metclmt["station"],metclmt["station_name"])))
+        print("{:^103}".format("Seasons with > {} day(s) of data".format(excludeseason)))
+        print("{:-^103}".format(""))
+        print("{:^69}|{:^33}".format("Rain","Snow"))
+        print("{:-^69}|{:-^33}".format("",""))
+        print("{:^18}|{:^18}|{:^15}|{:^15}|{:^17}|{:^15}".format("Wettest","Driest","Most Days","Least Days","Snowiest","Most Days"))
+        print("{:-^18}|{:-^18}|{:-^15}|{:-^15}|{:-^17}|{:-^15}".format("","","","","",""))
+        i = 1;j = 1;k = 1;l = 1;m = 1;n = 1
+        ranked_i = [];ranked_j = [];ranked_k = [];ranked_l = [];ranked_m = [];ranked_n = []
+        for x in range(len(SEASON_prcp)):
+            if x == 0:
+                print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
+                    1,".",SEASON_prcp[x].year,"{:.2f}".format(SEASON_prcp[x].number),
+                    1,".",SEASON_prcp_asc[x].year,"{:.2f}".format(SEASON_prcp_asc[x].number),
+                    1,".",SEASON_prcpDAYS[x].year,SEASON_prcpDAYS[x].number,
+                    1,".",SEASON_prcpDAYS_asc[x].year,SEASON_prcpDAYS_asc[x].number,
+                    1 if SEASON_snow[x].number else "","." if SEASON_snow[x].number > 0 else " ",
+                    SEASON_snow[x].year if SEASON_snow[x].number > 0 else "","{:.1f}".format(SEASON_snow[x].number) if SEASON_snow[x].number > 0 else "",
+                    1 if SEASON_snowDAYS[x].number > 0 else "","." if SEASON_snowDAYS[x].number > 0 else " ",
+                    SEASON_snowDAYS[x].year if SEASON_snowDAYS[x].number > 0 else "",SEASON_snowDAYS[x].number if SEASON_snowDAYS[x].number > 0 else ""))
+                ranked_i.append(i);ranked_j.append(j);ranked_k.append(k);ranked_l.append(l);ranked_m.append(m);ranked_n.append(n)
+            else:
+                if i not in ranked_i and i <= qty: ranked_i.append(i)
+                if j not in ranked_j and j <= qty: ranked_j.append(j)
+                if k not in ranked_k and k <= qty: ranked_k.append(k)
+                if l not in ranked_l and l <= qty: ranked_l.append(l)
+                if m not in ranked_m and m <= qty: ranked_m.append(m)
+                if n not in ranked_n and n <= qty: ranked_n.append(n)
+                if SEASON_prcp[x].number != SEASON_prcp[x-1].number: i += 1
+                if SEASON_prcp_asc[x].number != SEASON_prcp_asc[x-1].number: j += 1
+                if SEASON_prcpDAYS[x].number != SEASON_prcpDAYS[x-1].number: k += 1
+                if SEASON_prcpDAYS_asc[x].number != SEASON_prcpDAYS_asc[x-1].number: l += 1
+                if SEASON_snow[x].number != SEASON_snow[x-1].number: m += 1
+                if SEASON_snowDAYS[x].number != SEASON_snowDAYS[x-1].number: n += 1
+                if SEASON_prcp[x].number == 0: i = qty + 1
+                if SEASON_prcpDAYS[x].number == 0: k = qty + 1
+                if SEASON_snow[x].number == 0: m = qty + 1
+                if SEASON_snowDAYS[x].number == 0: n = qty + 1
+                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
+                    print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
+                        i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
+                        SEASON_prcp[x].year if i <= qty else "","{:.2f}".format(SEASON_prcp[x].number) if i <= qty else "",
+                        j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
+                        SEASON_prcp_asc[x].year if j <= qty else "","{:.2f}".format(SEASON_prcp_asc[x].number) if j <= qty else "",
+                        k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
+                        SEASON_prcpDAYS[x].year if k <= qty else "",SEASON_prcpDAYS[x].number if k <= qty else "",
+                        l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
+                        SEASON_prcpDAYS_asc[x].year if l <= qty else "",SEASON_prcpDAYS_asc[x].number if l <= qty else "",
+                        m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
+                        SEASON_snow[x].year if m <= qty else "","{:.1f}".format(SEASON_snow[x].number) if m <= qty else "",
+                        n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
+                        SEASON_snowDAYS[x].year if n <= qty else "",SEASON_snowDAYS[x].number if n <= qty else ""))
+            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
+    if attribute == "temp":
+        print("{:^111}".format("Meteorological {} Ranked Temperatures".format(season.capitalize())))
+        print("{:^111}".format("{}, {}".format(metclmt["station"],metclmt["station_name"])))
+        print("{:^111}".format("Seasons with > {} day(s) of data".format(excludeseason)))
+        print("{:-^111}".format(""))
+        print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
+        print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
+        print("{:^17}|{:^18}|{:^18}|{:^18}|{:^18}|{:^17}".format("Warmest","Coolest","Warmest","Coolest","Warmest","Coolest"))
+        print("{:-^17}|{:-^18}|{:-^18}|{:-^18}|{:-^18}|{:-^17}".format("","","","","",""))
+        i = 1; j = 1; k = 1; l = 1; m = 1; n = 1
+        ranked_i = []; ranked_j = []; ranked_k = []; ranked_l = []; ranked_m = []; ranked_n = []
+        for x in range(len(SEASON_tmax)):
+            if x == 0:
+                print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
+                                                                1,".",SEASON_tavg[x].year,"{:.1f}".format(SEASON_tavg[x].number),
+                                                                1,".",SEASON_tavg_asc[x].year,"{:.1f}".format(SEASON_tavg_asc[x].number),
+                                                                1,".",SEASON_tmax[x].year,"{:.1f}".format(SEASON_tmax[x].number),
+                                                                1,".",SEASON_tmax_asc[x].year,"{:.1f}".format(SEASON_tmax_asc[x].number),
+                                                                1,".",SEASON_tmin[x].year,"{:.1f}".format(SEASON_tmin[x].number),
+                                                                1,".",SEASON_tmin_asc[x].year,"{:.1f}".format(SEASON_tmin_asc[x].number)))
+                ranked_i.append(i); ranked_j.append(j); ranked_k.append(k); ranked_l.append(l); ranked_m.append(m); ranked_n.append(n)
+            else:
+                if i not in ranked_i and i <= qty: ranked_i.append(i)
+                if j not in ranked_j and j <= qty: ranked_j.append(j)
+                if k not in ranked_k and k <= qty: ranked_k.append(k)
+                if l not in ranked_l and l <= qty: ranked_l.append(l)
+                if m not in ranked_m and m <= qty: ranked_m.append(m)
+                if n not in ranked_n and n <= qty: ranked_n.append(n)
+                if SEASON_tavg[x].number != SEASON_tavg[x-1].number: i += 1
+                if SEASON_tavg_asc[x].number != SEASON_tavg_asc[x-1].number: j += 1
+                if SEASON_tmax[x].number != SEASON_tmax[x-1].number: k += 1
+                if SEASON_tmax_asc[x].number != SEASON_tmax_asc[x-1].number: l += 1
+                if SEASON_tmin[x].number != SEASON_tmin[x-1].number: m += 1
+                if SEASON_tmin_asc[x].number != SEASON_tmin_asc[x-1].number: n += 1
+                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
+                    print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
+                            i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
+                            SEASON_tavg[x].year if i <= qty else "","{:.1f}".format(SEASON_tavg[x].number) if i <= qty else "",
+                            j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
+                            SEASON_tavg_asc[x].year if j <= qty else "","{:.1f}".format(SEASON_tavg_asc[x].number) if j <= qty else "",
+                            k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
+                            SEASON_tmax[x].year if k <= qty else "","{:.1f}".format(SEASON_tmax[x].number) if k <= qty else "",
+                            l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
+                            SEASON_tmax_asc[x].year if l <= qty else "","{:.1f}".format(SEASON_tmax_asc[x].number) if l <= qty else "",
+                            m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
+                            SEASON_tmin[x].year if m <= qty else "","{:.1f}".format(SEASON_tmin[x].number) if m <= qty else "",
+                            n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
+                            SEASON_tmin_asc[x].year if n <= qty else "","{:.1f}".format(SEASON_tmin_asc[x].number) if n <= qty else ""))
+            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
+    print("")
+
 def metYearRank(attribute,qty):
+    """Returns a list of rankings (maxs and mins) for all meteorological years (March to February) on record. The attribute ("prcp" or "temp") must be in string format. The quantity, denoting how many rankings you desire, must be an integer.
+    
+    metYearRank(attribute,quantity)
+    
+    EXAMPLE: metYearRank("rain",12) -> Returns the "Top 12" Precip-based Rankings for
+                                       all Meteorological Years on record
+    """
     class month_attr:
         def __init__(self,y,number):
             self.year = y
@@ -3831,7 +4645,367 @@ def metYearRank(attribute,qty):
             if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
     print("")
 
+def customRank(attribute,qty,m1,d1,*date2):
+    """Returns a list of rankings (maxs and mins) for all specified custom period of time. Note that the order of the passed arguments are different with this
+    function than similar ranking functions. The attribute ("prcp" or "temp") must be a string; the quantity (how many rankings you want), M1 (month), and D1 (day), and the optional M2 and D2 must be integers. If M2 and D2 are not given, 12-31 will be considered the final date of the custom-period.
+    seasons on record. The season ("spring","summer","fall","winter") and attribute ("prcp" or "temp") must be in string format. The quantity, denoting how many rankings you desire, must be an integer. If the end day given occurs before the start day in the calendar year, the end day of the following year will be used.
+    
+    customRank(attribute,quantity,M1,D1,*[M2,D2])
+
+    OPT *args: M2,D2 --> These optional entries represent the ending month, and day
+                         of the period
+    
+    EXAMPLE: customRank("temp",10,11,1) -> Returns the "Top 10" Temperature-based
+                                           Rankings for the custom period of November
+                                           1 thru December 31.
+
+    EXAMPLE: customRank("prcp",10,9,1,3,31) -> Returns the "Top 10" Temperature-based
+                                               Rankings for the custom period of
+                                               September 1 thru March 31.
+    """
+    class e_attr:
+        def __init__(self,y,number):
+            self.year = y
+            self.number = number
+    if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
+    valid_yrs = [x for x in clmt.keys() if type(x) == int]
+    valid_yrs.sort()
+    if any(type(x) != int for x in [m1,d1]): return print("*** OOPS! Ensure that only integers are entered ***")
+
+    if len(date2) == 0: pass
+    elif len(date2) != 2: return print("*** OOPS! For the 2nd (optional) date, ensure only a Month and Date are entered ***")
+    elif any(type(x) != int for x in [date2[0],date2[1]]): return print("*** OOPS! Ensure that only integers are entered ***")
+
+    if attribute not in ["temp","temps","temperature","temperatures","tmax","tmin","tavg","prcp","precip","rain","snow"]:
+        return print("* OOPS! Attribute must be 'temp' or 'prcp'. Try again!")
+    if type(qty) != int or qty > 50 or qty < 5: return print("* SORRY! Ensure desired quantity is an integer in the range [5,50]")
+    if attribute in ["prcp","precip","rain","snow"]: attribute = "prcp"
+    if attribute in ["temp","temps","temperature","temperatures","tmax","tmin","tavg"]: attribute = "temp"
+
+    if len(date2) == 2:
+        m2 = date2[0]
+        d2 = date2[1]
+    else:
+        m2 = 12
+        d2 = 31
+    if m2 == m1:
+        if d2 == d1: return print("*** OOPS! Ensure different dates! ***")
+    if m1 == 2 and d1 == 29: d1 = 28
+    if m2 == 2 and d2 == 29: d2 = 28
+    # Determine total length of period (used for exclusion calculation)
+    s = datetime.date(1900,m1,d1)
+    test = datetime.date(1900,m2,d2)
+    if test > s: e = test
+    else: e = datetime.date(1901,m2,d2)
+    timelength = (e - s).days + 1
+    if timelength < 7: EXCLD = 1
+    elif timelength == 7: EXCLD = excludeweek
+    elif timelength in [28,29,30,31]: EXCLD = excludemonth
+    elif timelength >= 350: EXCLD = excludeyear
+    else: EXCLD = round(excludecustom * timelength)
+
+    e = {}  # Will hold the date-to-date (represented by a parent year) stats
+    
+    for YYYY in valid_yrs:
+        startday = datetime.date(YYYY,m1,d1)
+        incr_day = startday
+        if m2 < m1: endday = datetime.date(YYYY+1,m2,d2)   # if end month is less, the results will bleed into the following year
+        elif m2 == m1:  # Deals with if the months of the dates are exactly the same
+            if d2 < d1: endday = datetime.date(YYYY+1,m2,d2)     # like above, if month is the same, but date is less, results will bleed into following year
+            else: endday = datetime.date(YYYY,m2,d2)               # OTHERWISE, it is assumed the same year
+        else: endday = datetime.date(YYYY,m2,d2)       # If month2 is > than month 1, the active year will be used
+        
+        if endday.year > max(valid_yrs): break
+
+        #if YYYY not in e:
+        e[YYYY] = {"recordqty":0,
+                   "prcp":[],"prcpDAYS":0,"snow":[],"snowDAYS":0,
+                   "tempAVGlist":[],"tmax":[],"tmin":[]}
+
+        while incr_day <= endday:
+            y = incr_day.year; m = incr_day.month; d = incr_day.day
+            if y in clmt and m in clmt[y] and d in clmt[y][m]:
+                e[YYYY]["recordqty"] += 1
+                # PRCP
+                if clmt[y][m][d].prcpQ in ignoreflags and clmt[y][m][d].prcp not in ["9999","-9999",""]:
+                    if float(clmt[y][m][d].prcp) > 0: e[YYYY]["prcp"].append(round(float(clmt[y][m][d].prcp),2))
+                    if float(clmt[y][m][d].prcp) > 0 or clmt[y][m][d].prcpM == "T": e[YYYY]["prcpDAYS"] += 1
+                if clmt[y][m][d].prcpQ in ignoreflags and clmt[y][m][d].prcp == "" and clmt[y][m][d].prcpM == "T": e[YYYY]["prcpDAYS"] += 1
+                # SNOW
+                if clmt[y][m][d].snowQ in ignoreflags and clmt[y][m][d].snow not in ["9999","-9999",""]:
+                    if float(clmt[y][m][d].snow) > 0: e[YYYY]["snow"].append(round(float(clmt[y][m][d].snow),2))
+                    if float(clmt[y][m][d].snow) > 0 or clmt[y][m][d].snowM == "T": e[YYYY]["snowDAYS"] += 1
+                if clmt[y][m][d].snowQ in ignoreflags and clmt[y][m][d].snow == "" and clmt[y][m][d].snowM == "T": e[YYYY]["snowDAYS"] += 1
+                # TAVG
+                if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""] and clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmin not in ["9999","-9999",""] and int(clmt[y][m][d].tmax) >= int(clmt[y][m][d].tmin):
+                    e[YYYY]["tempAVGlist"].append(int(clmt[y][m][d].tmax))
+                    e[YYYY]["tempAVGlist"].append(int(clmt[y][m][d].tmin))
+                # TMAX
+                if clmt[y][m][d].tmaxQ in ignoreflags and clmt[y][m][d].tmax not in ["9999","-9999",""]:
+                    if clmt[y][m][d].tmin != "" and int(clmt[y][m][d].tmax) >= int(clmt[y][m][d].tmin):
+                        e[YYYY]["tmax"].append(int(clmt[y][m][d].tmax))
+                # TMIN
+                if clmt[y][m][d].tminQ in ignoreflags and clmt[y][m][d].tmin not in ["9999","-9999",""]:
+                    if clmt[y][m][d].tmax != "" and int(clmt[y][m][d].tmin) <= int(clmt[y][m][d].tmax):
+                        e[YYYY]["tmin"].append(int(clmt[y][m][d].tmin))
+            incr_day += datetime.timedelta(days=1)  # GO ON TO TEST NEXT DAY
+    E_prcp = []
+    E_prcp_asc = []    # Declared here bc it will be compiled with in for-loop
+    E_prcpDAYS = []
+    E_prcpDAYS_asc = []    # Declared here bc it will be compiled with in for-loop
+    E_snow = []
+    E_snowDAYS = []
+    E_tavg = []
+    E_tmax = []
+    E_tmin = []
+
+    for YYYY in e:
+        try:
+            E_prcp.append(e_attr(YYYY,round(sum(e[YYYY]["prcp"]),2)))
+            E_prcpDAYS.append(e_attr(YYYY,e[YYYY]["prcpDAYS"]))
+            if e[YYYY]["recordqty"] > EXCLD:
+                E_prcp_asc.append(e_attr(YYYY,round(sum(e[YYYY]["prcp"]),2)))
+                E_prcpDAYS_asc.append(e_attr(YYYY,e[YYYY]["prcpDAYS"]))
+            E_snow.append(e_attr(YYYY,round(sum(e[YYYY]["snow"]),1)))
+            E_snowDAYS.append(e_attr(YYYY,e[YYYY]["snowDAYS"]))
+        except Exception as er:
+            pass #input("Year: {}; Error: {}".format(YYYY,er))
+        try:
+            if len(e[YYYY]["tempAVGlist"]) > EXCLD * 2:
+                E_tavg.append(e_attr(YYYY,round(mean(e[YYYY]["tempAVGlist"]),1)))
+        except:
+            pass
+        try:
+            if len(e[YYYY]["tmax"]) > EXCLD:
+                E_tmax.append(e_attr(YYYY,round(mean(e[YYYY]["tmax"]),1)))
+        except:
+            pass
+        try:
+            if len(e[YYYY]["tmin"]) > EXCLD:
+                E_tmin.append(e_attr(YYYY,round(mean(e[YYYY]["tmin"]),1)))
+        except:
+            pass
+
+    E_LENGTHS_OF_ALL = []
+    #E_prcp_asc = E_prcp.copy()
+    E_prcp.sort(key=lambda x:x.number,reverse=True); E_LENGTHS_OF_ALL.append(len(E_prcp))
+    E_prcp_asc.sort(key=lambda x:x.number)
+    #E_prcpDAYS_asc = E_prcpDAYS.copy()
+    E_prcpDAYS.sort(key=lambda x:x.number,reverse=True); E_LENGTHS_OF_ALL.append(len(E_prcpDAYS))
+    E_prcpDAYS_asc.sort(key=lambda x:x.number)
+    E_snow.sort(key=lambda x:x.number,reverse=True); E_LENGTHS_OF_ALL.append(len(E_snow))
+    E_snowDAYS.sort(key=lambda x:x.number,reverse=True); E_LENGTHS_OF_ALL.append(len(E_snowDAYS))
+    E_tavg_asc = E_tavg.copy()
+    E_tavg.sort(key=lambda x:x.number,reverse=True); E_LENGTHS_OF_ALL.append(len(E_tavg))
+    E_tavg_asc.sort(key=lambda x:x.number)
+    E_tmax_asc = E_tmax.copy()
+    E_tmax.sort(key=lambda x:x.number,reverse=True); E_LENGTHS_OF_ALL.append(len(E_tmax))
+    E_tmax_asc.sort(key=lambda x:x.number)
+    E_tmin_asc = E_tmin.copy()
+    E_tmin.sort(key=lambda x:x.number,reverse=True); E_LENGTHS_OF_ALL.append(len(E_tmin))
+    E_tmin_asc.sort(key=lambda x:x.number)
+    
+    
+    
+    print("")
+    if attribute == "prcp":
+        print("{:^100}".format("Ranked Precipitation Amounts and Days for {} {} thru {} {}".format(calendar.month_abbr[startday.month],startday.day,calendar.month_abbr[endday.month],endday.day)))
+        print("{:^103}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+        print("{:^103}".format("Periods with > {} Day(s) of Data".format(EXCLD)))
+        print("{:-^103}".format(""))
+        print("{:^70} {:^33}".format("Rain","Snow"))
+        print("{:-^70} {:-^33}".format("",""))
+        print("{:^18}|{:^18}|{:^15}|{:^15}|{:^17}|{:^15}".format("Wettest","Driest","Most Days","Least Days","Snowiest","Most Days"))
+        print("{:-^18}|{:-^18}|{:-^15}|{:-^15}|{:-^17}|{:-^15}".format("","","","","",""))
+        i = 1;j = 1;k = 1;l = 1;m = 1;n = 1
+        printed_j = 0; printed_l = 0
+        ranked_i = [];ranked_j = [];ranked_k = [];ranked_l = [];ranked_m = [];ranked_n = []
+        for x in range(min(E_LENGTHS_OF_ALL)):
+            if x == 0:
+                print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:3} | {:2}{} {:4}  {:3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
+                    1,".",E_prcp[x].year,"{:.2f}".format(E_prcp[x].number),
+                    1,".",E_prcp_asc[x].year,"{:.2f}".format(E_prcp_asc[x].number),
+                    1,".",E_prcpDAYS[x].year,E_prcpDAYS[x].number,
+                    1,".",E_prcpDAYS_asc[x].year,E_prcpDAYS_asc[x].number,
+                    1 if E_snow[x].number else "","." if E_snow[x].number > 0 else " ",
+                    E_snow[x].year if E_snow[x].number > 0 else "","{:.1f}".format(E_snow[x].number) if E_snow[x].number > 0 else "",
+                    1 if E_snowDAYS[x].number > 0 else "","." if E_snowDAYS[x].number > 0 else " ",
+                    E_snowDAYS[x].year if E_snowDAYS[x].number > 0 else "",E_snowDAYS[x].number if E_snowDAYS[x].number > 0 else ""))
+                ranked_i.append(i);ranked_j.append(j);ranked_k.append(k);ranked_l.append(l);ranked_m.append(m);ranked_n.append(n)
+            else:
+                if i not in ranked_i and i <= qty: ranked_i.append(i)
+                if j not in ranked_j and j <= qty:
+                    ranked_j.append(j)
+                    #printed_j += 1
+                if k not in ranked_k and k <= qty: ranked_k.append(k)
+                if l not in ranked_l and l <= qty:
+                    ranked_l.append(l)
+                    #printed_l += 1
+                if m not in ranked_m and m <= qty: ranked_m.append(m)
+                if n not in ranked_n and n <= qty: ranked_n.append(n)
+                if E_prcp[x].number != E_prcp[x-1].number: i += 1
+                if E_prcp_asc[x].number != E_prcp_asc[x-1].number: j += 1
+                if E_prcpDAYS[x].number != E_prcpDAYS[x-1].number: k += 1
+                if E_prcpDAYS_asc[x].number != E_prcpDAYS_asc[x-1].number: l += 1
+                if E_snow[x].number != E_snow[x-1].number: m += 1
+                if E_snowDAYS[x].number != E_snowDAYS[x-1].number: n += 1
+                if E_prcp[x].number == 0: i = qty + 1
+                #if printed_j == len(valid_yrs)-10: j = qty + 1
+                if E_prcpDAYS[x].number == 0: k = qty + 1
+                #if printed_l == len(valid_yrs)-10: l = qty + 1
+                if E_snow[x].number == 0: m = qty + 1
+                if E_snowDAYS[x].number == 0: n = qty + 1
+                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
+                    print(" {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:>6} | {:2}{} {:4}  {:3} | {:2}{} {:4}  {:3} | {:2}{} {:4}  {:>5} | {:2}{} {:4}  {:>3} ".format(
+                        i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
+                        E_prcp[x].year if i <= qty else "","{:.2f}".format(E_prcp[x].number) if i <= qty else "",
+                        j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
+                        E_prcp_asc[x].year if j <= qty else "","{:.2f}".format(E_prcp_asc[x].number) if j <= qty else "",
+                        k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
+                        E_prcpDAYS[x].year if k <= qty else "",E_prcpDAYS[x].number if k <= qty else "",
+                        l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
+                        E_prcpDAYS_asc[x].year if l <= qty else "",E_prcpDAYS_asc[x].number if l <= qty else "",
+                        m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
+                        E_snow[x].year if m <= qty else "","{:.1f}".format(E_snow[x].number) if m <= qty else "",
+                        n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
+                        E_snowDAYS[x].year if n <= qty else "",E_snowDAYS[x].number if n <= qty else ""))
+            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
+    if attribute == "temp":
+        print("{:^111}".format("Ranked Temperatures for {} {} thru {} {}".format(calendar.month_abbr[startday.month],startday.day,calendar.month_abbr[endday.month],endday.day)))
+        print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+        print("{:^111}".format("Periods with > {} Day(s) of Data".format(EXCLD)))
+        print("{:-^111}".format(""))
+        print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
+        print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
+        print("{:^17}|{:^18}|{:^18}|{:^18}|{:^18}|{:^17}".format("Warmest","Coolest","Warmest","Coolest","Warmest","Coolest"))
+        print("{:-^17}|{:-^18}|{:-^18}|{:-^18}|{:-^18}|{:-^17}".format("","","","","",""))
+        i = 1; j = 1; k = 1; l = 1; m = 1; n = 1
+        ranked_i = []; ranked_j = []; ranked_k = []; ranked_l = []; ranked_m = []; ranked_n = []
+        for x in range(len(E_tmax)):
+            if x == 0:
+                print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
+                                                                1,".",E_tavg[x].year,"{:.1f}".format(E_tavg[x].number),
+                                                                1,".",E_tavg_asc[x].year,"{:.1f}".format(E_tavg_asc[x].number),
+                                                                1,".",E_tmax[x].year,"{:.1f}".format(E_tmax[x].number),
+                                                                1,".",E_tmax_asc[x].year,"{:.1f}".format(E_tmax_asc[x].number),
+                                                                1,".",E_tmin[x].year,"{:.1f}".format(E_tmin[x].number),
+                                                                1,".",E_tmin_asc[x].year,"{:.1f}".format(E_tmin_asc[x].number)))
+                ranked_i.append(i); ranked_j.append(j); ranked_k.append(k); ranked_l.append(l); ranked_m.append(m); ranked_n.append(n)
+            else:
+                if i not in ranked_i and i <= qty: ranked_i.append(i)
+                if j not in ranked_j and j <= qty: ranked_j.append(j)
+                if k not in ranked_k and k <= qty: ranked_k.append(k)
+                if l not in ranked_l and l <= qty: ranked_l.append(l)
+                if m not in ranked_m and m <= qty: ranked_m.append(m)
+                if n not in ranked_n and n <= qty: ranked_n.append(n)
+                if E_tavg[x].number != E_tavg[x-1].number: i += 1
+                if E_tavg_asc[x].number != E_tavg_asc[x-1].number: j += 1
+                if E_tmax[x].number != E_tmax[x-1].number: k += 1
+                if E_tmax_asc[x].number != E_tmax_asc[x-1].number: l += 1
+                if E_tmin[x].number != E_tmin[x-1].number: m += 1
+                if E_tmin_asc[x].number != E_tmin_asc[x-1].number: n += 1
+                if i <= qty or j <= qty or k <= qty or l <= qty or m <= qty or n <= qty:
+                    print("{:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}  | {:2}{} {:4}  {:>5}".format(
+                            i if i not in ranked_i and i <= qty else "","." if i not in ranked_i and i <= qty else " ",
+                            E_tavg[x].year if i <= qty else "","{:.1f}".format(E_tavg[x].number) if i <= qty else "",
+                            j if j not in ranked_j and j <= qty else "","." if j not in ranked_j and j <= qty else " ",
+                            E_tavg_asc[x].year if j <= qty else "","{:.1f}".format(E_tavg_asc[x].number) if j <= qty else "",
+                            k if k not in ranked_k and k <= qty else "","." if k not in ranked_k and k <= qty else " ",
+                            E_tmax[x].year if k <= qty else "","{:.1f}".format(E_tmax[x].number) if k <= qty else "",
+                            l if l not in ranked_l and l <= qty else "","." if l not in ranked_l and l <= qty else " ",
+                            E_tmax_asc[x].year if l <= qty else "","{:.1f}".format(E_tmax_asc[x].number) if l <= qty else "",
+                            m if m not in ranked_m and m <= qty else "","." if m not in ranked_m and m <= qty else " ",
+                            E_tmin[x].year if m <= qty else "","{:.1f}".format(E_tmin[x].number) if m <= qty else "",
+                            n if n not in ranked_n and n <= qty else "","." if n not in ranked_n and n <= qty else " ",
+                            E_tmin_asc[x].year if n <= qty else "","{:.1f}".format(E_tmin_asc[x].number) if n <= qty else ""))
+            if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
+    print("")
+
+def valueSearch(value,var,**kwargs):
+    # v, args[rain,prcp,snow,temp,avgtemp,tmax,avgtmax,tmin,avgtmin], kwargs[condition,year,metyear,season,month]
+    valid_yrs = [x for x in clmt.keys() if type(x) == int]
+    breakfunction = False
+    findavg = False
+    hasoperator = False
+    hasyear = False
+    hasmetyear = False
+    hasseason = True
+    hasmonth = False
+    
+
+    try:
+        if var not in ["rain","prcp","avgrain","avgprcp","snow","avgsnow","snwd","avgsnwd","temp","avgtemp","tmax","hi","avghi","avgtmax","tmin","lo","avglo","avgtmin"]:
+            return print("OOPS! '{}' is not a valid search variable! Try again!".format(var[0]))
+        elif var[0:3].lower() == "avg":
+            findavg = True
+            variable = var[3:].lower()
+            if variable == "rain": variable = "prcp"
+            if variable == "hi": variable = "tmax"
+            if variable == "lo": variable = "tmin"
+        elif var.lower() == "rain": variable = "prcp"
+        elif var.lower() == "hi": variable = "tmax"
+        elif var.lower() == "lo": variable = "tmin"
+    except: return print("OOPS! Invalid entry! Try again!")
+    
+    if "condition" in kwargs:
+        if kwargs["condition"].lower() not in ["<","lt","<=","lte",">","gt",">=","gte","==","e"]: 
+            return print("OOPS! '{}' is an invalid operator! Try again!".format(kwargs["condition"]))
+        hasoperator = True
+        op = kwargs["condition"].lower()
+
+    if "year" in kwargs:
+        if kwargs["year"] not in [Y for Y in clmt.keys() if type(Y) == int]: return print("OOPS! {} is an invalid year! Try again!".format(kwargs["year"]))
+        hasyear = True
+        yr = kwargs["year"]
+    if "metyear" in kwargs:
+        if kwargs["metyear"] not in [Y for Y in metclmt.keys() if type(Y) == int]: return print("OOPS! {} is an invalid year! Try again!".format(kwargs["metyear"]))
+        if "year" in kwargs:
+            print("!!! The calendar year will be used instead of the meteorological year because both keyword arguments are present in the inquiry !!!")
+        else:
+            hasmetyear = True
+            metyr = kwargs["metyear"]
+    if "season" in kwargs:
+        if kwargs["season"].lower() not in ["spring","summer","fall","autumn","winter"]: return print("OOPS! '{}' is an invalid season! Try again!".format(kwargs["season"]))
+        if "month" in kwargs:
+            print("!!! The given month will be used instead of the meteorological season because both keyword arguments are present in the inquiry !!!")
+        else:
+            season = kwargs["season"].lower()
+            if kwargs["season"].lower() == "autumn": season = "fall"
+            hasseason = True
+    if "month" in kwargs:
+        if kwargs["month"] not in [M for M in range(1,13)]: return print("OOPS! {} is an invalid month! Try again!".format(kwargs["month"]))
+        if hasyear == True:
+            if kwargs["month"] not in [M for M in clmt[yr] if type(M) == int]: return print("OOPS! No data for {} {} found! Try again!".format(calendar.month_name[kwargs["month"]],yr))
+        if hasmetyear == True:
+            if kwargs["month"] not in [M for M in metclmt[metyr] if type(M) == int]: return print("OOPS! No data for {} {} found! Try again!".format(calendar.month_name[kwargs["month"]],metyr))
+        hasmonth = True
+        mo = kwargs["month"]
+
+        
+
+    
+
+            
+
+    
+    
+    for x in args:
+        if type(x) != int: return print("* ERROR! month/year values need to be integers! Try again. *")
+    if len(args) == 0: return print("* ERROR! input at least a month value *")
+    elif len(args) == 1:    # year OR month
+        if args[0] in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1): searchScope = "year"
+        elif args[0] not in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1) and args[0] > 1000: return print("* ERROR! Ensure year value between {} and {} *".format(valid_yrs[0],valid_yrs[len(valid_yrs)-1]))
+        elif args[0] in range(1,13): searchScope = "month"
+        elif args[0] not in range(1,13): return print("* ERROR! Ensure month value between 1 and 12 *")
+    elif len(args) == 2:    # year AND month
+        if args[0] in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1) and args[1] in range(1,13): searchScope = "yearmonth"
+        else:
+            return print("* ERROR! Ensure format of valueSearch(y,m,**kwargs) ::: Year must be between {} and {}; Month between 1 and 12 *".format(valid_yrs[0],valid_yrs[len(valid_yrs)-1]))
+        
+    else: return print("* OOPS! Too many variables! Try again. *")
+
 def csvFileList():
+    """Returns a list of CSV files in the directory where the script is located"""
     tempcsvlist = os.listdir()
     csvs_in_dir = [x for x in tempcsvlist if x[len(x)-3:] == "csv"]
 
@@ -3842,6 +5016,7 @@ def csvFileList():
     print("")
 
 def clmthelp():
+    """An extensive list within the script of available functions to the user"""
     print("* PLEASE SEE README.md FOR A FULL BREAKDOWN OF PROGRAM'S CAPABILITIES *")
     print("* TO START: -execute clmtAnalyze('your_csv_file.csv'")
     print("            -takes optional keyword arguments <city> and <station>")
@@ -3854,6 +5029,7 @@ def clmthelp():
     print("                excludeyear = 300       # Exclude years from ranking/reports if year recordqty <= to this threshold")
     print("                excludemonth = 20       # Exclude months from ranking/reports if month recordqty <= to this threshold")
     print("                excludeweek = 4         # Exclude weeks from ranking/reports if week recordqty <= to this threshold")
+    print("                excludecustom = .75     # Exclude custom periods from ranking/reports if week recordqty <= 75% of a threshold")
     print("ERRORS OVERVIEW:")
     print("    -- Run qflagCheck() to get the code and definition for various quality flags in the record")
     print("    -- Run errorStats() to get get a report on errors that might be worth veryfying the data for.")
@@ -3875,6 +5051,7 @@ def clmthelp():
     print("    -- metYearStats(year) :: Returns a basic report for the specified meteorological year")
     print("    -- seasonStats(year,season) :: Returns a basic report for the specified meteorological ")
     print("       season ('spring','summer','fall','winter')")
+    print("    -- customStats(y1,m1,d1,*y2,*m2,*d2)")
     print("    Climatology Functions :: Detailed stats based on 30-yr climatologies incremented by")
     print("       5 years and enables basic climatological tendency analysis")
     print("    -- dayReport(month,day) :: Returns detailed statistics and climatology for all specified")
@@ -3887,6 +5064,8 @@ def clmthelp():
     print("    -- metYearReport() :: NOTHING is passed to this function. It returns detailed statistics based ")
     print("       on data for all meteorological years")
     print("    -- seasonReport(season) :: Returns detailed statistics and climatology for the specified season")
+    print("    -- customReport(M1,D1,*[M2,D2]) :: Returns detailed statistics and climatology for the specified,")
+    print("       custom period of time. The ending month and date are optional")
     print("    Rank/Record Functions")
     print("    -- dayRank(month,day,howmany) :: Prints daily records from the climate data.")
     print("    -- weekRank(month,day,howmany) :: Prints records based on a week's period, centered on the ")
@@ -3896,8 +5075,11 @@ def clmthelp():
     print("    -- metYearRank('<temps>|<rain>',howmany) :: Prints meteorological-yearly-based records for the ")
     print("       entire record (Jan-Dec)")
     print("    -- seasonRank(season,'<temps>|<rain>',howmany) :: Prints season-based records for the inquired season")
+    print("    -- customRank(attribute,quantity,M1,D1,*[M2,D2]) :: Prints ranked-records for the inquired period of time")
+    print("       The ending date is optional. This is a good function for proxy of a YTD or MTD function")
 
 def corrections():
+    """Activates correction mode"""
 
     print("CORRECTIONS MODE ACTIVATED - {}".format(clmt["station_name"]))
     print("------------------------------------------------")
@@ -4007,6 +5189,7 @@ excludeyear = 300       # Exclude years from ranking/reports if year recordqty <
 excludeseason = 70      # Exclude season from rankings/reports if season recordqty <= to this threshold
 excludemonth = 20       # Exclude months from ranking/reports if month recordqty <= to this threshold
 excludeweek = 4         # Exclude weeks from ranking/reports if week recordqty <= to this threshold
+excludecustom = .75     # Excludes custom periods if recordqty isn't at least this percentage of threshold
 
 # tempAVGlist Threshold Quantities (DO NOT TOUCH!!! these are handled from above variables)
 excludeyear_tavg = excludeyear * 2
@@ -4016,7 +5199,7 @@ excludeweek_tavg = excludeweek * 2
 
 # WELCOME MESSAGE UPON STARTING
 print("************************************")
-print("CLIMATE PARSER (clmt-parser.py) v2.01")
+print("CLIMATE PARSER (clmt-parser.py) v2.3")
 print("  by K. Gentry (ksgwxfan)")
 print("************************************\n")
 
