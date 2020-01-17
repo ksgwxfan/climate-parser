@@ -10,6 +10,7 @@ import os
 # assisted on nested list comprehensions: https://www.geeksforgeeks.org/nested-list-comprehensions-in-python/
 
 class DayRecord:
+    """Parses each line of date-specific data; not used by user"""
     # int(each[5][0:4])][int(each[5][5:7])][int(each[5][8:10])
     def __init__(self,raw):
         self.stationid = raw[0]
@@ -26,43 +27,75 @@ class DayRecord:
         self.prcp = raw[6]
         flags_prcp = raw[7].split(",")
         self.prcpM, self.prcpQ, self.prcpS, self.prcpT = attchk(flags_prcp)
+        if self.prcpQ in ignoreflags and self.prcp not in ["9999","-9999",""] and float(self.prcp) > 0:
+            if round(float(self.prcp),2) not in clmt_vars_days["prcp"]:
+                clmt_vars_days["prcp"][round(float(self.prcp),2)] = []
+            clmt_vars_days["prcp"][round(float(self.prcp),2)].append(self.entryday)
         # SNOW - Snow
         self.snow = raw[8]
         flags_snow = raw[9].split(",")
         self.snowM, self.snowQ, self.snowS, self.snowT = attchk(flags_snow)
+        if self.snowQ in ignoreflags and self.snow not in ["9999","-9999",""] and float(self.snow) > 0:
+            if round(float(self.snow),1) not in clmt_vars_days["snow"]:
+                clmt_vars_days["snow"][round(float(self.snow),1)] = []
+            clmt_vars_days["snow"][round(float(self.snow),1)].append(self.entryday)
         # SNWD - Snow Depth
         self.snwd = raw[10]
         flags_snwd = raw[11].split(",")
         self.snwdM, self.snwdQ, self.snwdS, self.snwdT = attchk(flags_snwd)
+        if self.snwdQ in ignoreflags and self.snwd not in ["9999","-9999",""] and float(self.snwd) > 0:
+            if round(float(self.snwd),1) not in clmt_vars_days["snwd"]:
+                clmt_vars_days["snwd"][round(float(self.snwd),1)] = []
+            clmt_vars_days["snwd"][round(float(self.snwd),1)].append(self.entryday)
         # TMAX - Maximum Temperature
         self.tmax = raw[12]
         flags_tmax = raw[13].split(",")
         self.tmaxM, self.tmaxQ, self.tmaxS, self.tmaxT = attchk(flags_tmax)
+        if self.tmaxQ in ignoreflags and self.tmax not in ["9999","-9999",""]:
+            if int(self.tmax) not in clmt_vars_days["tmax"]:
+                clmt_vars_days["tmax"][int(self.tmax)] = []
+            clmt_vars_days["tmax"][int(self.tmax)].append(self.entryday)
         # TMIN - Minimum Temperature
         self.tmin = raw[14]
         flags_tmin = raw[15].split(",")
         self.tminM, self.tminQ, self.tminS, self.tminT = attchk(flags_tmin)
+        if self.tminQ in ignoreflags and self.tmin not in ["9999","-9999",""]:
+            if int(self.tmin) not in clmt_vars_days["tmin"]:
+                clmt_vars_days["tmin"][int(self.tmin)] = []
+            clmt_vars_days["tmin"][int(self.tmin)].append(self.entryday)
+        # TAVG - Daily Average Temperature
+        if self.tmaxQ in ignoreflags and self.tmax not in ["9999","-9999",""] and self.tminQ in ignoreflags and self.tmin not in ["9999","-9999",""]:
+            tempavg = round(mean([int(self.tmax),int(self.tmin)]),1)
+            if tempavg not in clmt_vars_days["tavg"]:
+                clmt_vars_days["tavg"][tempavg] = []
+            clmt_vars_days["tavg"][tempavg].append(self.entryday)
 
 def clmtAnalyze(filename,**CITY):
-    """Initializes the build of city and session-specific climate dictionaries; Required for the successful use of the script.
+    """Initializes the build of city & session-specific climate dictionaries;
+    Required for the successful use of the script.
     
-    clmtAnalzye(filename, **{city=str, station=str})
+    clmtAnalzye(filename, **{city=str})
 
     REQUIRED: filename --> str version of the filename (a csv) of interest.
-    OPT **kwargs: city=str, station=str --> Dictates output of the city-name and
-                       station ID. These are useful if multiple stations are compiled
-                       to together to represent the data as it wouldn't be
-                       recommended to use a singular station's name if it isn't a 
-                       complete representation of the data.
+    OPT **kwargs: city=str --> Dictates output of the city-name. This is
+                               useful if multiple stations are compiled
+                               together to represent the data as it wouldn't
+                               be recommended to use a singular station's name
+                               if it isn't a complete representation of the
+                               data.
     """
     
     if os.path.isfile(filename) == False: return print('"{}" not found! Try again!'.format(filename))
     global clmt
     global metclmt
     global FILE
+    global clmt_vars_days
+    global station_ids
     FILE = filename
     clmt = {}
     metclmt = {}
+    clmt_vars_days = {"prcp":{},"snow":{},"snwd":{},"tavg":{},"tmax":{},"tmin":{}}
+    station_ids = []
     START = time()
     print("*** Script Running. Please Wait ***")
 
@@ -73,20 +106,18 @@ def clmtAnalyze(filename,**CITY):
             if each[0] in ["STATION",'"STATION"']:
                 pass
             else:
+                if each[0] not in station_ids: station_ids.append(each[0])
                 if "station" not in clmt:
                     if "city" in CITY: clmt["station_name"] = CITY["city"]
                     else: clmt["station_name"] = each[1]
-                    if "station" in CITY: clmt["station"] = CITY["station"]
-                    else: clmt["station"] = each[0]
+                    clmt["station"] = each[0]
                     print("--- City: {} ---".format(clmt["station_name"]))
                     clmt["coordinates"] = "{}, {}".format(each[2],each[3])
                     clmt["elevation"] = each[4]
                 if "station" not in metclmt:
                     if "city" in CITY: metclmt["station_name"] = CITY["city"]
                     else: metclmt["station_name"] = each[1]
-                    if "station" in CITY: metclmt["station"] = CITY["station"]
-                    else: metclmt["station"] = each[0]
-                    #print("--- City: {} ---".format(metclmt["station_name"]))
+                    metclmt["station"] = each[0]
                     metclmt["coordinates"] = "{}, {}".format(each[2],each[3])
                     metclmt["elevation"] = each[4]
                 #if y % 10 == 0: print("{},".format(each[5][0:4]),end=" ")
@@ -431,11 +462,16 @@ def clmtAnalyze(filename,**CITY):
         for s in ["spring","summer","fall","winter"]: metclmt[y][s]["tminPROP"]["month_AVG_min"][1].extend(m for m in metclmt[y] if type(m) == int and m in metclmt[y][s]["valid"] and len(metclmt[y][m]["tmin"]) > excludemonth and round(mean(metclmt[y][m]["tmin"]),1) == metclmt[y][s]["tminPROP"]["month_AVG_min"][0])
 
     END = time()
+    if len(station_ids) > 1:
+        print("STATION: Multiple Stations")
+        clmt["station"] = "{} Stations".format(len(station_ids))
+    else: print("STATION: {}".format(clmt["station"]))
     print("*** SCRIPT COMPLETE ***")
     print("Runtime: {} seconds".format(round(END - START,2)))
 
 def attchk(attstr):
-    """Not used by user; program uses it for output and 'filling in' of missing data"""
+    """Not used by user; program uses it for output and 'filling in' of
+    missing data"""
     try:
         M = attstr[0]       # Measurement Flag
     except:
@@ -456,7 +492,11 @@ def attchk(attstr):
     return M,Q,S,T
 
 def errorStats():
-    """Returns a report on errors that might be worth veryfying the data for."""
+    """Returns a report on errors that might be worth veryfying the data for.
+    
+    errorStats()  -> report on possible-to-likely errors in the record; no
+                     arguments passeds
+    """
     #if "ignore" in ig: ignoreflags.append(ig["ignore"])
     #if "heed" in ig: ignoreflags.remove(ig["heed"])
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
@@ -568,12 +608,13 @@ def checkDate(*args):
         print("OOPS! No date input received! Try again!")
 
 def qflagCheck(*q):
-    """Primarily used internally by the program. Can return definitions of Quality Flags. These are used to denote data that may not be reliable.
+    """Primarily used internally by the program. Can return definitions of
+    Quality Flags. These are used to denote data that may not be reliable.
     
     qflagCheck(*[str]) -> str
     
-    OPTIONAL args: "F" -> will return the definition of a flag by that one-letter
-    string
+    OPTIONAL args: "F" -> will return the definition of a flag by that one-
+                          letter string
     """
     if len(q) != 0:
         if q[0] == "D": return "Failed (D)uplicate Check"
@@ -608,12 +649,13 @@ def qflagCheck(*q):
         print("Z - Flagged as a result of an official Datzilla Investigation")
 
 def dayStats(y,m,d):
-    """Report on recorded statistics for the day of interest. Passed arguments MUST be integers.
+    """Report on recorded statistics for the day of interest. Passed arguments
+    MUST be integers.
     
     dayStats(year,month,day)   
     
-    EXAMPLE: dayStats(1992,12,29) -> Returns a printout of statistics from December
-                                     29, 1992
+    EXAMPLE: dayStats(1992,12,29) -> Returns a printout of statistics from
+                                     December 29, 1992
     """
     ranks = ["th","st","nd","rd","th","th","th","th","th","th"]
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
@@ -695,13 +737,16 @@ def dayStats(y,m,d):
         print("")
 
 def weekStats(y,m,d):
-    """Report on recorded statistics for a week of interest. The week will be centered on the day passed as an argument. Passed arguments MUST be integers. 
+    """Report on recorded statistics for a week of interest. The week will be
+    centered on the day passed as an argument. Passed arguments MUST be
+    integers. 
 
     weekStats(year,month,day)
 
-    EXAMPLE: weekStats(1992,12,29) -> Returns a printout of weekly-based statistics
-                                      centered on December 29, 1992 (The week would
-                                      be inclusive 3 days before and after the date
+    EXAMPLE: weekStats(1992,12,29) -> Returns a printout of weekly-based 
+                                      statistics centered on December 29, 1992
+                                      (The week would be inclusive 3 days
+                                      before and after the date
     """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     wkstart = datetime.date(y,m,d) - datetime.timedelta(days=3)
@@ -796,12 +841,14 @@ def weekStats(y,m,d):
         print("-----")
 
 def monthStats(y,m):
-    """Report on recorded statistics for a month of interest. It accepts only arguments for the year and month of interest. Passed arguments MUST be integers. 
+    """Report on recorded statistics for a month of interest. It accepts only
+    arguments for the year and month of interest. Passed arguments MUST be
+    integers. 
     
     monthStats(year,month)
     
-    EXAMPLE: monthStats(2005,7) -> Returns a printout of month-based statistics from
-                                   July 2005.
+    EXAMPLE: monthStats(2005,7) -> Returns a printout of month-based
+                                   statistics from July 2005.
     """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     monthExists = checkDate(y,m)
@@ -863,11 +910,13 @@ def monthStats(y,m):
         print("-----")
 
 def yearStats(y):
-    """Report on recorded statistics for a year of interest. It accepts only an argument for the year. Passed argument MUST be an integer.
+    """Report on recorded statistics for a year of interest. It accepts only
+    an argument for the year. Passed argument MUST be an integer.
 
     yearStats(year)
 
-    EXAMPLE: yearStats(1945) -> Returns a printout of year-based statistics from 1945
+    EXAMPLE: yearStats(1945) -> Returns a printout of year-based statistics 
+                                from 1945
     """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     # clmt[int(each[2][0:4])]["prcpPROP"] = {"day_max":[-1,[]],"month_max":[-1,[]],"month_min":[999,[]]}
@@ -956,13 +1005,17 @@ def yearStats(y):
         print("-----")
 
 def seasonStats(y,season):
-    """Report on recorded statistics for a meteorological season of interest from a specific year. It accepts only arguments for the inquired year, and season. The year must be an integer while the season must be in string format.
+    """Report on recorded statistics for a meteorological season of interest
+    from a specific year. It accepts only arguments for the inquired year,
+    and season. The year must be an integer while the season must be in string
+    format.
 
     seasonStats(YYYY,SEASON)
     
-    EXAMPLE: seasonStats(1933,"winter") -> Returns a printout of stats from the
-                                           Meteorological Winter of 1933 (inclusive
-                                           of December 1933 - February of 1934)
+    EXAMPLE: seasonStats(1933,"winter") -> Returns a printout of stats from
+                                           the Meteorological Winter of 1933
+                                           (inclusive of December 1933 - 
+                                           February of 1934)
     """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     if y not in metclmt: return print("Meteorological Year {} Not Found! Try again!".format(y))
@@ -1058,13 +1111,17 @@ def seasonStats(y,season):
     print("-----")
 
 def metYearStats(y):
-    """Report on recorded statistics for a meteorological year of interest. It only accepts an argument for the inquired year. Meteorological years run from March to February of the following year (Spring to Winter).The year must be an integer.
+    """Report on recorded statistics for a meteorological year of interest. It
+    only accepts an argument for the inquired year. Meteorological years run 
+    from March to February of the following year (Spring to Winter).The year
+    must be an integer.
     
     metYearStats(YYYY)
     
     EXAMPLE: metYearStats(1985) -> Returns a printout of stats from the
-                                           Meteorological Year of 1985 (inclusive of
-                                           March 1985 - February of 1986)
+                                           Meteorological Year of 1985 
+                                           (inclusive of March 1985 - 
+                                           February of 1986)
     """
     if len(metclmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     if y not in metclmt: return print("* A record for {} not found in metclmt *".format(y))
@@ -1156,20 +1213,23 @@ def metYearStats(y):
     print("-----")
 
 def customStats(y1,m1,d1,*date2):
-    """Report on a custom-length period of recorded statistics. All passed arguments MUST be integers. If the optional ending arguments are not included, the default ending will be December 31 of the calendar year, given by Y1.
+    """Report on a custom-length period of recorded statistics. All passed
+    arguments MUST be integers. If the optional ending arguments are not
+    included, the default ending will be December 31 of the calendar year, 
+    given by Y1.
     
     customStats(Y1,M1,D1,*[Y2,M2,D2])
     
-    REQUIRED: Y1,M1,D1 --> Represent the beginning year, month, and date of the
-                           custom period.
-    OPT *args: Y2,M2,D2 --> These optional entries represent the ending year, month,
-                            and date of the period
+    REQUIRED: Y1,M1,D1 --> Represent the beginning year, month, and date of
+                           the custom period.
+    OPT *args: Y2,M2,D2 --> These optional entries represent the ending year,
+                            month, and date of the period
 
-    EXAMPLE: customStats(1999,8,12) -> Returns a printout of statistics from August
-                                       12th, 1999 to December 31, 1999.
-    EXAMPLE: customStats(1955,10,1,1960,4,7) -> Returns stats on the period between
-                                                between October 1, 1955 and April 4,
-                                                1960.
+    EXAMPLE: customStats(1999,8,12) -> Returns a printout of statistics from
+                                       August 12th, 1999 to December 31, 1999.
+    EXAMPLE: customStats(1955,10,1,1960,4,7) -> Returns stats on the period
+                                                between October 1, 1955 and 
+                                                April 4, 1960.
     """
     if any(type(x) != int for x in [y1,m1,d1]): return print("*** OOPS! Ensure that only integers are entered ***")
     valid1 = checkDate(y1,m1,d1)
@@ -1358,7 +1418,9 @@ def customStats(y1,m1,d1,*date2):
     print("-----")
 
 def dayReport(m,d):   # As of this version, this function will be valid for records from 1811 to 2040
-    """Detailed Climatological Report for recorded statistics of a specific day. It accepts only arguments for the month and day of interest. Passed arguments MUST be integers
+    """Detailed Climatological Report for recorded statistics of a specific
+    day. It accepts only arguments for the month and day of interest. Passed
+    arguments MUST be integers
     
     dayReport(month,day)
     
@@ -1368,9 +1430,9 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
-    for x in range(1811,2016,5):
-        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+29 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
-            climo30yrs[(x,x+29)] = {"years":(x,x+29),
+    for x in range(1811,max(valid_yrs)+1,clmt_inc_rpt):
+        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+clmt_len_rpt-1 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
+            climo30yrs[(x,x+clmt_len_rpt-1)] = {"years":(x,x+clmt_len_rpt-1),
                                     "prcp": [],"prcpPROP":{"day_max":[-1,[]]},
                                     "snow": [],"snowPROP":{"day_max":[-1,[]]},
                                     "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
@@ -1529,14 +1591,15 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
             pass
 
     # PRINT REPORT
-    print("---------------------------------")
+    print("---------------------------------------------------")
     print("Climatology Report for {} {}".format(calendar.month_name[m],d))
     print("City: {}, {}".format(clmt["station"],clmt["station_name"]))
-    print("---------------------------------")
+    print("{}-{}; {}-Year Incremented {}-Year Climatologies".format(min(valid_yrs),max(valid_yrs),clmt_inc_rpt,clmt_len_rpt))
+    print("---------------------------------------------------")
     print("{:▒^9} {:▒^12} {:▒^12} {:▒^8} {:▒^9}  {:▒^9} {:▒^8} {:▒^9}  {:▒^9}".format("YEARS","PRCP","SNOW","TMAX","TMAX","TMAX","TMIN","TMIN","TMIN"))
     print("{:▒^9} {:▒^12} {:▒^12} {:▒^8} {:▒^9}  {:▒^9} {:▒^8} {:▒^9}  {:▒^9}".format(     "","hi","hi","avg","hi","lo","avg","hi","lo"))
     print("{:.^9} {:.^12} {:.^12} {:.^8} {:.^9}  {:.^9} {:.^8} {:.^9}  {:.^9}".format("","","","","","","","",""))
-    print("{:^9} {:>6.2f}, {:>4} {:>6.1f}, {:^4} {:^8.1f} {:>3}, {:^4}  {:>3}, {:^4} {:^8.1f} {:>3}, {:^4}  {:>3}, {:^4}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:>6.2f}, {:>4} {:>6.1f}, {:^4} {:^8.1f} {:>3}, {:^4}  {:>3}, {:^4} {:^8.1f} {:>3}, {:^4}  {:>3}, {:^4}".format("All Time",
             alltime["prcpPROP"]["day_max"][0],len(alltime["prcpPROP"]["day_max"][1]) if len(alltime["prcpPROP"]["day_max"][1]) > 1 else alltime["prcpPROP"]["day_max"][1][0].daystr[0:4],
             alltime["snowPROP"]["day_max"][0],len(alltime["snowPROP"]["day_max"][1]) if len(alltime["snowPROP"]["day_max"][1]) > 1 else alltime["snowPROP"]["day_max"][1][0].daystr[0:4],
             round(mean(alltime["tmax"]),1),
@@ -1589,20 +1652,24 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
     """
 
 def weekReport(m,d):
-    """Detailed Climatological Report for recorded statistics of a specific week of interest. Passed month and day will represent the center of the week. It accepts only arguments for the month and day of interest. Passed arguments MUST be integers
+    """Detailed Climatological Report for recorded statistics of a specific
+    week of interest. Passed month and day will represent the center of the
+    week. It accepts only arguments for the month and day of interest. Passed
+    arguments MUST be integers
     
     weekReport(month,day)
     
-    EXAMPLE: weekReport(9,29) -> Returns a climatological report for the week centered
-    on September 29. So data between Sept 26 and Oct 2 will be compiled
+    EXAMPLE: weekReport(9,29) -> Returns a climatological report for the week
+                                 centered on September 29. So data between
+                                 Sept 26 and Oct 2 will be compiled
     """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
-    for x in range(1811,2016,5):
-        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+29 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
-            climo30yrs[(x,x+29)] = {"years":(x,x+29),"total_days":0,
+    for x in range(1811,max(valid_yrs)+1,clmt_inc_rpt):
+        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+clmt_len_rpt-1 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
+            climo30yrs[(x,x+clmt_len_rpt-1)] = {"years":(x,x+clmt_len_rpt-1),"total_days":0,
                                     "prcp": [],"prcpPROP":{"days":0,"week_max":[-1,[]]},
                                     "snow": [],"snowPROP":{"days":0,"week_max":[-1,[]]},
                                     "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"week_max":[-999,[]],"week_min":[999,[]]},
@@ -1797,6 +1864,7 @@ def weekReport(m,d):
     print("--------------------------------------------------")
     print("Climatology Report for the Week of {:%b} {:%d} - {:%b} {:%d}".format(wkstart,wkstart,wkend,wkend))
     print("City: {}, {}".format(clmt["station"],clmt["station_name"]))
+    print("{}-{}; {}-Year Incremented {}-Year Climatologies".format(min(valid_yrs),max(valid_yrs),clmt_inc_rpt,clmt_len_rpt))
     print("--------------------------------------------------")
 
     print("\nPart 1: Precipitation Stats")
@@ -1804,7 +1872,7 @@ def weekReport(m,d):
     print("{:▒^9} {:▒^11} {:▒^6} {:▒^12} {:▒^11} {:▒^6} {:▒^12}".format("","DAYS","AVG", "MAX","DAYS","AVG", "MAX"))
     #         Y     PD     PA      PM       SD     SA      SM
     print("{:-^9} {:-^11} {:-^6} {:-^12} {:-^11} {:-^6} {:-^12}".format("","","","","","",""))
-    print("{:^9} {:4}:{:>5}% {:^6.2f} {:>5.2f}, {:^5} {:4}:{:>5}% {:^6.1f} {:>5.1f}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:4}:{:>5}% {:^6.2f} {:>5.2f}, {:^5} {:4}:{:>5}% {:^6.1f} {:>5.1f}, {:^5}".format("All Time",
         alltime["prcpPROP"]["days"],
         round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1),
         round(mean(alltime["prcp"]),2),
@@ -1838,7 +1906,7 @@ def weekReport(m,d):
     #         Y    TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn    
     # "tempAVGlist": [],"tavgPROP":{"week_max":[-999,[]],"week_min":[999,[]]},
     print("{:-^9} {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12}".format("","","","","","","","","","","","",""))
-    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format("All Time",
         round(pstdev(alltime["tempAVGlist"]),1),
         round(mean(alltime["tempAVGlist_ind"]),1),
         round(alltime["tavgPROP"]["week_max"][0],1),
@@ -1909,7 +1977,9 @@ def weekReport(m,d):
     """
 
 def monthReport(m):
-    """Detailed Climatological Report for recorded statistics from a month of interest. It only accepts an argument for the month of interest. Passed argument MUST be an integer.
+    """Detailed Climatological Report for recorded statistics from a month of
+    interest. It only accepts an argument for the month of interest. Passed
+    argument MUST be an integer.
     
     monthReport(month)
     
@@ -1919,9 +1989,9 @@ def monthReport(m):
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
-    for x in range(1811,2016,5):
-        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+29 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
-            climo30yrs[(x,x+29)] = {"years":(x,x+29),"total_days":0,
+    for x in range(1811,max(valid_yrs)+1,clmt_inc_rpt):
+        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+clmt_len_rpt-1 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
+            climo30yrs[(x,x+clmt_len_rpt-1)] = {"years":(x,x+clmt_len_rpt-1),"total_days":0,
                                     "prcp": [],"prcpPROP":{"days":0,"month_max_days":[-1,[]],"month_min_days":[999,[]],"month_max":[-1,[]],"month_min":[999,[]]},
                                     "snow": [],"snowPROP":{"days":0,"month_max_days":[-1,[]],"month_max":[-1,[]]},
                                     "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"month_max":[-999,[]],"month_min":[999,[]]},
@@ -2104,13 +2174,14 @@ def monthReport(m):
     print("--------------------------------")
     print("Climatology Report for {}".format(calendar.month_name[m]))
     print("City: {}, {}".format(clmt["station"],clmt["station_name"]))
+    print("{}-{}; {}-Year Incremented {}-Year Climatologies".format(min(valid_yrs),max(valid_yrs),clmt_inc_rpt,clmt_len_rpt))
     print("--------------------------------")
     print("Part 1: {} Precipitation Stats".format(calendar.month_name[m]))
     print("{:▒^9} {:▒^11}  {:▒^8}  {:▒^8} {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^8} {:▒^6} {:▒^12} |".format("Years","PRCP","PRCP","PRCP","PRCP","PRCP","PRCP","SNOW","SNOW","SNOW","SNOW"))
     print("{:▒^9} {:▒^11}  {:▒^8}  {:▒^8} {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^8} {:▒^6} {:▒^12} |".format("","DAYS","DAYS MAX","DAYS MIN","AVG", "MAX","MIN","DAYS","DAYS MAX","AVG", "MAX"))
     #         Y     PD       PDx    PDn      PA      PM     Pmin      SD     SDx       SA      SM
     print("{:-^9} {:-^11}  {:-^8}  {:-^8} {:-^6} {:-^12} {:-^12} | {:-^11}  {:-^8} {:-^6} {:-^12} |".format("","","","","","","","","","",""))
-    print("{:^9} {:4}:{:>5}%  {:>2}, {:^4}  {:>2}, {:^4} {:^6.2f} {:>5.2f}, {:^5} {:>5}, {:^5} | {:4}:{:>5}%  {:>2}, {:^4} {:^6.1f} {:>5.1f}, {:^5} |".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:4}:{:>5}%  {:>2}, {:^4}  {:>2}, {:^4} {:^6.2f} {:>5.2f}, {:^5} {:>5}, {:^5} | {:4}:{:>5}%  {:>2}, {:^4} {:^6.1f} {:>5.1f}, {:^5} |".format("All Time",
         alltime["prcpPROP"]["days"],
         round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1),
         alltime["prcpPROP"]["month_max_days"][0],
@@ -2161,7 +2232,7 @@ def monthReport(m):
     #         Y    TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn    
     # "tempAVGlist": [],"tavgPROP":{"month_max":[-999,[]],"month_min":[999,[]]},
     print("{:-^9} {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12}".format("","","","","","","","","","","","",""))
-    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format("All Time",
         round(pstdev(alltime["tempAVGlist"]),1),
         round(mean(alltime["tempAVGlist_ind"]),1),
         round(alltime["tavgPROP"]["month_max"][0],1),
@@ -2206,7 +2277,9 @@ def monthReport(m):
     print("")
 
 def yearReport():
-    """Detailed Climatological Report for recorded statistics from a year of interest. It only accepts an argument for the year of interest. Passed argument MUST be an integer.
+    """Detailed Climatological Report for recorded statistics from a year of
+    interest. It only accepts an argument for the year of interest. Passed
+    argument MUST be an integer.
     
     yearReport(year)
     
@@ -2215,9 +2288,9 @@ def yearReport():
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
-    for x in range(1811,2016,5):
-        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+29 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
-            climo30yrs[(x,x+29)] = {"years":(x,x+29),"total_days":0,
+    for x in range(1811,max(valid_yrs)+1,clmt_inc_rpt):
+        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+clmt_len_rpt-1 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
+            climo30yrs[(x,x+clmt_len_rpt-1)] = {"years":(x,x+clmt_len_rpt-1),"total_days":0,
                                     "prcp": [],"prcpPROP":{"days":0,"year_max_days":[-1,[]],"year_min_days":[999,[]],"year_max":[-1,[]],"year_min":[999,[]]},
                                     "snow": [],"snowPROP":{"days":0,"year_max_days":[-1,[]],"year_max":[-1,[]]},
                                     "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"year_max":[-999,[]],"year_min":[999,[]]},
@@ -2401,16 +2474,17 @@ def yearReport():
                         climo30yrs[c]["tminPROP"]["year_min"][1].append(y)
 
     # PRINT REPORT
-    print("---------------------------")
+    print("---------------------------------------------------")
     print("Climatology Report for All Years on Record")
     print("City: {}, {}".format(clmt["station"],clmt["station_name"]))
-    print("---------------------------")
+    print("{}-{}; {}-Year Incremented {}-Year Climatologies".format(min(valid_yrs),max(valid_yrs),clmt_inc_rpt,clmt_len_rpt))
+    print("---------------------------------------------------")
     print("Part 1: Precipitation Stats")
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9}  {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^11} |".format("Years","PRCP","PRCP","PRCP","PRCP","PRCP","PRCP","SNOW","SNOW","SNOW","SNOW"))
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9}  {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^11} |".format("","DAYS","DAYS MAX","DAYS MIN","AVG", "MAX","MIN","DAYS","DAYS MAX","AVG", "MAX"))
     #         Y     PD       PDx    PDn      PA      PM     Pmin      SD     SDx       SA      SM
     print("{:-^9} {:-^12}  {:-^9}  {:-^9}  {:-^6} {:-^12} {:-^12} | {:-^11}  {:-^9} {:-^6} {:-^11} |".format("","","","","","","","","","",""))
-    print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4}  {:^6.2f} {:>6.2f}, {:^4} {:>6.2f}, {:^4} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^4} |".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4}  {:^6.2f} {:>6.2f}, {:^4} {:>6.2f}, {:^4} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^4} |".format("All Time",
         alltime["prcpPROP"]["days"],
         round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1),
         alltime["prcpPROP"]["year_max_days"][0],
@@ -2461,7 +2535,7 @@ def yearReport():
     #         Y    TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn    
     # "tempAVGlist": [],"tavgPROP":{"year_max":[-999,[]],"year_min":[999,[]]},
     print("{:-^9} {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12}".format("","","","","","","","","","","","",""))
-    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format("All Time",
         round(pstdev(alltime["tempAVGlist"]),1),
         round(mean(alltime["tempAVGlist_ind"]),1),
         round(alltime["tavgPROP"]["year_max"][0],1),
@@ -2506,12 +2580,14 @@ def yearReport():
     print("")
 
 def seasonReport(season):
-    """Detailed Climatological Report for recorded statistics from a season of interest. It only accepts an argument for the season of interest which must be in string format (accepts "spring", "summer", "fall", or "winter").
+    """Detailed Climatological Report for recorded statistics from a season of
+    interest. It only accepts an argument for the season of interest which
+    must be in string format (accepts "spring", "summer", "fall", or "winter")
     
     seasonReport(SEASON)
     
     EXAMPLE: seasonReport("summer") -> Returns a climatological report for all
-                                       meteorological summers (6,7,8) on record
+                                       met. summers (6,7,8) on record
     """
     if season.lower() not in ["spring","summer","fall","autumn","winter"]: return print("* OOPS! {} is not a valid season. Try again!".format(season.capitalize()))
     if season.lower() == "autumn": season = "fall"
@@ -2520,9 +2596,9 @@ def seasonReport(season):
     valid_yrs = [x for x in metclmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
-    for x in range(1811,2016,5):
-        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+29 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
-            climo30yrs[(x,x+29)] = {"years":(x,x+29),"total_days":0,
+    for x in range(1811,max(valid_yrs)+1,clmt_inc_rpt):
+        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+clmt_len_rpt-1 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
+            climo30yrs[(x,x+clmt_len_rpt-1)] = {"years":(x,x+clmt_len_rpt-1),"total_days":0,
                                     "prcp": [],"prcpPROP":{"days":0,"season_max_days":[-1,[]],"season_min_days":[999,[]],"season_max":[-1,[]],"season_min":[999,[]]},
                                     "snow": [],"snowPROP":{"days":0,"season_max_days":[-1,[]],"season_max":[-1,[]]},
                                     "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"season_max":[-999,[]],"season_min":[999,[]]},
@@ -2706,16 +2782,17 @@ def seasonReport(season):
                         climo30yrs[c]["tminPROP"]["season_min"][1].append(y)
 
     # PRINT REPORT
-    print("---------------------------")
+    print("---------------------------------------------------")
     print("Climatology Report for Meteorological {}".format(season.capitalize()))
     print("City: {}, {}".format(metclmt["station"],metclmt["station_name"]))
-    print("---------------------------")
+    print("{}-{}; {}-Year Incremented {}-Year Climatologies".format(min(valid_yrs),max(valid_yrs),clmt_inc_rpt,clmt_len_rpt))
+    print("---------------------------------------------------")
     print("Part 1: Precipitation Stats")
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9}  {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^11} |".format("Years","PRCP","PRCP","PRCP","PRCP","PRCP","PRCP","SNOW","SNOW","SNOW","SNOW"))
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9}  {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^11} |".format("","DAYS","DAYS MAX","DAYS MIN","AVG", "MAX","MIN","DAYS","DAYS MAX","AVG", "MAX"))
     #         Y     PD       PDx    PDn      PA      PM     Pmin      SD     SDx       SA      SM
     print("{:-^9} {:-^12}  {:-^9}  {:-^9}  {:-^6} {:-^12} {:-^12} | {:-^11}  {:-^9} {:-^6} {:-^11} |".format("","","","","","","","","","",""))
-    print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4}  {:^6.2f} {:>6.2f}, {:^4} {:>6.2f}, {:^4} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^4} |".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4}  {:^6.2f} {:>6.2f}, {:^4} {:>6.2f}, {:^4} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^4} |".format("All Time",
         alltime["prcpPROP"]["days"],
         round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1),
         alltime["prcpPROP"]["season_max_days"][0],
@@ -2766,7 +2843,7 @@ def seasonReport(season):
     #         Y    TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn    
     # "tempAVGlist": [],"tavgPROP":{"season_max":[-999,[]],"season_min":[999,[]]},
     print("{:-^9} {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12}".format("","","","","","","","","","","","",""))
-    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format("All Time",
         round(pstdev(alltime["tempAVGlist"]),1),
         round(mean(alltime["tempAVGlist_ind"]),1),
         round(alltime["tavgPROP"]["season_max"][0],1),
@@ -2811,7 +2888,9 @@ def seasonReport(season):
     print("")
 
 def metYearReport():
-    """Detailed Climatological Report for recorded statistics from a meteorlogical year (March to February) of interest. No arguments are needed to be passed.
+    """Detailed Climatological Report for recorded statistics from a
+    meteorlogical year (March to February) of interest. No arguments are
+    needed to be passed.
     
     EXAMPLE: MetYearReport() -> Returns a climatological report for all
                                 meteorological years on record.
@@ -2819,9 +2898,9 @@ def metYearReport():
     valid_yrs = [x for x in metclmt.keys() if type(x) == int]
     valid_yrs.sort()
     climo30yrs = {}
-    for x in range(1811,2016,5):
-        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+29 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
-            climo30yrs[(x,x+29)] = {"years":(x,x+29),"total_days":0,
+    for x in range(1811,max(valid_yrs)+1,clmt_inc_rpt):
+        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+clmt_len_rpt-1 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
+            climo30yrs[(x,x+clmt_len_rpt-1)] = {"years":(x,x+clmt_len_rpt-1),"total_days":0,
                                     "prcp": [],"prcpPROP":{"days":0,"year_max_days":[-1,[]],"year_min_days":[999,[]],"year_max":[-1,[]],"year_min":[999,[]]},
                                     "snow": [],"snowPROP":{"days":0,"year_max_days":[-1,[]],"year_max":[-1,[]]},
                                     "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"year_max":[-999,[]],"year_min":[999,[]]},
@@ -3005,16 +3084,17 @@ def metYearReport():
                         climo30yrs[c]["tminPROP"]["year_min"][1].append(y)
 
     # PRINT REPORT
-    print("---------------------------")
+    print("---------------------------------------------------")
     print("Climatology Report for All Meteorological Years on Record")
     print("City: {}, {}".format(metclmt["station"],metclmt["station_name"]))
-    print("---------------------------")
+    print("{}-{}; {}-Year Incremented {}-Year Climatologies".format(min(valid_yrs),max(valid_yrs),clmt_inc_rpt,clmt_len_rpt))
+    print("---------------------------------------------------")
     print("Part 1: Precipitation Stats")
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9}  {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^11} |".format("Years","PRCP","PRCP","PRCP","PRCP","PRCP","PRCP","SNOW","SNOW","SNOW","SNOW"))
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9}  {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^11} |".format("","DAYS","DAYS MAX","DAYS MIN","AVG", "MAX","MIN","DAYS","DAYS MAX","AVG", "MAX"))
     #         Y     PD       PDx    PDn      PA      PM     Pmin      SD     SDx       SA      SM
     print("{:-^9} {:-^12}  {:-^9}  {:-^9}  {:-^6} {:-^12} {:-^12} | {:-^11}  {:-^9} {:-^6} {:-^11} |".format("","","","","","","","","","",""))
-    print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4}  {:^6.2f} {:>6.2f}, {:^4} {:>6.2f}, {:^4} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^4} |".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4}  {:^6.2f} {:>6.2f}, {:^4} {:>6.2f}, {:^4} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^4} |".format("All Time",
         alltime["prcpPROP"]["days"],
         round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1),
         alltime["prcpPROP"]["year_max_days"][0],
@@ -3065,7 +3145,7 @@ def metYearReport():
     #         Y    TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn    
     # "tempAVGlist": [],"tavgPROP":{"year_max":[-999,[]],"year_min":[999,[]]},
     print("{:-^9} {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12}".format("","","","","","","","","","","","",""))
-    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format("All Time",
         round(pstdev(alltime["tempAVGlist"]),1),
         round(mean(alltime["tempAVGlist_ind"]),1),
         round(alltime["tavgPROP"]["year_max"][0],1),
@@ -3110,19 +3190,23 @@ def metYearReport():
     print("")
 
 def customReport(m1,d1,*date2):
-    """Detailed Climatological Report on a custom-length period of statistics. All passed arguments MUST be integers. If the optional ending arguments are not
-    included, the default ending will be December 31. If the end day given occurs before the start day in the calendar year, the end day of the following year will be used in compiling stats.
+    """Detailed Climatological Report on a custom-length period of statistics.
+    All passed arguments MUST be integers. If the optional ending arguments
+    are not included, the default ending will be December 31. If the end day
+    given occurs before the start day in the calendar year, the end day of the
+    following year will be used in compiling stats.
     
     customReport(M1,D1,*[M2,D2])
     
-    REQUIRED: M1,D1 --> Represent the beginning month, and day of the custom period.
-    OPT *args: M2,D2 --> These optional entries represent the ending month, and day
-                         of the period
+    REQUIRED: M1,D1 --> Represent the beginning month, and day of the custom
+                        period.
+    OPT *args: M2,D2 --> These optional entries represent the ending month,
+                         and day of the period
 
-    EXAMPLE: customReport(10,23) -> Returns a climatological report for the period
-                                    between October 23 and December 31
-    EXAMPLE: customReport(6,1,11,30) -> Returns a climatological report for the
-                                        period between June 1 and November 30
+    EXAMPLE: customReport(10,23) -> Returns a climatological report for the
+                                    period between October 23 and December 31
+    EXAMPLE: customReport(6,1,11,30) -> Returns a climatological report for
+                                        the period between June 1 and Nov 30
     """
     if len(clmt) == 0: return print("* OOPS! Run the clmtAnalyze function first.")
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
@@ -3161,9 +3245,9 @@ def customReport(m1,d1,*date2):
     print("EXCLUDING PERIODS OF <= {} DAYS".format(EXCLD))
     
     climo30yrs = {}
-    for x in range(1811,2016,5):
-        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+29 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
-            climo30yrs[(x,x+29)] = {"years":(x,x+29),"total_days":0,
+    for x in range(1811,max(valid_yrs)+1,clmt_inc_rpt):
+        if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+clmt_len_rpt-1 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
+            climo30yrs[(x,x+clmt_len_rpt-1)] = {"years":(x,x+clmt_len_rpt-1),"total_days":0,
                                     "prcp": [],"prcpPROP":{"days":0,"e_max_days":[-1,[]],"e_min_days":[999,[]],"e_max":[-1,[]],"e_min":[999,[]]},
                                     "snow": [],"snowPROP":{"days":0,"e_max_days":[-1,[]],"e_max":[-1,[]]},
                                     "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"e_max":[-999,[]],"e_min":[999,[]]},
@@ -3402,16 +3486,17 @@ def customReport(m1,d1,*date2):
                         climo30yrs[c]["tminPROP"]["e_min"][1].append(YYYY)
 
     # PRINT REPORT
-    print("---------------------------------")
+    print("---------------------------------------------------")
     print("Climatology Report for {} {} thru {} {}".format(calendar.month_abbr[startday.month],startday.day,calendar.month_abbr[endday.month],endday.day))
     print("City: {}, {}".format(clmt["station"],clmt["station_name"]))
-    print("---------------------------------")
+    print("{}-{}; {}-Year Incremented {}-Year Climatologies".format(min(valid_yrs),max(valid_yrs),clmt_inc_rpt,clmt_len_rpt))
+    print("---------------------------------------------------")
     print("Part 1: Precipitation Stats")
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9} {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^12} |".format("Years","PRCP","PRCP","PRCP","PRCP","PRCP","PRCP","SNOW","SNOW","SNOW","SNOW"))
     print("{:▒^9} {:▒^12}  {:▒^9}  {:▒^9} {:▒^6} {:▒^12} {:▒^12} | {:▒^11}  {:▒^9} {:▒^6} {:▒^12} |".format("","DAYS","DAYS MAX","DAYS MIN","AVG", "MAX","MIN","DAYS","DAYS MAX","AVG", "MAX"))
     #         Y     PD       PDx    PDn      PA      PM     Pmin      SD     SDx       SA      SM
     print("{:-^9} {:-^12}  {:-^9}  {:-^9} {:-^6} {:-^12} {:-^12} | {:-^11}  {:-^9} {:-^6} {:-^12} |".format("","","","","","","","","","",""))
-    print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4} {:^6.2f} {:>5.2f}, {:^5} {:>5}, {:^5} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^5} |".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:5}:{:>5}%  {:>3}, {:^4}  {:>3}, {:^4} {:^6.2f} {:>5.2f}, {:^5} {:>5}, {:^5} | {:4}:{:>5}%  {:>3}, {:^4} {:^6.1f} {:>5.1f}, {:^5} |".format("All Time",
         alltime["prcpPROP"]["days"],
         round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1),
         alltime["prcpPROP"]["e_max_days"][0],
@@ -3460,7 +3545,7 @@ def customReport(m1,d1,*date2):
     #         Y    TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn      TSTDV   TMA     TMX    TMn    
     # "tempAVGlist": [],"tavgPROP":{"e_max":[-999,[]],"e_min":[999,[]]},
     print("{:-^9} {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12} | {:-^5} {:-^5} {:-^12} {:-^12}".format("","","","","","","","","","","","",""))
-    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format(str(alltime["years"][0])+"-"+str(alltime["years"][1]),
+    print("{:^9} {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5} | {:^5.1f} {:^5.1f} {:>5.1f}, {:^5} {:>5.1f}, {:^5}".format("All Time",
         round(pstdev(alltime["tempAVGlist"]),1),
         round(mean(alltime["tempAVGlist_ind"]),1),
         round(alltime["tavgPROP"]["e_max"][0],1),
@@ -3505,9 +3590,10 @@ def customReport(m1,d1,*date2):
     print("")
 
 def dayRank(m,d,qty):
-    """Returns a list of rankings (maxs and mins) based on a specific day of a specific
-    month. It only accepts arguments for the month, day, and the how many rankings
-    you want to list (ie, top 10; 15; etc). Passed arguments MUST be integers.
+    """Returns a list of rankings (maxs and mins) based on a specific day of a
+    specific month. It only accepts arguments for the month, day, and the how
+    many rankings you want to list (ie, top 10; 15; etc). Passed arguments
+    MUST be integers.
     
     dayRank(month,day,quantity)
     
@@ -3672,12 +3758,15 @@ def dayRank(m,d,qty):
         if i > qty and j > qty and k > qty and l > qty: break
 
 def weekRank(mo,d,qty):
-    """Returns a list of rankings (maxs and mins) based on a specific week. The passed arguments of month and day will be the center of the week. It only accepts arguments for the month, day, and the how many rankings you want to list (ie, top 10; 15; etc). Passed arguments MUST be integers.
+    """Returns a list of rankings (maxs and mins) based on a specific week.
+    The passed arguments of month and day will be the center of the week. It
+    only accepts arguments for the month, day, and the how many rankings you
+    want to list (ie, top 10; 15; etc). Passed arguments MUST be integers.
     
     weekRank(month,day,quantity)
     
-    EXAMPLE: weekRank(1,30) -> Returns rankings for the week centered on January 30
-                               (from Jan 27 to Feb 2)
+    EXAMPLE: weekRank(1,30) -> Returns rankings for the week centered on
+                               January 30 (from Jan 27 to Feb 2)
     """
     class week_attr:
         def __init__(self,y,number):
@@ -3785,6 +3874,7 @@ def weekRank(mo,d,qty):
     print("{:^39}".format("Precipitation Records for the Week of {} {} - {} {}".format(calendar.month_abbr[wkorig.month],wkorig.day,
                                                                                   calendar.month_abbr[(wkorig + datetime.timedelta(days=6)).month],(wkorig + datetime.timedelta(days=6)).day)))
     print("{:^39}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
+    print("{:^39}".format("Weeks with >= {} Day(s) of Data".format(excludeweek+1)))
     print("{:-^39}".format(""))
     print("{:^19}|{:^19}".format("Rain","Snow"))
     print("{:-^19}|{:-^19}".format("",""))
@@ -3840,7 +3930,7 @@ def weekRank(mo,d,qty):
     print("\n{:^111}".format("Temperature Records for the Week of {} {} - {} {}".format(calendar.month_abbr[wkorig.month],wkorig.day,
                                                                                 calendar.month_abbr[(wkorig + datetime.timedelta(days=6)).month],(wkorig + datetime.timedelta(days=6)).day)))
     print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-    print("{:^111}".format("Weeks with > {} Day(s) of Data".format(excludeweek)))
+    print("{:^111}".format("Weeks with >= {} Day(s) of Data".format(excludeweek+1)))
     print("{:-^111}".format(""))
     print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
     print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
@@ -3916,12 +4006,16 @@ def weekRank(mo,d,qty):
     print("")
 
 def monthRank(mo,attribute,qty):
-    """Returns a list of rankings (maxs and mins) based on a specific month. It only accepts arguments for the month, the kind of stats ("prcp" or "temps"), and how many rankings you want to list (ie, top 10; 15; etc). The attribute MUST be in string format, while the month and quantity MUST be integers.
+    """Returns a list of rankings (maxs and mins) based on a specific month.
+    It only accepts arguments for the month, the kind of stats ("prcp" or
+    "temps"), and how many rankings you want to list (ie, top 10; 15; etc).
+    The attribute MUST be in string format, while the month and quantity MUST
+    be integers.
     
     monthRank(month,attribute,quantity)
     
-    EXAMPLE: monthRank(3,"rain",20) -> Returns the "Top 20" Precipitation Rankings
-                                       for March
+    EXAMPLE: monthRank(3,"rain",20) -> Returns the "Top 20" Precipitation
+                                       Rankings for March
     """
     class month_attr:
         def __init__(self,y,mo,number):
@@ -3998,7 +4092,7 @@ def monthRank(mo,attribute,qty):
     if attribute == "prcp":
         print("{:^100}".format("Ranked {} Monthly Precipitation Amounts and Days".format(calendar.month_name[mo])))
         print("{:^100}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^100}".format("Months with > {} Day(s) of Data".format(excludemonth)))
+        print("{:^100}".format("Months with >= {} Day(s) of Data".format(excludemonth+1)))
         print("{:-^100}".format(""))
         print("{:^67}|{:^32}".format("Rain","Snow"))
         print("{:-^67}|{:-^32}".format("",""))
@@ -4053,7 +4147,7 @@ def monthRank(mo,attribute,qty):
     if attribute == "temp":
         print("{:^111}".format("Ranked {} Monthly Temperatures".format(calendar.month_name[mo])))
         print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^111}".format("Months with > {} Day(s) of Data".format(excludemonth)))
+        print("{:^111}".format("Months with >= {} Day(s) of Data".format(excludemonth+1)))
         print("{:-^111}".format(""))
         print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
         print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
@@ -4102,12 +4196,15 @@ def monthRank(mo,attribute,qty):
     print("")
 
 def yearRank(attribute,qty):
-    """Returns a list of rankings (maxs and mins) for all years on record. It only accepts arguments for the kind of stats ("prcp" or "temps") desired, and how many rankings you want to list (ie, top 10; 15; etc). The attribute MUST be in string format, while the quantity MUST be an integer.
+    """Returns a list of rankings (maxs and mins) for all years on record. It
+    only accepts arguments for the kind of stats ("prcp" or "temps") desired,
+    and how many rankings you want to list (ie, top 10; 15; etc). The
+    attribute MUST be in string format, while the quantity MUST be an integer.
     
     yearRank(attribute,quantity)
     
-    EXAMPLE: yearRank("temp",15) -> Returns the "Top 15" Temperature-based Rankings
-                                    for all calendar years on record
+    EXAMPLE: yearRank("temp",15) -> Returns the "Top 15" Temperature-based
+                                    Rankings for all calendar years on record
     """
     class month_attr:
         def __init__(self,y,number):
@@ -4179,7 +4276,7 @@ def yearRank(attribute,qty):
     if attribute == "prcp":
         print("{:^103}".format("Ranked Yearly Precipitation Amounts and Days"))
         print("{:^103}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^103}".format("Years with > {} day(s) of data".format(excludeyear)))
+        print("{:^103}".format("Years with >= {} day(s) of data".format(excludeyear+1)))
         print("{:-^103}".format(""))
         print("{:^69}|{:^33}".format("Rain","Snow"))
         print("{:-^69}|{:-^33}".format("",""))
@@ -4234,7 +4331,7 @@ def yearRank(attribute,qty):
     if attribute == "temp":
         print("{:^111}".format("Ranked Yearly Temperatures"))
         print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^111}".format("Years with > {} day(s) of data".format(excludeyear)))
+        print("{:^111}".format("Years with >= {} day(s) of data".format(excludeyear+1)))
         print("{:-^111}".format(""))
         print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
         print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
@@ -4283,13 +4380,16 @@ def yearRank(attribute,qty):
     print("")
 
 def seasonRank(season,attribute,qty):
-    """Returns a list of rankings (maxs and mins) for all specified meteorological seasons on record. The season ("spring","summer","fall","winter") and attribute ("prcp" or "temp") must be in string format. The quantity, denoting how many rankings you desire, must be an integer.
+    """Returns a list of rankings (maxs and mins) for all specified
+    meteorological seasons on record. The season ("spring", "summer", "fall",
+    "winter") and attribute ("prcp" or "temp") must be in string format. The
+    quantity, denoting how many rankings you desire, must be an integer.
     
     seasonRank(season,attribute,quantity)
     
-    EXAMPLE: seasonRank("Spring","temp",5) -> Returns the "Top 5" Temperature-based
-                                              Rankings for all Meteorological Springs
-                                              on record
+    EXAMPLE: seasonRank("Spring","temp",5) -> Returns the "Top 5" Temperature-
+                                              based Rankings for all
+                                              Meteorological Springs on record
     """
     class month_attr:
         def __init__(self,y,number):
@@ -4361,7 +4461,7 @@ def seasonRank(season,attribute,qty):
     if attribute == "prcp":
         print("{:^103}".format("Meteorological {} Ranked Precipitation Amounts and Days".format(season.capitalize())))
         print("{:^103}".format("{}, {}".format(metclmt["station"],metclmt["station_name"])))
-        print("{:^103}".format("Seasons with > {} day(s) of data".format(excludeseason)))
+        print("{:^103}".format("Seasons with >= {} day(s) of data".format(excludeseason+1)))
         print("{:-^103}".format(""))
         print("{:^69}|{:^33}".format("Rain","Snow"))
         print("{:-^69}|{:-^33}".format("",""))
@@ -4416,7 +4516,7 @@ def seasonRank(season,attribute,qty):
     if attribute == "temp":
         print("{:^111}".format("Meteorological {} Ranked Temperatures".format(season.capitalize())))
         print("{:^111}".format("{}, {}".format(metclmt["station"],metclmt["station_name"])))
-        print("{:^111}".format("Seasons with > {} day(s) of data".format(excludeseason)))
+        print("{:^111}".format("Seasons with >= {} day(s) of data".format(excludeseason+1)))
         print("{:-^111}".format(""))
         print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
         print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
@@ -4465,12 +4565,16 @@ def seasonRank(season,attribute,qty):
     print("")
 
 def metYearRank(attribute,qty):
-    """Returns a list of rankings (maxs and mins) for all meteorological years (March to February) on record. The attribute ("prcp" or "temp") must be in string format. The quantity, denoting how many rankings you desire, must be an integer.
+    """Returns a list of rankings (maxs and mins) for all meteorological years
+    (March to February) on record. The attribute ("prcp" or "temp") must be in
+    string format. The quantity, denoting how many rankings you desire, must
+    be an integer.
     
     metYearRank(attribute,quantity)
     
-    EXAMPLE: metYearRank("rain",12) -> Returns the "Top 12" Precip-based Rankings for
-                                       all Meteorological Years on record
+    EXAMPLE: metYearRank("rain",12) -> Returns the "Top 12" Precip-based
+                                       Rankings for all Meteorological Years
+                                       on record
     """
     class month_attr:
         def __init__(self,y,number):
@@ -4542,7 +4646,7 @@ def metYearRank(attribute,qty):
     if attribute == "prcp":
         print("{:^103}".format("Meteorological Annual Ranked Precipitation Amounts and Days"))
         print("{:^103}".format("{}, {}".format(metclmt["station"],metclmt["station_name"])))
-        print("{:^103}".format("Years with > {} day(s) of data".format(excludeyear)))
+        print("{:^103}".format("Years with >= {} day(s) of data".format(excludeyear+1)))
         print("{:-^103}".format(""))
         print("{:^69}|{:^33}".format("Rain","Snow"))
         print("{:-^69}|{:-^33}".format("",""))
@@ -4597,7 +4701,7 @@ def metYearRank(attribute,qty):
     if attribute == "temp":
         print("{:^111}".format("Meteorological Annual Ranked Temperatures"))
         print("{:^111}".format("{}, {}".format(metclmt["station"],metclmt["station_name"])))
-        print("{:^111}".format("Years with > {} day(s) of data".format(excludeyear)))
+        print("{:^111}".format("Years with >= {} day(s) of data".format(excludeyear+1)))
         print("{:-^111}".format(""))
         print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
         print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
@@ -4646,22 +4750,29 @@ def metYearRank(attribute,qty):
     print("")
 
 def customRank(attribute,qty,m1,d1,*date2):
-    """Returns a list of rankings (maxs and mins) for all specified custom period of time. Note that the order of the passed arguments are different with this
-    function than similar ranking functions. The attribute ("prcp" or "temp") must be a string; the quantity (how many rankings you want), M1 (month), and D1 (day), and the optional M2 and D2 must be integers. If M2 and D2 are not given, 12-31 will be considered the final date of the custom-period.
-    seasons on record. The season ("spring","summer","fall","winter") and attribute ("prcp" or "temp") must be in string format. The quantity, denoting how many rankings you desire, must be an integer. If the end day given occurs before the start day in the calendar year, the end day of the following year will be used.
+    """Returns a list of rankings (maxs and mins) for all specified custom
+    period of time. Note that the order of the passed arguments are different
+    with this function than similar ranking functions. The attribute ("prcp"
+    or "temp") must be a string; the quantity (how many rankings you want), M1
+    (month), and D1 (day), and the optional M2 and D2 must be integers. If M2
+    and D2 are not given, 12-31 will be considered the final date of the 
+    custom-period. The attribute ("prcp" or "temp") must be in string format.
+    The quantity, denoting how many rankings you desire, must be an integer.
+    If the end day given occurs before the start day in the calendar year, the
+    end day of the following year will be used.
     
     customRank(attribute,quantity,M1,D1,*[M2,D2])
 
-    OPT *args: M2,D2 --> These optional entries represent the ending month, and day
-                         of the period
+    OPT *args: M2,D2 --> These optional entries represent the ending month,
+                         and day of the period
     
-    EXAMPLE: customRank("temp",10,11,1) -> Returns the "Top 10" Temperature-based
-                                           Rankings for the custom period of November
-                                           1 thru December 31.
+    EXAMPLE: customRank("temp",10,11,1) -> Returns the "Top 10" Temperature-
+                                           based Rankings for the custom
+                                           period of Nov 1 thru Dec 31.
 
-    EXAMPLE: customRank("prcp",10,9,1,3,31) -> Returns the "Top 10" Temperature-based
-                                               Rankings for the custom period of
-                                               September 1 thru March 31.
+    EXAMPLE: customRank("prcp",10,9,1,3,31) -> Returns the "Top 10"
+                                               Temperature-based Rankings for
+                                               the frame of Sept 1 thru Mar 31
     """
     class e_attr:
         def __init__(self,y,number):
@@ -4698,8 +4809,11 @@ def customRank(attribute,qty,m1,d1,*date2):
     if test > s: e = test
     else: e = datetime.date(1901,m2,d2)
     timelength = (e - s).days + 1
-    if timelength < 7: EXCLD = 1
+    
+    if timelength <= 5: EXCLD = timelength-1
+    elif timelength == 6: EXCLD = 4
     elif timelength == 7: EXCLD = excludeweek
+    elif timelength == 8: EXCLD = excludeweek
     elif timelength in [28,29,30,31]: EXCLD = excludemonth
     elif timelength >= 350: EXCLD = excludeyear
     else: EXCLD = round(excludecustom * timelength)
@@ -4811,7 +4925,7 @@ def customRank(attribute,qty,m1,d1,*date2):
     if attribute == "prcp":
         print("{:^100}".format("Ranked Precipitation Amounts and Days for {} {} thru {} {}".format(calendar.month_abbr[startday.month],startday.day,calendar.month_abbr[endday.month],endday.day)))
         print("{:^103}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^103}".format("Periods with > {} Day(s) of Data".format(EXCLD)))
+        print("{:^103}".format("Periods with >= {} Day(s) of Data".format(EXCLD+1)))
         print("{:-^103}".format(""))
         print("{:^70} {:^33}".format("Rain","Snow"))
         print("{:-^70} {:-^33}".format("",""))
@@ -4873,7 +4987,7 @@ def customRank(attribute,qty,m1,d1,*date2):
     if attribute == "temp":
         print("{:^111}".format("Ranked Temperatures for {} {} thru {} {}".format(calendar.month_abbr[startday.month],startday.day,calendar.month_abbr[endday.month],endday.day)))
         print("{:^111}".format("{}, {}".format(clmt["station"],clmt["station_name"])))
-        print("{:^111}".format("Periods with > {} Day(s) of Data".format(EXCLD)))
+        print("{:^111}".format("Periods with >= {} Day(s) of Data".format(EXCLD+1)))
         print("{:-^111}".format(""))
         print("{:^36}|{:^37}|{:^36}".format("AVG TEMP","TMAX","TMIN"))
         print("{:-^36}|{:-^37}|{:-^36}".format("","",""))
@@ -4921,17 +5035,42 @@ def customRank(attribute,qty,m1,d1,*date2):
             if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
     print("")
 
-def valueSearch(value,var,**kwargs):
+def valueSearch(stat_type,op,value,**kwargs):
+    #operator=">", year=1984, month=12,season="winter"
     # v, args[rain,prcp,snow,temp,avgtemp,tmax,avgtmax,tmin,avgtmin], kwargs[condition,year,metyear,season,month]
-    valid_yrs = [x for x in clmt.keys() if type(x) == int]
-    breakfunction = False
-    findavg = False
-    hasoperator = False
-    hasyear = False
-    hasmetyear = False
-    hasseason = True
-    hasmonth = False
+    valid_yrs = sorted([x for x in clmt.keys() if type(x) == int])
+    valid_metyrs = sorted([x for x in metclmt.keys() if type(x) == int])
     
+    # ERROR HANDLING
+    if stat_type.lower() not in ["rain","prcp""precip","snow","snwd","temp","avgtemp","tavg","tmax","hi","high","avgtmax","tmin","lo","low","avgtmin"]:
+        return print("OOPS! {} is not a supported stat category. Try again!".format(stat_type))
+    if op not in ["<","<=","==",">",">="]: return print("OOPS! '{}' is not a supported operator. Try again!".format(op))
+    if type(value) not in [int,float]: return print("OOPS! Only integers or floats are supported for value intake")
+    if "range" in kwargs:
+        if len(kwargs["range"].split(",")) != 2: return print("OOPS! Ensure that two dates are entered; seperated by a comma (,)")
+        for each in kwargs["range"].split(",")[0].split("-"):
+            if each.isnumeric() == False: return print("OOPS! Character(s) in '{}' detected as non-numeric. Try again!".format(kwargs["range"].split(",")[0]))
+        for each in kwargs["range"].split(",")[1].split("-"):
+            if each.isnumeric() == False: return print("OOPS! Character(s) in '{}' detected as non-numeric. Try again!".format(kwargs["range"].split(",")[1]))
+    
+    # Format passed variables
+    stat_type = stat_type.lower()   # Convert to lower-case for homogeniety
+    if stat_type in ["rain","prcp","precip"]: stat_type = "prcp"
+    if stat_type in ["snow"]: stat_type = "snow"
+    if stat_type in ["snwd"]: stat_type = "snwd"
+    if stat_type in ["tmax","hi","high"]: stat_type = "tmax"
+    if stat_type in ["tmin","lo","low"]: stat_type = "tmin"
+        
+        
+    if "year" in kwargs:
+        if kwargs["year"] not in valid_yrs: return print("OOPS! {} is an invalid year. Try again!".format(kwargs["year"]))
+    if "month" in kwargs:
+        if kwargs["month"] not in [m for m in range(1,12+1)]: return print("OOPS! Ensure the month value is [1,12]. Try again!")
+    if "season" in kwargs:
+        if kwargs["season"].lower() not in ["spring","summer","winter","autumn","fall"]:
+            return print("OOPS! '{}' is an invalid season".format(kwargs["season"]))
+    
+    # SET DEFAULTS BASED ON PASSED ENTRIES
 
     try:
         if var not in ["rain","prcp","avgrain","avgprcp","snow","avgsnow","snwd","avgsnwd","temp","avgtemp","tmax","hi","avghi","avgtmax","tmin","lo","avglo","avgtmin"]:
@@ -5005,7 +5144,12 @@ def valueSearch(value,var,**kwargs):
     else: return print("* OOPS! Too many variables! Try again. *")
 
 def csvFileList():
-    """Returns a list of CSV files in the directory where the script is located"""
+    """Returns a list of CSV files in the directory where the script is 
+    located
+    
+    csvFileList() -> lists csv files located in the directory of the script; 
+                     no passed arguments
+    """
     tempcsvlist = os.listdir()
     csvs_in_dir = [x for x in tempcsvlist if x[len(x)-3:] == "csv"]
 
@@ -5014,69 +5158,6 @@ def csvFileList():
     for each in csvs_in_dir:
         print(".. {:<40} ::   {}".format(each,'clmtAnalyze("{}")'.format(each)))
     print("")
-
-def clmthelp():
-    """An extensive list within the script of available functions to the user"""
-    print("* PLEASE SEE README.md FOR A FULL BREAKDOWN OF PROGRAM'S CAPABILITIES *")
-    print("* TO START: -execute clmtAnalyze('your_csv_file.csv'")
-    print("            -takes optional keyword arguments <city> and <station>")
-    print("            -If needed, execute the csvFileList() function to see a list of csv files in the ")
-    print("             current directory")
-    print("RECORD THRESHOLDS: At the end of the script, you'll find record thresholds. These are controls employed whilst running ")
-    print("            report/rank functions to prevent partial years/months/weeks from polluting the overall data if it would ")
-    print("            affect it")
-    print("            DEFAULT VALUES (can be modified before or after compiling the data):")
-    print("                excludeyear = 300       # Exclude years from ranking/reports if year recordqty <= to this threshold")
-    print("                excludemonth = 20       # Exclude months from ranking/reports if month recordqty <= to this threshold")
-    print("                excludeweek = 4         # Exclude weeks from ranking/reports if week recordqty <= to this threshold")
-    print("                excludecustom = .75     # Exclude custom periods from ranking/reports if week recordqty <= 75% of a threshold")
-    print("ERRORS OVERVIEW:")
-    print("    -- Run qflagCheck() to get the code and definition for various quality flags in the record")
-    print("    -- Run errorStats() to get get a report on errors that might be worth veryfying the data for.")
-    print("           * this function will report on every error unless it is a temperature with an 'I' flag.")
-    print("               - These can be quite numerous. So won't be included in the report")
-    print("           * by default, data with any type of quality flag will NOT be included in stats/reports")
-    print("           * User can change these settings by one of two ways:")
-    print("               - Find where the 'ignoreflags' list is in the script, and add or take away from the list")
-    print("               - On the fly, with the command ignoreflags.append('<flag>') or ignoreflags.remove('<flag>')")
-    print("           * using corrections(), It is possible to verify the data and remove the quality flag so it will be included")
-    print("               - this process amends the data and outputs a new file; reload using clmtAnalyze() for best results")
-    print("           * Please see README.md to read more about this process")
-    print("BUILT-IN FUNCTIONS: (these won't work until you run the clmtAnalyze function)")
-    print("    -- dayStats(year,month,day) :: Returns a basic report for the specified day")
-    print("    -- weekStats(year,month,day) :: Returns a basic weekly report; the included day will be the ")
-    print("       center of the week")
-    print("    -- monthStats(year,month) :: Returns a basic report for the specified month")
-    print("    -- yearStats(year) :: Returns a basic report for the specified year")
-    print("    -- metYearStats(year) :: Returns a basic report for the specified meteorological year")
-    print("    -- seasonStats(year,season) :: Returns a basic report for the specified meteorological ")
-    print("       season ('spring','summer','fall','winter')")
-    print("    -- customStats(y1,m1,d1,*y2,*m2,*d2)")
-    print("    Climatology Functions :: Detailed stats based on 30-yr climatologies incremented by")
-    print("       5 years and enables basic climatological tendency analysis")
-    print("    -- dayReport(month,day) :: Returns detailed statistics and climatology for all specified")
-    print("       days in the record")
-    print("    -- weekReport(month,day) :: Returns detailed statistics and climatology for determined 7-day")
-    print("       period and the included day will be the center of the week")
-    print("    -- monthReport(month) :: Returns detailed statistics and climatology for the specified month")
-    print("    -- yearReport() :: NOTHING is passed to this function. It returns detailed statistics based ")
-    print("       on data for all years")
-    print("    -- metYearReport() :: NOTHING is passed to this function. It returns detailed statistics based ")
-    print("       on data for all meteorological years")
-    print("    -- seasonReport(season) :: Returns detailed statistics and climatology for the specified season")
-    print("    -- customReport(M1,D1,*[M2,D2]) :: Returns detailed statistics and climatology for the specified,")
-    print("       custom period of time. The ending month and date are optional")
-    print("    Rank/Record Functions")
-    print("    -- dayRank(month,day,howmany) :: Prints daily records from the climate data.")
-    print("    -- weekRank(month,day,howmany) :: Prints records based on a week's period, centered on the ")
-    print("       day entered (3 days before; 3 after)")
-    print("    -- monthRank(month,'<temps>|<rain>',howmany) :: Prints month-based records for the given month")
-    print("    -- yearRank('<temps>|<rain>',howmany) :: Prints yearly-based records for the entire record (Jan-Dec)")
-    print("    -- metYearRank('<temps>|<rain>',howmany) :: Prints meteorological-yearly-based records for the ")
-    print("       entire record (Jan-Dec)")
-    print("    -- seasonRank(season,'<temps>|<rain>',howmany) :: Prints season-based records for the inquired season")
-    print("    -- customRank(attribute,quantity,M1,D1,*[M2,D2]) :: Prints ranked-records for the inquired period of time")
-    print("       The ending date is optional. This is a good function for proxy of a YTD or MTD function")
 
 def corrections():
     """Activates correction mode"""
@@ -5178,10 +5259,85 @@ def corrections():
                 f.write(each); f.write("\n")
         print("Output of '{}' finished!".format("CHG_" + timestr + "_" + FILE))
 
+def clmthelp():
+    """An extensive list within the script of available functions to the user
+    """
+    print("* PLEASE SEE README.md FOR A FULL BREAKDOWN OF PROGRAM'S CAPABILITIES *")
+    print("* TO START: -execute clmtAnalyze('your_csv_file.csv'")
+    print("            -takes optional keyword argument <city>")
+    print("            -If needed, execute the csvFileList() function to see a list of csv files in the ")
+    print("             current directory")
+    print("CLIMATOLOGY VARIABLES: At the end of the script, you'll see two variables: clmt_len_rpt and clmt_inc_rpt. These are")
+    print("                       strictly used in the Report functions. The former is to allow the user to modify the length of")
+    print("                       climatologies (so if you want to assess them at 10, 20, or even 50-yr); the latter controls")
+    print("                       the frequency of the assessment")
+    print("                   clmt_len_rpt = 30   # Default Climatology Length respected in reports (x-yr climatology)")
+    print("                   clmt_inc_rpt = 5    # Default 'running'-mean increment (tendency frequency? i guess)")
+    print("RECORD THRESHOLDS: At the end of the script, you'll find record thresholds. These are controls employed whilst running ")
+    print("            report/rank functions to prevent partial years/months/weeks from polluting the overall data if it would ")
+    print("            affect it")
+    print("            DEFAULT VALUES (can be modified before or after compiling the data):")
+    print("                excludeyear = 300       # Exclude years from ranking/reports if year recordqty <= to this threshold")
+    print("                excludemonth = 20       # Exclude months from ranking/reports if month recordqty <= to this threshold")
+    print("                excludeweek = 5         # Exclude weeks from ranking/reports if week recordqty <= to this threshold")
+    print("                excludecustom = .75     # Exclude custom periods from ranking/reports if week recordqty <= 75% of a threshold")
+    print("ERRORS OVERVIEW:")
+    print("    -- Run qflagCheck() to get the code and definition for various quality flags in the record")
+    print("    -- Run errorStats() to get get a report on errors that might be worth veryfying the data for.")
+    print("           * this function will report on every error unless it is a temperature with an 'I' flag.")
+    print("               - These can be quite numerous. So won't be included in the report")
+    print("           * by default, data with any type of quality flag will NOT be included in stats/reports")
+    print("           * User can change these settings by one of two ways:")
+    print("               - Find where the 'ignoreflags' list is in the script, and add or take away from the list")
+    print("               - On the fly, with the command ignoreflags.append('<flag>') or ignoreflags.remove('<flag>')")
+    print("           * using corrections(), It is possible to verify the data and remove the quality flag so it will be included")
+    print("               - this process amends the data and outputs a new file; reload using clmtAnalyze() for best results")
+    print("           * Please see README.md to read more about this process")
+    print("BUILT-IN FUNCTIONS: (these won't work until you run the clmtAnalyze function)")
+    print("    -- dayStats(year,month,day) :: Returns a basic report for the specified day")
+    print("    -- weekStats(year,month,day) :: Returns a basic weekly report; the included day will be the ")
+    print("       center of the week")
+    print("    -- monthStats(year,month) :: Returns a basic report for the specified month")
+    print("    -- yearStats(year) :: Returns a basic report for the specified year")
+    print("    -- metYearStats(year) :: Returns a basic report for the specified meteorological year")
+    print("    -- seasonStats(year,season) :: Returns a basic report for the specified meteorological ")
+    print("       season ('spring','summer','fall','winter')")
+    print("    -- customStats(y1,m1,d1,*y2,*m2,*d2)")
+    print("    Climatology Functions :: Detailed stats based on 30-yr climatologies incremented by")
+    print("       5 years and enables basic climatological tendency analysis")
+    print("    -- dayReport(month,day) :: Returns detailed statistics and climatology for all specified")
+    print("       days in the record")
+    print("    -- weekReport(month,day) :: Returns detailed statistics and climatology for determined 7-day")
+    print("       period and the included day will be the center of the week")
+    print("    -- monthReport(month) :: Returns detailed statistics and climatology for the specified month")
+    print("    -- yearReport() :: NOTHING is passed to this function. It returns detailed statistics based ")
+    print("       on data for all years")
+    print("    -- metYearReport() :: NOTHING is passed to this function. It returns detailed statistics based ")
+    print("       on data for all meteorological years")
+    print("    -- seasonReport(season) :: Returns detailed statistics and climatology for the specified season")
+    print("    -- customReport(M1,D1,*[M2,D2]) :: Returns detailed statistics and climatology for the specified,")
+    print("       custom period of time. The ending month and date are optional")
+    print("    Rank/Record Functions")
+    print("    -- dayRank(month,day,howmany) :: Prints daily records from the climate data.")
+    print("    -- weekRank(month,day,howmany) :: Prints records based on a week's period, centered on the ")
+    print("       day entered (3 days before; 3 after)")
+    print("    -- monthRank(month,'<temps>|<rain>',howmany) :: Prints month-based records for the given month")
+    print("    -- yearRank('<temps>|<rain>',howmany) :: Prints yearly-based records for the entire record (Jan-Dec)")
+    print("    -- metYearRank('<temps>|<rain>',howmany) :: Prints meteorological-yearly-based records for the ")
+    print("       entire record (Jan-Dec)")
+    print("    -- seasonRank(season,'<temps>|<rain>',howmany) :: Prints season-based records for the inquired season")
+    print("    -- customRank(attribute,quantity,M1,D1,*[M2,D2]) :: Prints ranked-records for the inquired period of time")
+    print("       The ending date is optional. This is a good function for proxy of a YTD function")
 # MAIN PROGRAM --------------------------------------------------------------
 clmt = {}
 metclmt = {}
+clmt_vars_days = {"prcp":{},"snow":{},"snwd":{},"tavg":{},"tmax":{},"tmin":{}}
+station_ids = []
 FILE = None
+
+# Climatology Report-related variables
+clmt_len_rpt = 30   # Default Climatology Length respected in reports (x-yr climatology)
+clmt_inc_rpt = 5    # Default "running"-mean increment (tendency frequency? i guess)
 
 # Threshold Quantities
 ignoreflags = [""]      # If there are Quality Flags that you wish to ignore, place them here (or append upon starting; see README)
@@ -5199,7 +5355,7 @@ excludeweek_tavg = excludeweek * 2
 
 # WELCOME MESSAGE UPON STARTING
 print("************************************")
-print("CLIMATE PARSER (clmt-parser.py) v2.3")
+print("CLIMATE PARSER (clmt-parser.py) v2.4")
 print("  by K. Gentry (ksgwxfan)")
 print("************************************\n")
 
@@ -5207,8 +5363,8 @@ print(" INSTRUCTIONS: (*** See README.md for data retrieval and exensive instruc
 print('    1) Find the filename of your .csv, then run clmtAnalyze("citydata.csv")')
 print("       -- csvFileList() will return a list of all csv's in the working directory and")
 print("          their basic calls")
-print("       -- OPTIONAL keyword arguments for station ID and city:")
-print('             clmtAnalyze("citydata.csv",city="CITY NAME, USA",station="2 Stations")')
+print("       -- OPTIONAL keyword argument for city:")
+print('             clmtAnalyze("citydata.csv",city="CITY NAME, USA"')
 print("    2) After completion, you can then run reports on the data")
 print(" -------------------------------------------------------------------------------------")
 print(" For more detailed assistance, enter clmthelp() for a breakdown of available functions")

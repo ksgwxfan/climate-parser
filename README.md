@@ -1,4 +1,4 @@
-# Climate Parser v2.3
+# Climate Parser v2.4
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -7,7 +7,45 @@ A Python Script enabling extensive analysis of climate data for individual citie
 ### Introduction
 Weather data are faithfully kept, recorded, and preserved everyday. This is primarily done via assistance of weather-stations which are plentiful and scattered-about all over the United States. This script allows the user to analyze downloaded CSV files that contain land-based station data. Within seconds, the user can retrieve daily, weekly, monthly, annual, and even climatological data, including ranking the data.
 
+
+
+### Contents
+**&bull; Go ahead and download the script** `clmt_parser.py`
+* [Fixes / Changes](#fixes-and-changes)
+* [Data Retrieval and Required Format](#data-retrieval-and-required-format)<br />
+* [Running the Script / Loading the Data](#running-the-script)
+* [Changeable Climatology Report-Related Variables](#changeable-climatology-report-related-variables)
+* [A Note on Record Thresholds](#a-note-on-record-thresholds)
+* [Error Report Overview (skip if you just want to go to analyzing the data)](#error-report)
+  * [OPTIONAL: Fixing Errored Data](#fixing-data)
+* [Overview of Core Functions](#overview-of-core-functions)
+  * [Stats Search Functions](#stats) - output specific to particular times
+  * [Report Search Functions](#reports) - outputs a climatological report of historical stats and enables basic climatological-tendency analysis of desired time-frame
+  * [Rank Search Functions](#ranking) - orders the data into ranking, based on particular time-frame of interest
+* [On-the-fly access/reference to data](#on-the-fly-data-retrieval)
+* Sample Scripts (to be added later)
+* [Roadmap](#roadmap)
+* [Licensing](#license)
+* [HELP!!!](#help)
+
+### Fixes and Changes
 ### New in v2.x
+
+##### v2.4
+* Included a reverse dictionary, `clmt_vars_days`, which includes subset dictionaries of `"prcp"`, `"snow"`, `"snwd"`, `"tmax"`, `"tmin"`, `"tavg"`; holding values from individual days. The variables are the keys with matching dates being the new values; will be used more in a future update
+* Eliminated the `"station"` keyword argument in the `clmtAnalyze` call.
+  * Included code to handle the station ID if more than 1 station was used to compile the data
+* Fixed `customRank` help docstring
+* Altered exclusion threshold rules for `customRank` to be more stringent for periods less than a week 
+* Modified `help` docstrings to be in line with PEP standards
+* On all `Rank` functions: changed output record qty (based on the threshold) to be inclusive (greater-than or equal to) rather than exclusive (less-than).
+* Added two report-related variables, `clmt_len_rpt` and `clmt_inc_rpt`; enables change of climatology period and assessment-frequency
+ 
+  * These can be changed anytime; no need to re-run `clmtAnalyze`.
+  * The idea of adding these was make it easy for the user to assess other climatology-period lengths (like 10, 15, or 20-yr climatologies)
+* Adjusted report output to accommodate the new variables and included them in the output too
+  * Added a dynamic end-year range for the reports (wouldn't have been a problem until like 2040, but oh well, lol)
+  
 
 ##### v2.3
 * Included `customStats`, `customReport`, and `customRank` functions. These allow the user to define the period of time they want to retrieve stats, reports, or rankings for. You are no longer confined to retrieving data based on fixed lengths of time. A great proxy for a Year-to-Date, Month-to-Date, or even a Season-to-Date functions.
@@ -29,22 +67,7 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
   * added fixed-digit output to reports and rankings
   * added alignment to rankings
 
-### Contents
-**&bull; Go ahead and download the script** `clmt_parser.py`
-* [Data Retrieval and Required Format](#data-retrieval-and-required-format)<br />
-* [Running the Script / Loading the Data](#running-the-script)
-* [A Note on Record Thresholds](#a-note-on-record-thresholds)
-* [Error Report Overview (skip if you just want to go to analyzing the data)](#error-report)
-  * [OPTIONAL: Fixing Errored Data](#fixing-data)
-* [Overview of Core Functions](#overview-of-core-functions)
-  * [Stats Search Functions](#stats) - output specific to particular times
-  * [Report Search Functions](#reports) - outputs a climatological report of historical stats and enables basic climatological-tendency analysis of desired time-frame
-  * [Rank Search Functions](#ranking) - orders the data into ranking, based on particular time-frame of interest
-* [On-the-fly access/reference to data](#on-the-fly-data-retrieval)
-* Sample Scripts (to be added later)
-* [Roadmap](#roadmap)
-* [Licensing](#license)
-* [HELP!!!](#help)
+[&#8679; back to Contents](#contents)
 
 ### Data Retrieval and Required Format
 
@@ -99,10 +122,10 @@ Loading data is done through the `clmtAnalyze()` function.
   * remember your file should be in the same directory as your script
 
 run `clmtAnalyze("city-data.csv")`
-* RECOMMENDED For 2 or more stations: `clmtAnalyze` accepts 2 optional keyword arguments: `city="cityname.csv"` or `station="station_text"`
-  * Example: `clmtAnalyze("city-name.csv",city="City Name",station="Multiple")`
-  * The default setting would be using the [GHCND Station ID](https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt) and Station Name (which typically includes the cityname)
-  * But you may not want to represent all of the data as originating from one place if you used multiple stations
+* RECOMMENDED For 2 or more stations: `clmtAnalyze` accepts an optional keyword argument: `city="cityname.csv"`
+  * Example: `clmtAnalyze("city-name.csv",city="City Name")`
+  * The default setting would be using the [GHCND Station ID](https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt) and Station Name (which typically includes the cityname; the script will note when more than one station has been used)
+  * This will be useful as you may not want to represent all of the data as originating from one place if you compiled data from multiple (but still geographically-close) stations
 
 Wait for the script to complete. At the end you'll receive a notice of monthly data missing from the record and the time it took to run the script
 ```
@@ -115,6 +138,15 @@ Runtime: 11.06 seconds
 ```
 
 Now you're ready to do some analysis or inspect the data.
+
+[&#8679; back to Contents](#contents)
+
+### Changeable Climatology Report-Related Variables
+Two variables have been included, reflected in the Report functions, that allow you to modify climatology length and assessment increment.
+  * `clmt_len_rpt` :: (Default = 30) This represents the span of years that climatologies are assessed
+  * `clmt_inc_rpt` :: (Default = 5) This represents the increment between climatologies; should always be less than the length variable; smaller variable yields finer (or more) results;
+
+These can be changed at any time. Plus, there's no need to re-run `clmtAnalyze` after. This enables you to run, for example, 10, 15, or 20-year climatologies, incremented at 1, 5, or 10 years. `clmt_inc_rpt` should be smaller than `clmt_len_rpt`. For the `yearReport` and `metYearReport` and `customReport` functions, you can expect much longer compile times as the increment is decreased.
 
 [&#8679; back to Contents](#contents)
 
@@ -390,12 +422,13 @@ These functions return robust climatological data, including all-time statistics
 --------------------------------
 Climatology Report for December
 City: USC00001337, CITY, USA
+1893-2019; 5-Year Incremented 30-Year Climatologies
 --------------------------------
 Part 1: December Precipitation Stats
 ▒▒Years▒▒ ▒▒▒PRCP▒▒▒▒  ▒▒PRCP▒▒  ▒▒PRCP▒▒ ▒PRCP▒ ▒▒▒▒PRCP▒▒▒▒ ▒▒▒▒PRCP▒▒▒▒ | ▒▒▒SNOW▒▒▒▒  ▒▒SNOW▒▒ ▒SNOW▒ ▒▒▒▒SNOW▒▒▒▒ |
 ▒▒▒▒▒▒▒▒▒ ▒▒▒DAYS▒▒▒▒  DAYS MAX  DAYS MIN ▒AVG▒▒ ▒▒▒▒MAX▒▒▒▒▒ ▒▒▒▒MIN▒▒▒▒▒ | ▒▒▒DAYS▒▒▒▒  DAYS MAX ▒AVG▒▒ ▒▒▒▒MAX▒▒▒▒▒ |
 --------- -----------  --------  -------- ------ ------------ ------------ | -----------  -------- ------ ------------ |
-1893-2019 1249: 33.4%  20, 1972   1, 1896  3.66   8.89, 1901   0.28, 1965  |  144:  3.8%   6, 1945  1.7    14.5, 1917  |
+All Time  1249: 33.4%  20, 1972   1, 1896  3.66   8.89, 1901   0.28, 1965  |  144:  3.8%   6, 1945  1.7    14.5, 1917  |
 1896-1925  219: 26.4%  14,  2     1, 1896  3.83   8.89, 1901   0.92, 1899  |   31:  3.7%   4,  3    1.8    14.5, 1917  |
 1901-1930  238: 28.7%  14,  2     4,  2    4.05   8.89, 1901   0.95, 1928  |   31:  3.7%   4,  3    2.0    14.5, 1917  |
 1906-1935  261: 30.1%  14,  3     4,  2    3.73   7.32, 1927   0.95, 1928  |   32:  3.7%   4,  3    2.3    14.5, 1917  |
@@ -420,7 +453,7 @@ Part 2: December Temperature Stats
 ▒▒Years▒▒ ▒▒▒▒▒▒▒▒▒▒▒▒▒▒AVG TEMP▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ | ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒TMAX▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒ | ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒TMIN▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
 ▒▒▒▒▒▒▒▒▒ STDEV ▒AVG▒ ▒▒▒▒MAX▒▒▒▒▒ ▒▒▒▒MIN▒▒▒▒▒ | STDEV ▒AVG▒ ▒▒▒▒MAX▒▒▒▒▒ ▒▒▒▒MIN▒▒▒▒▒ | STDEV ▒AVG▒ ▒▒▒▒MAX▒▒▒▒▒ ▒▒▒▒MIN▒▒▒▒▒
 --------- ----- ----- ------------ ------------ | ----- ----- ------------ ------------ | ----- ----- ------------ ------------
-1893-2019  3.5  39.1   48.3, 2015   29.6, 1917  |  9.8  50.4   60.0, 1956   40.2, 1935  |  9.6  27.8   37.4, 2015   17.4, 1917 
+All Time   3.5  39.1   48.3, 2015   29.6, 1917  |  9.8  50.4   60.0, 1956   40.2, 1935  |  9.6  27.8   37.4, 2015   17.4, 1917 
 1896-1925  3.3  38.3   46.0, 1923   29.6, 1917  |  9.6  49.3   58.4, 1923   41.9, 1917  |  9.6  27.3   33.5, 1923   17.4, 1917 
 1901-1930  3.4  38.3   46.0, 1923   29.6, 1917  |  9.8  49.5   58.4, 1923   41.9, 1917  | 10.0  27.1   33.5, 1923   17.4, 1917 
 1906-1935  3.9  38.8   46.0, 1931   29.6, 1917  | 10.1  50.0   58.4, 1923   40.2, 1935  | 10.2  27.7   34.4, 1931   17.4, 1917 
@@ -608,6 +641,7 @@ Meteorlogical Years/Seasons can also be retrieved in very similar ways as above.
 * Make an annual Average Temperatures Graph; daily and day-centered weekly; day-centered monthly
 * Check reports and ranks for unnecessary exclusions (i.e. max amount of rain and snow days/amts)
 * Remove `checkdate` calls from customStats
+* on all stats functions, consider also outputting the temperature quantity if different than total recordqty
 
 [&#8679; back to Contents](#contents)
 
