@@ -512,6 +512,7 @@ def errorStats():
     misscounter = 0
     tmax_lt_tmin = []
     snow_gt_0prcp = []
+    snwd_gt_snow = []
 
     for y in [year for year in clmt if type(year) == int]:
         for m in [month for month in clmt[y] if type(month) == int]:
@@ -5035,6 +5036,205 @@ def customRank(attribute,qty,m1,d1,*date2):
             if i > qty and j > qty and k > qty and l > qty and m > qty and n > qty: break
     print("")
 
+def allDayRank(attribute,qty,**kw):
+    """Returns a list of rankings, comparing only specific days to one
+    another. If season keyword is present, month keyword will be ignored. If
+    season and year are specified, only results from the season from the 
+    specific year will be used. If year and month are specified, only data
+    from that time period will be used. If only month is specified, all data
+    occurring from that month, regardless of year, will be used.
+    
+    allDayRank(attribute,quantity,**kwargs)
+    
+    Accepted Attributes:
+        "prcp", "snow", "snwd", "tmax", "tmin", "tavg"
+    
+    Keyword Arguments (displayed in heirarchal order):
+        season="season"  -> limit season <"spring"|"summer"|"fall"|"winter">
+        year=YYYY        -> limit results to a specific year
+        month=M          -> limit results to a specific month
+        ascending=False  -> alters order of data (only affects temp attrs)
+    
+    EXAMPLE: allDayRank("snow",10)
+                    -> top 10 ranks all days acc. to snow
+             allDayRank("prcp",15,season="summer")
+                    -> top 15 rain days in summer
+             allDayRank("tmax",10,season="fall",year=2005)
+                    -> top 10 warmest daily highs from Fall 2005
+             allDayRank("tmin",10,year=2009,ascending=True)
+                    -> top 10 coolest daily lows in 2009
+    """
+
+    # clmt_vars_days = {"prcp":{},"snow":{},"snwd":{},"tavg":{},"tmax":{},"tmin":{}}
+    # clmt_vars_days["prcp"][amount] = [list, of, days, that, had, that, value]
+    # consider adding a "finite" kwarg. This setting would only report the quantity of days that a match was made rather than a potentially long list of days
+    # consider adding an "order" or "reverse" kwarg
+    valid_yrs = sorted([x for x in clmt.keys() if type(x) == int])
+    valid_metyrs = sorted([x for x in metclmt.keys() if type(x) == int])
+    hasseason = False
+    hasyear = False
+    hasmonth = False
+    
+    #ERROR CHECKS
+    if attribute not in ["prcp","snow","snwd","tmax","tmin","tavg"]: return print('OOPS! "{}" is an Invalid Attribute. Try Again! Valid Attributes: "prcp","snow","snwd","tmax","tmin","tavg"'.format(attribute))
+    if type(qty) != int: return print("OOPS! Ensure the quantity is an integer! Try again!")
+    
+    # Specified Season
+    if "season" in kw:
+        if kw["season"].lower() not in ["spring","summer","fall","winter"]: return print('OOPS! "{}" is an invalid season. Try again! Valid Seasons (all lower case):"spring","summer","fall","winter"'.format(kw["season"]))
+        hasseason = True
+        # for specifying a year of a season
+        if "year" in kw:
+            hasyear = True
+            YEAR = int(kw["year"])
+            if YEAR not in valid_yrs: return print("OOPS! No data for the year {} found. Try again!".format(YEAR))
+    # Specifying a year
+    elif "year" in kw:
+        hasyear = True
+        YEAR = int(kw["year"])
+        if YEAR not in clmt: return print("OOPS! No data for the year {} found. Try again!".format(YEAR))
+        # Focusing on a specific month in a specific year
+        if "month" in kw:
+            hasmonth = True
+            MONTH = int(kw["month"])
+            if MONTH not in range(1,12+1): return print("OOPS! Invalid Month. Try again!")
+            if MONTH not in clmt[YEAR]: return print("OOPS! No data for {} {} found. Try again!".format(calendar.month_name[MONTH],YEAR))
+    # Specifying a month
+    elif "month" in kw:
+        hasmonth = True
+        MONTH = int(kw["month"])
+        if MONTH not in range(1,12+1): return print("OOPS! Invalid Month. Try again!")
+    ##########################
+    r = 0
+    printed = []    # Will hold the printed rankings
+    print("\n-----------------------------------------------")
+    # HEADER ------------------
+    if hasseason == True:
+        if hasyear == True: print("Top {} Daily {} Records for {} {}".format(qty,attribute.upper(),kw["season"].capitalize(),YEAR))
+        else: print("Top {} Daily {} Records for {}".format(qty,attribute.upper(),kw["season"].capitalize()))
+    elif hasyear == True:
+        if hasmonth == True: print("Top {} Daily {} Records for {} {}".format(qty,attribute.upper(),calendar.month_name[MONTH],YEAR))
+        else: print("Top {} Daily {} Records for {}".format(qty,attribute.upper(),YEAR))
+    elif hasmonth == True: print("Top {} Daily {} Records for {}".format(qty,attribute.upper(),calendar.month_name[MONTH]))
+    else: print("Top {} Daily {} Records for All-Time".format(qty,attribute.upper()))
+    # -------------------------
+    # -------------------------
+    print("{}, {}".format(clmt["station"],clmt["station_name"]))
+    if "ascending" in kw and attribute in ["tmax","tmin","tavg"]:
+        if kw["ascending"] == True:
+            keys = sorted([key for key in clmt_vars_days[attribute].keys()])
+            print("--- Coolest to Warmest ---")
+    else:
+        keys = sorted([key for key in clmt_vars_days[attribute].keys()],reverse=True)
+        if attribute in ["tmax","tmin","tavg"]: print("--- Warmest to Coolest ---")
+    print("-----------------------------------------------")
+    # -------------------------
+    if hasseason == True and hasyear == False: # Only assess a season
+        # metclmt[y][s]["valid"] = [3,4,5]
+        # clmt_vars_days[attribute][x][y]
+        metkeys = {}
+        for x in keys:
+            for y in range(len(clmt_vars_days[attribute][x])):
+                if clmt_vars_days[attribute][x][y].month in metclmt[clmt_vars_days[attribute][x][y].year][kw["season"]]["valid"]:
+                    if x not in metkeys:
+                        metkeys[x] = [clmt_vars_days[attribute][x][y]]
+                    else:
+                        metkeys[x].append(clmt_vars_days[attribute][x][y])
+        #for x in metkeys:
+            #print("{} - {}".format(x,metkeys[x]))
+        for x in metkeys:
+            r += 1
+            if r > qty: break
+            for y in range(len(metkeys[x])):
+                print("{:>2}{} {:6} - {}".format(r if r not in printed else " ","." if r not in printed else " ",x,metkeys[x][y]))
+                if r not in printed: printed.append(r)
+    elif hasseason == True and hasyear == True: # Only assess a season of a particular year
+        # metclmt[y][s]["valid"] = [3,4,5]
+        # clmt_vars_days[attribute][x][y]
+        metkeys = {}
+        for x in keys:
+            for y in range(len(clmt_vars_days[attribute][x])):
+                if kw["season"].lower() == "winter":
+                    if clmt_vars_days[attribute][x][y].month in metclmt[clmt_vars_days[attribute][x][y].year][kw["season"]]["valid"]:
+                        if clmt_vars_days[attribute][x][y].month in [1,2] and clmt_vars_days[attribute][x][y].year == YEAR+1:
+                            if x not in metkeys:
+                                metkeys[x] = [clmt_vars_days[attribute][x][y]]
+                            else:
+                                metkeys[x].append(clmt_vars_days[attribute][x][y])
+                        if clmt_vars_days[attribute][x][y].month == 12 and clmt_vars_days[attribute][x][y].year == YEAR:
+                            if x not in metkeys:
+                                metkeys[x] = [clmt_vars_days[attribute][x][y]]
+                            else:
+                                metkeys[x].append(clmt_vars_days[attribute][x][y])
+                else:
+                    if clmt_vars_days[attribute][x][y].year == YEAR and clmt_vars_days[attribute][x][y].month in metclmt[clmt_vars_days[attribute][x][y].year][kw["season"]]["valid"]:
+                        if x not in metkeys:
+                            metkeys[x] = [clmt_vars_days[attribute][x][y]]
+                        else:
+                            metkeys[x].append(clmt_vars_days[attribute][x][y])
+        #for x in metkeys:
+            #print("{} - {}".format(x,metkeys[x]))
+        for x in metkeys:
+            r += 1
+            if r > qty: break
+            for y in range(len(metkeys[x])):
+                print("{:>2}{} {:6} - {}".format(r if r not in printed else " ","." if r not in printed else " ",x,metkeys[x][y]))
+                if r not in printed: printed.append(r)
+    elif hasyear == True and hasmonth == False:   # Only assess a particular year
+        validated = {}
+        for x in keys:
+            for y in range(len(clmt_vars_days[attribute][x])):
+                if clmt_vars_days[attribute][x][y].year == YEAR:
+                    if x not in validated:
+                        validated[x] = [clmt_vars_days[attribute][x][y]]
+                    else:
+                        validated[x].append(clmt_vars_days[attribute][x][y])
+        for x in validated:
+            r += 1
+            if r > qty: break
+            for y in range(len(validated[x])):
+                print("{:>2}{} {:6} - {}".format(r if r not in printed else " ","." if r not in printed else " ",x,validated[x][y]))
+                if r not in printed: printed.append(r)
+    elif hasyear == True and hasmonth == True:  # Only assess a particular month of a particular year
+        validated = {}
+        for x in keys:
+            for y in range(len(clmt_vars_days[attribute][x])):
+                if clmt_vars_days[attribute][x][y].year == YEAR and clmt_vars_days[attribute][x][y].month == MONTH:
+                    if x not in validated:
+                        validated[x] = [clmt_vars_days[attribute][x][y]]
+                    else:
+                        validated[x].append(clmt_vars_days[attribute][x][y])
+        for x in validated:
+            r += 1
+            if r > qty: break
+            for y in range(len(validated[x])):
+                print("{:>2}{} {:6} - {}".format(r if r not in printed else " ","." if r not in printed else " ",x,validated[x][y]))
+                if r not in printed: printed.append(r)
+    elif hasmonth == True:  # Only assess data from a particular month
+        validated = {}
+        for x in keys:
+            for y in range(len(clmt_vars_days[attribute][x])):
+                if clmt_vars_days[attribute][x][y].month == MONTH:
+                    if x not in validated:
+                        validated[x] = [clmt_vars_days[attribute][x][y]]
+                    else:
+                        validated[x].append(clmt_vars_days[attribute][x][y])
+        for x in validated:
+            r += 1
+            if r > qty: break
+            for y in range(len(validated[x])):
+                print("{:>2}{} {:6} - {}".format(r if r not in printed else " ","." if r not in printed else " ",x,validated[x][y]))
+                if r not in printed: printed.append(r)
+    else:   # Assesses data from the entire record
+        for x in keys:
+            r += 1
+            if r > qty: break
+            for y in range(len(clmt_vars_days[attribute][x])):
+                print("{:>2}{} {:6} - {}".format(r if r not in printed else " ","." if r not in printed else " ",x,clmt_vars_days[attribute][x][y]))
+                if r not in printed: printed.append(r)
+    #-------------------------------------------
+    print("")
+        
 def valueSearch(stat_type,op,value,**kwargs):
     #operator=">", year=1984, month=12,season="winter"
     # v, args[rain,prcp,snow,temp,avgtemp,tmax,avgtmax,tmin,avgtmin], kwargs[condition,year,metyear,season,month]
@@ -5279,7 +5479,7 @@ def clmthelp():
     print("            DEFAULT VALUES (can be modified before or after compiling the data):")
     print("                excludeyear = 300       # Exclude years from ranking/reports if year recordqty <= to this threshold")
     print("                excludemonth = 20       # Exclude months from ranking/reports if month recordqty <= to this threshold")
-    print("                excludeweek = 5         # Exclude weeks from ranking/reports if week recordqty <= to this threshold")
+    print("                excludeweek = 4         # Exclude weeks from ranking/reports if week recordqty <= to this threshold")
     print("                excludecustom = .75     # Exclude custom periods from ranking/reports if week recordqty <= 75% of a threshold")
     print("ERRORS OVERVIEW:")
     print("    -- Run qflagCheck() to get the code and definition for various quality flags in the record")
@@ -5328,6 +5528,8 @@ def clmthelp():
     print("    -- seasonRank(season,'<temps>|<rain>',howmany) :: Prints season-based records for the inquired season")
     print("    -- customRank(attribute,quantity,M1,D1,*[M2,D2]) :: Prints ranked-records for the inquired period of time")
     print("       The ending date is optional. This is a good function for proxy of a YTD function")
+    print("    -- allDayRank('attribute',quantity,**{season,year,month,ascending}) :: compares all daily data on record.")
+    print("       optional temporal keyword arguments accepted")       
 # MAIN PROGRAM --------------------------------------------------------------
 clmt = {}
 metclmt = {}
@@ -5353,9 +5555,13 @@ excludeseason_tavg = excludeseason * 2
 excludemonth_tavg = excludemonth * 2
 excludeweek_tavg = excludeweek * 2
 
+
+#csvFileList()
+#filename = "RAW-MTA-1893-oct20_2019.csv"
+
 # WELCOME MESSAGE UPON STARTING
 print("************************************")
-print("CLIMATE PARSER (clmt-parser.py) v2.4")
+print("CLIMATE PARSER (clmt-parser.py) v2.5")
 print("  by K. Gentry (ksgwxfan)")
 print("************************************\n")
 

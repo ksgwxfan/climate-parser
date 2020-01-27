@@ -7,8 +7,6 @@ A Python Script enabling extensive analysis of climate data for individual citie
 ### Introduction
 Weather data are faithfully kept, recorded, and preserved everyday. This is primarily done via assistance of weather-stations which are plentiful and scattered-about all over the United States. This script allows the user to analyze downloaded CSV files that contain land-based station data. Within seconds, the user can retrieve daily, weekly, monthly, annual, and even climatological data, including ranking the data.
 
-
-
 ### Contents
 **&bull; Go ahead and download the script** `clmt_parser.py`
 * [Fixes / Changes](#fixes-and-changes)
@@ -31,6 +29,10 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 ### Fixes and Changes
 ### New in v2.x
 
+##### v2.5
+* Included a new function, `allDayRank()` which ranks based solely on individual day records. This enables displaying all time record highs/lows for the entire record
+  * Also included some temporal keyword arguments; so you can compare data within a certain month, month in a year, a year, a season, or a season from a specific year
+
 ##### v2.4
 * Included a reverse dictionary, `clmt_vars_days`, which includes subset dictionaries of `"prcp"`, `"snow"`, `"snwd"`, `"tmax"`, `"tmin"`, `"tavg"`; holding values from individual days. The variables are the keys with matching dates being the new values; will be used more in a future update
 * Eliminated the `"station"` keyword argument in the `clmtAnalyze` call.
@@ -40,7 +42,6 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * Modified `help` docstrings to be in line with PEP standards
 * On all `Rank` functions: changed output record qty (based on the threshold) to be inclusive (greater-than or equal to) rather than exclusive (less-than).
 * Added two report-related variables, `clmt_len_rpt` and `clmt_inc_rpt`; enables change of climatology period and assessment-frequency
- 
   * These can be changed anytime; no need to re-run `clmtAnalyze`.
   * The idea of adding these was make it easy for the user to assess other climatology-period lengths (like 10, 15, or 20-yr climatologies)
 * Adjusted report output to accommodate the new variables and included them in the output too
@@ -489,6 +490,7 @@ The "fun stuff." These temporal-based functions give quick info of record-settin
 `metYearRank("temp",qty)` :: Ranks by the meteorological year (March-Feb). Like `monthRank`, you must specify which type of ranking you want
 `seasonRank(season,"temp",qty)` :: Ranks by the meteorological season. Like `monthRank`, you must specify which type of ranking you want
 `customRank("attribute",qty,m1,d1,*[m2,d2])` :: Ranks by the meteorological season. Like some others, you must specify which type of ranking you want
+`allDayRank("attribute",qty,**{season="season",year=<YEAR>,month=<MONTH>,ascending=False})` :: Ranks based on individual days in the record, in contrast to `dayRank` which only compares records from a specified day. You can use it, for example, to get an all-time daily record high/low; all-time daily record rain/snow, etc
 
 Example output:
 
@@ -542,6 +544,7 @@ Example output:
                   |                  |     1991  148 |               |                 |     1980   11 
                   |                  |     2014  148 |               |                 |     2013   11
 ```
+
 [&#8679; back to Contents](#contents)
 
 ### On-the-fly Data retrieval
@@ -642,6 +645,7 @@ Meteorlogical Years/Seasons can also be retrieved in very similar ways as above.
 * Check reports and ranks for unnecessary exclusions (i.e. max amount of rain and snow days/amts)
 * Remove `checkdate` calls from customStats
 * on all stats functions, consider also outputting the temperature quantity if different than total recordqty
+* in `errorStats`, account for times when `SNWD` goes up without any `SNOW` in the recent record
 
 [&#8679; back to Contents](#contents)
 
