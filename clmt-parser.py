@@ -468,6 +468,9 @@ def clmtAnalyze(filename,**CITY):
     else: print("STATION: {}".format(clmt["station"]))
     print("*** SCRIPT COMPLETE ***")
     print("Runtime: {} seconds".format(round(END - START,2)))
+    print("-------------------------------------------------------------------------------------")
+    print(" For more detailed assistance, enter clmthelp() for a breakdown of available functions")
+    print("-------------------------------------------------------------------------------------")
 
 def attchk(attstr):
     """Not used by user; program uses it for output and 'filling in' of
@@ -766,9 +769,11 @@ def weekStats(y,m,d):
     w_alltemps = []
     records_in_week = 0
     weekExists = checkDate(y,m,d)
+    indvweekdays = []
     if weekExists:
         print("")
         for x in range(7):
+            indvweekdays.append(c)
             try:
                 if clmt[c.year][c.month][c.day]: records_in_week += 1
                 if clmt[c.year][c.month][c.day].prcpQ in ignoreflags and clmt[c.year][c.month][c.day].prcp not in ["9999","-9999",""]:
@@ -805,14 +810,171 @@ def weekStats(y,m,d):
             c += datetime.timedelta(days=1)
 
         if records_in_week <= excludeweek:
-            print("-------------------------------------")
-            print("*** WEEKLY STATS LIKELY UNDERREPRESENTED ***")
+            print("{:-^83}".format(""))
+            print("{:-^83}".format("*** WEEKLY STATS LIKELY UNDERREPRESENTED ***"))
 
-        print("-------------------------------------")
-        print("Weekly Statistics for {} thru {}".format(wkstart,wkend))
-        print("{}: {}".format(clmt["station"],clmt["station_name"]))
-        print("Quantity of Records: {}".format(records_in_week))
-        print("-----")
+        print("{:^83}".format("Weekly Statistics for {} thru {}".format(wkstart,wkend)))
+        print("{:^83}".format("{}: {}".format(clmt["station"],clmt["station_name"])))
+        print("{:^83}".format("Quantity of Records: {}".format(records_in_week)))
+        print("{:-^83}".format(""))
+        
+        print("{:^6}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}".format("",indvweekdays[0].year,indvweekdays[1].year,indvweekdays[2].year,indvweekdays[3].year,indvweekdays[4].year,indvweekdays[5].year,indvweekdays[6].year))
+        print("{:^6}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}".format("",
+                                                                        "{} {}".format(calendar.month_abbr[indvweekdays[0].month],indvweekdays[0].day),
+                                                                        "{} {}".format(calendar.month_abbr[indvweekdays[1].month],indvweekdays[1].day),
+                                                                        "{} {}".format(calendar.month_abbr[indvweekdays[2].month],indvweekdays[2].day),
+                                                                        "{} {}".format(calendar.month_abbr[indvweekdays[3].month],indvweekdays[3].day),
+                                                                        "{} {}".format(calendar.month_abbr[indvweekdays[4].month],indvweekdays[4].day),
+                                                                        "{} {}".format(calendar.month_abbr[indvweekdays[5].month],indvweekdays[5].day),
+                                                                        "{} {}".format(calendar.month_abbr[indvweekdays[6].month],indvweekdays[6].day)))
+        print("{:-^6}|{:-^10}|{:-^10}|{:-^10}|{:-^10}|{:-^10}|{:-^10}|{:-^10}".format("","","","","","","",""))
+        print("{:^6}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}".format("PRCP",
+   "{}{}{}".format(
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].prcp if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) else "M",
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].prcpM if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].prcpM == "T" else "",
+   "*" if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].prcpQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].prcp if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) else "M",
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].prcpM if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].prcpM == "T" else "",
+   "*" if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].prcpQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].prcp if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) else "M",
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].prcpM if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].prcpM == "T" else "",
+   "*" if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].prcpQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].prcp if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) else "M",
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].prcpM if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].prcpM == "T" else "",
+   "*" if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].prcpQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].prcp if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) else "M",
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].prcpM if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].prcpM == "T" else "",
+   "*" if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].prcpQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].prcp if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) else "M",
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].prcpM if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].prcpM == "T" else "",
+   "*" if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].prcpQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].prcp if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) else "M",
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].prcpM if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].prcpM == "T" else "",
+   "*" if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].prcpQ != "" else "")))
+        print("{:^6}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}".format("SNOW",
+   "{}{}{}".format(
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].snow if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) else "M",
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].snowM if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].snowM == "T" else "",
+   "*" if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].snowQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].snow if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) else "M",
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].snowM if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].snowM == "T" else "",
+   "*" if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].snowQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].snow if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) else "M",
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].snowM if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].snowM == "T" else "",
+   "*" if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].snowQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].snow if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) else "M",
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].snowM if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].snowM == "T" else "",
+   "*" if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].snowQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].snow if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) else "M",
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].snowM if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].snowM == "T" else "",
+   "*" if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].snowQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].snow if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) else "M",
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].snowM if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].snowM == "T" else "",
+   "*" if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].snowQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].snow if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) else "M",
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].snowM if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].snowM == "T" else "",
+   "*" if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].snowQ != "" else "")))
+        print("{:^6}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}".format("SNWD",
+   "{}{}{}".format(
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].snwd if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) else "M",
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].snwdM if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].snwdM == "T" else "",
+   "*" if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].snwdQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].snwd if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) else "M",
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].snwdM if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].snwdM == "T" else "",
+   "*" if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].snwdQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].snwd if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) else "M",
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].snwdM if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].snwdM == "T" else "",
+   "*" if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].snwdQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].snwd if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) else "M",
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].snwdM if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].snwdM == "T" else "",
+   "*" if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].snwdQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].snwd if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) else "M",
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].snwdM if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].snwdM == "T" else "",
+   "*" if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].snwdQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].snwd if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) else "M",
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].snwdM if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].snwdM == "T" else "",
+   "*" if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].snwdQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].snwd if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) else "M",
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].snwdM if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].snwdM == "T" else "",
+   "*" if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].snwdQ != "" else "")))
+        print("{:^6}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}".format("TMAX",
+   "{}{}{}".format(
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].tmax if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) else "M",
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].tmaxM if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].tmaxM == "T" else "",
+   "*" if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].tmaxQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].tmax if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) else "M",
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].tmaxM if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].tmaxM == "T" else "",
+   "*" if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].tmaxQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].tmax if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) else "M",
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].tmaxM if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].tmaxM == "T" else "",
+   "*" if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].tmaxQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].tmax if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) else "M",
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].tmaxM if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].tmaxM == "T" else "",
+   "*" if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].tmaxQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].tmax if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) else "M",
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].tmaxM if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].tmaxM == "T" else "",
+   "*" if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].tmaxQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].tmax if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) else "M",
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].tmaxM if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].tmaxM == "T" else "",
+   "*" if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].tmaxQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].tmax if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) else "M",
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].tmaxM if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].tmaxM == "T" else "",
+   "*" if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].tmaxQ != "" else "")))
+        print("{:^6}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}|{:^10}".format("TMIN",
+   "{}{}{}".format(
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].tmin if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) else "M",
+   clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].tminM if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].tminM == "T" else "",
+   "*" if checkDate(indvweekdays[0].year,indvweekdays[0].month,indvweekdays[0].day) and clmt[indvweekdays[0].year][indvweekdays[0].month][indvweekdays[0].day].tminQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].tmin if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) else "M",
+   clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].tminM if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].tminM == "T" else "",
+   "*" if checkDate(indvweekdays[1].year,indvweekdays[1].month,indvweekdays[1].day) and clmt[indvweekdays[1].year][indvweekdays[1].month][indvweekdays[1].day].tminQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].tmin if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) else "M",
+   clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].tminM if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].tminM == "T" else "",
+   "*" if checkDate(indvweekdays[2].year,indvweekdays[2].month,indvweekdays[2].day) and clmt[indvweekdays[2].year][indvweekdays[2].month][indvweekdays[2].day].tminQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].tmin if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) else "M",
+   clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].tminM if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].tminM == "T" else "",
+   "*" if checkDate(indvweekdays[3].year,indvweekdays[3].month,indvweekdays[3].day) and clmt[indvweekdays[3].year][indvweekdays[3].month][indvweekdays[3].day].tminQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].tmin if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) else "M",
+   clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].tminM if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].tminM == "T" else "",
+   "*" if checkDate(indvweekdays[4].year,indvweekdays[4].month,indvweekdays[4].day) and clmt[indvweekdays[4].year][indvweekdays[4].month][indvweekdays[4].day].tminQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].tmin if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) else "M",
+   clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].tminM if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].tminM == "T" else "",
+   "*" if checkDate(indvweekdays[5].year,indvweekdays[5].month,indvweekdays[5].day) and clmt[indvweekdays[5].year][indvweekdays[5].month][indvweekdays[5].day].tminQ != "" else ""),
+   "{}{}{}".format(
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].tmin if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) else "M",
+   clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].tminM if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].tminM == "T" else "",
+   "*" if checkDate(indvweekdays[6].year,indvweekdays[6].month,indvweekdays[6].day) and clmt[indvweekdays[6].year][indvweekdays[6].month][indvweekdays[6].day].tminQ != "" else "")))
+
+        print("")
         print("Total Precipitation: {}".format(round(w_prcp,2)))
         print("Total Precipitation Days (>= T): {}".format(w_prcpDAYS))
         #print("-- Highest Precip: {}, {}".format(w_prcpPROP["max"],w_prcpPROP["day"]))
@@ -839,7 +1001,7 @@ def weekStats(y,m,d):
             #print("-- Coolest Min Temperature: {}, {}".format(w_tminPROP["LO"],w_tminPROP["dayLO"]))
         except:
             print("Average Min Temperature: N/A")
-        print("-----")
+        print("")
 
 def monthStats(y,m):
     """Report on recorded statistics for a month of interest. It accepts only
@@ -1418,12 +1580,12 @@ def customStats(y1,m1,d1,*date2):
         print("*** NO LOW TEMPERATURE DATA FOR RANGE ***")
     print("-----")
 
-def dayReport(m,d):   # As of this version, this function will be valid for records from 1811 to 2040
+def dayReport(m,d,**output):
     """Detailed Climatological Report for recorded statistics of a specific
     day. It accepts only arguments for the month and day of interest. Passed
     arguments MUST be integers
     
-    dayReport(month,day)
+    dayReport(month,day,**{output=False})
     
     EXAMPLE: dayReport(5,31) -> Returns a climatological report for May 31
     """
@@ -1434,15 +1596,15 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
     for x in range(1811,max(valid_yrs)+1,clmt_inc_rpt):
         if x in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]) and x+clmt_len_rpt-1 in range(valid_yrs[0],valid_yrs[len(valid_yrs)-1]+1):
             climo30yrs[(x,x+clmt_len_rpt-1)] = {"years":(x,x+clmt_len_rpt-1),
-                                    "prcp": [],"prcpPROP":{"day_max":[-1,[]]},
-                                    "snow": [],"snowPROP":{"day_max":[-1,[]]},
+                                    "prcp": [],"prcpPROP":{"days":0,"day_max":[-1,[]]},
+                                    "snow": [],"snowPROP":{"days":0,"day_max":[-1,[]]},
                                     "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
                                     "tmax": [],"tmaxPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
                                     "tmin": [],"tminPROP":{"day_max":[-999,[]],"day_min":[999,[]]}}
 
     alltime = {"years":(valid_yrs[0],valid_yrs[len(valid_yrs)-1]),
-               "prcp": [],"prcpPROP":{"day_max":[-1,[]]},
-               "snow": [],"snowPROP":{"day_max":[-1,[]]},
+               "prcp": [],"prcpPROP":{"days":0,"day_max":[-1,[]]},
+               "snow": [],"snowPROP":{"days":0,"day_max":[-1,[]]},
                "tempAVGlist": [],"tempAVGlist_ind":[],"tavgPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
                "tmax": [],"tmaxPROP":{"day_max":[-999,[]],"day_min":[999,[]]},
                "tmin": [],"tminPROP":{"day_max":[-999,[]],"day_min":[999,[]]}}
@@ -1455,6 +1617,7 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
         try:
             if clmt[y][m][d].prcpQ in ignoreflags and clmt[y][m][d].prcp not in ["9999","-9999",""]:
                 alltime["prcp"].append(float(clmt[y][m][d].prcp))
+                if float(clmt[y][m][d].prcp) > 0 or clmt[y][m][d].prcpM == "T": alltime["prcpPROP"]["days"] += 1
                 if float(clmt[y][m][d].prcp) == alltime["prcpPROP"]["day_max"][0]:
                     alltime["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
                 elif float(clmt[y][m][d].prcp) > alltime["prcpPROP"]["day_max"][0]:
@@ -1464,6 +1627,7 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
                 for c in climo30yrs:
                     if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                         climo30yrs[c]["prcp"].append(float(clmt[y][m][d].prcp))
+                        if float(clmt[y][m][d].prcp) > 0 or clmt[y][m][d].prcpM == "T": climo30yrs[c]["prcpPROP"]["days"] += 1
                         if float(clmt[y][m][d].prcp) == climo30yrs[c]["prcpPROP"]["day_max"][0]:
                             climo30yrs[c]["prcpPROP"]["day_max"][1].append(clmt[y][m][d])
                         elif float(clmt[y][m][d].prcp) > climo30yrs[c]["prcpPROP"]["day_max"][0]:
@@ -1475,6 +1639,7 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
         try:
             if clmt[y][m][d].snowQ in ignoreflags and clmt[y][m][d].snow not in ["9999","-9999",""]:
                 alltime["snow"].append(float(clmt[y][m][d].snow))
+                if float(clmt[y][m][d].snow) > 0 or clmt[y][m][d].snowM == "T": alltime["snowPROP"]["days"] += 1
                 if float(clmt[y][m][d].snow) == alltime["snowPROP"]["day_max"][0]:
                     alltime["snowPROP"]["day_max"][1].append(clmt[y][m][d])
                 elif float(clmt[y][m][d].snow) > alltime["snowPROP"]["day_max"][0]:
@@ -1484,6 +1649,7 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
                 for c in climo30yrs:
                     if y >= c[0] and y <= c[1] and c[0] >= min(YR for YR in clmt  if type(YR) == int) and c[1] <= max(YR for YR in clmt  if type(YR) == int):
                         climo30yrs[c]["snow"].append(float(clmt[y][m][d].snow))
+                        if float(clmt[y][m][d].snow) > 0 or clmt[y][m][d].snowM == "T": climo30yrs[c]["snowPROP"]["days"] += 1
                         if float(clmt[y][m][d].snow) == climo30yrs[c]["snowPROP"]["day_max"][0]:
                             climo30yrs[c]["snowPROP"]["day_max"][1].append(clmt[y][m][d])
                         elif float(clmt[y][m][d].snow) > climo30yrs[c]["snowPROP"]["day_max"][0]:
@@ -1630,35 +1796,51 @@ def dayReport(m,d):   # As of this version, this function will be valid for reco
         except:
             print(c)
     print("")
-    """
-    if "csv" in csv:
-        if csv["csv"] == True:
-            newfn = "dayReport_" + str(calendar.month_abbr[m]) + str(d) + "_" + FILE
-            with open(newfn,"w") as w:
-                headers = ["Climat. Period ({} {})".format(calendar.month_abbr[m],d),"Avg Temperature","Avg High","Avg Low"]
-                # HEADER
-                for x in range(len(headers)):
-                    if x != len(headers) - 1: w.write(headers[x]); w.write(",")
-                    else: w.write(headers[x]); w.write("\n")
-                w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
-                w.write("{:.1f}".format(round(mean(alltime["tempAVGlist"]),1))); w.write(",")
-                w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
-                w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
-                for x in climo30yrs:
-                    w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
-                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
-                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
-                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
-                print("*** csv output successful ***")
-    """
 
-def weekReport(m,d):
+    if "output" in output and output["output"] == True:
+        newfn = "dayReport_" + str(calendar.month_abbr[m]) + str(d) + "_" + str(clmt_len_rpt) + "YRclimo_" + str(clmt_inc_rpt) + "YRincr_" + clmt["station_name"] + ".csv"
+        with open(newfn,"w") as w:
+            headers = ["Assessed Period ({} {})".format(calendar.month_abbr[m],d),"PRCP Days","PRCP stdev","PRCP AVG","SNOW Days","SNOW stdev","SNOW AVG","TAVG stdev","TAVG","TMAX stdev","TMAX","TMIN stdev","TMIN"]
+            # HEADER
+            for x in range(len(headers)):
+                if x != len(headers) - 1: w.write(headers[x]); w.write(",")
+                else: w.write(headers[x]); w.write("\n")
+            w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
+            w.write("{}".format(alltime["prcpPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["prcp"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["prcp"]),1))); w.write(",")
+            w.write("{}".format(alltime["snowPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tempAVGlist"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tempAVGlist"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmin"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
+            for x in climo30yrs:
+                w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
+                w.write("{}".format(climo30yrs[x]["prcpPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{}".format(climo30yrs[x]["snowPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmin"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
+            print("*** csv output successful ***")
+
+def weekReport(m,d,**output):
     """Detailed Climatological Report for recorded statistics of a specific
     week of interest. Passed month and day will represent the center of the
     week. It accepts only arguments for the month and day of interest. Passed
     arguments MUST be integers
     
-    weekReport(month,day)
+    weekReport(month,day,**{output=False})
     
     EXAMPLE: weekReport(9,29) -> Returns a climatological report for the week
                                  centered on September 29. So data between
@@ -1950,39 +2132,54 @@ def weekReport(m,d):
         except Exception as e:
             print("ERROR: Era = {}; Exception = {}".format(c,e))
     print("")
-    """
-    if "csv" in csv:
-        if csv["csv"] == True:
-            newfn = "weekReport_" + str(calendar.month_abbr[m]) + str(d) + "_" + FILE
-            with open(newfn,"w") as w:
-                headers = ["Climat. Period ({:%b} {:%d} - {:%b} {:%d})".format(wkstart,wkstart,wkend,wkend),
-                           "Avg Precipitation",
-                           "Avg Snow",
-                           "Avg Temperature",
-                           "Avg High",
-                           "Avg Low"]
-                # HEADER
-                for x in range(len(headers)):
-                    if x != len(headers) - 1: w.write(headers[x]); w.write(",")
-                    else: w.write(headers[x]); w.write("\n")
-                w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
-                w.write("{:.1f}".format(round(mean(alltime["tempAVGlist"]),1))); w.write(",")
-                w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
-                w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
-                for x in climo30yrs:
-                    w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
-                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
-                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
-                    w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
-                print("*** csv output successful ***")
-    """
 
-def monthReport(m):
+    if "output" in output and output["output"] == True:
+        newfn = "weekReport_centered_" + str(calendar.month_abbr[m]) + str(d) + "_" + str(clmt_len_rpt) + "YRclimo_" + str(clmt_inc_rpt) + "YRincr_" + clmt["station_name"] + ".csv"
+        with open(newfn,"w") as w:
+            headers = ["Assessed Period ({}-{} thru {}-{})".format(wkstart.month,wkstart.day,wkend.month,wkend.day),"PRCP Days","PRCP % of days","PRCP stdev","PRCP AVG","SNOW Days","SNOW % of days","SNOW stdev","SNOW AVG","TAVG stdev","TAVG","TMAX stdev","TMAX","TMIN stdev","TMIN"]
+            # HEADER
+            for x in range(len(headers)):
+                if x != len(headers) - 1: w.write(headers[x]); w.write(",")
+                else: w.write(headers[x]); w.write("\n")
+            w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
+            w.write("{}".format(alltime["prcpPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["prcp"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["prcp"]),1))); w.write(",")
+            w.write("{}".format(alltime["snowPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["snowPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tempAVGlist"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tempAVGlist_ind"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmin"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
+            for x in climo30yrs:
+                w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
+                w.write("{}".format(climo30yrs[x]["prcpPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["prcpPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{}".format(climo30yrs[x]["snowPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["snowPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist_ind"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmin"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
+            print("*** csv output successful ***")
+
+def monthReport(m,**output):
     """Detailed Climatological Report for recorded statistics from a month of
     interest. It only accepts an argument for the month of interest. Passed
     argument MUST be an integer.
     
-    monthReport(month)
+    monthReport(month,**{output=False})
     
     EXAMPLE: monthReport(11) -> Returns a climatological report for November.
     """
@@ -2276,15 +2473,56 @@ def monthReport(m):
         except Exception as e:
             print("ERROR: Era = {}; Exception = {}".format(c,e))
     print("")
+    
+    if "output" in output and output["output"] == True:
+        newfn = "monthReport_" + str(calendar.month_name[m]) + "_" + str(clmt_len_rpt) + "YRclimo_" + str(clmt_inc_rpt) + "YRincr_" + clmt["station_name"] + ".csv"
+        with open(newfn,"w") as w:
+            headers = ["Assessed Period ({})".format(str(calendar.month_name[m])),"PRCP Days","PRCP % of days","PRCP stdev","PRCP AVG","SNOW Days","SNOW % of days","SNOW stdev","SNOW AVG","TAVG stdev","TAVG","TMAX stdev","TMAX","TMIN stdev","TMIN"]
+            # HEADER
+            for x in range(len(headers)):
+                if x != len(headers) - 1: w.write(headers[x]); w.write(",")
+                else: w.write(headers[x]); w.write("\n")
+            w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
+            w.write("{}".format(alltime["prcpPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["prcp"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["prcp"]),1))); w.write(",")
+            w.write("{}".format(alltime["snowPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["snowPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tempAVGlist"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tempAVGlist_ind"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmin"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
+            for x in climo30yrs:
+                w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
+                w.write("{}".format(climo30yrs[x]["prcpPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["prcpPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{}".format(climo30yrs[x]["snowPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["snowPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist_ind"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmin"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
+            print("*** csv output successful ***")
 
-def yearReport():
-    """Detailed Climatological Report for recorded statistics from a year of
-    interest. It only accepts an argument for the year of interest. Passed
-    argument MUST be an integer.
+def yearReport(**output):
+    """Detailed Climatological Report for recorded statistics from all years
+    on record, from January to December.
     
-    yearReport(year)
+    yearReport(**{output=False})
     
-    EXAMPLE: yearReport(1909) -> Returns a climatological report for 1909.
+    EXAMPLE: yearReport() -> Returns a climatological report for all years on
+                             record.
     """
     valid_yrs = [x for x in clmt.keys() if type(x) == int]
     valid_yrs.sort()
@@ -2579,13 +2817,54 @@ def yearReport():
         except Exception as e:
             print("ERROR: Era = {}; Exception = {}".format(c,e))
     print("")
+    
+    if "output" in output and output["output"] == True:
+        newfn = "yearReport_Jan-Dec_" + str(clmt_len_rpt) + "YRclimo_" + str(clmt_inc_rpt) + "YRincr_" + clmt["station_name"] + ".csv"
+        with open(newfn,"w") as w:
+            headers = ["Assessed Period (Jan 1-Dec 31)","PRCP Days","PRCP % of days","PRCP stdev","PRCP AVG","SNOW Days","SNOW % of days","SNOW stdev","SNOW AVG","TAVG stdev","TAVG","TMAX stdev","TMAX","TMIN stdev","TMIN"]
+            # HEADER
+            for x in range(len(headers)):
+                if x != len(headers) - 1: w.write(headers[x]); w.write(",")
+                else: w.write(headers[x]); w.write("\n")
+            w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
+            w.write("{}".format(alltime["prcpPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["prcp"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["prcp"]),1))); w.write(",")
+            w.write("{}".format(alltime["snowPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["snowPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tempAVGlist"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tempAVGlist_ind"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmin"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
+            for x in climo30yrs:
+                w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
+                w.write("{}".format(climo30yrs[x]["prcpPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["prcpPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{}".format(climo30yrs[x]["snowPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["snowPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist_ind"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmin"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
+            print("*** csv output successful ***")
 
-def seasonReport(season):
+def seasonReport(season,**output):
     """Detailed Climatological Report for recorded statistics from a season of
     interest. It only accepts an argument for the season of interest which
     must be in string format (accepts "spring", "summer", "fall", or "winter")
     
-    seasonReport(SEASON)
+    seasonReport(SEASON,**{output=False})
     
     EXAMPLE: seasonReport("summer") -> Returns a climatological report for all
                                        met. summers (6,7,8) on record
@@ -2888,12 +3167,55 @@ def seasonReport(season):
             print("ERROR: Era = {}; Exception = {}".format(c,e))
     print("")
 
-def metYearReport():
+    if "output" in output and output["output"] == True:
+        newfn = "seasonReport_met" + season.lower().capitalize() + "_" + str(clmt_len_rpt) + "YRclimo_" + str(clmt_inc_rpt) + "YRincr_" + clmt["station_name"] + ".csv"
+        with open(newfn,"w") as w:
+            headers = ["Assessed Period (Meteorological {})".format(season.lower().capitalize()),"PRCP Days","PRCP % of days","PRCP stdev","PRCP AVG","SNOW Days","SNOW % of days","SNOW stdev","SNOW AVG","TAVG stdev","TAVG","TMAX stdev","TMAX","TMIN stdev","TMIN"]
+            # HEADER
+            for x in range(len(headers)):
+                if x != len(headers) - 1: w.write(headers[x]); w.write(",")
+                else: w.write(headers[x]); w.write("\n")
+            w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
+            w.write("{}".format(alltime["prcpPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["prcp"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["prcp"]),1))); w.write(",")
+            w.write("{}".format(alltime["snowPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["snowPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tempAVGlist"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tempAVGlist_ind"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmin"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
+            for x in climo30yrs:
+                w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
+                w.write("{}".format(climo30yrs[x]["prcpPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["prcpPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{}".format(climo30yrs[x]["snowPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["snowPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist_ind"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmin"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
+            print("*** csv output successful ***")
+
+def metYearReport(**output):
     """Detailed Climatological Report for recorded statistics from a
     meteorlogical year (March to February) of interest. No arguments are
     needed to be passed.
     
-    EXAMPLE: MetYearReport() -> Returns a climatological report for all
+    metYearReport(**{output=False})
+    
+    EXAMPLE: metYearReport() -> Returns a climatological report for all
                                 meteorological years on record.
     """
     valid_yrs = [x for x in metclmt.keys() if type(x) == int]
@@ -3190,14 +3512,55 @@ def metYearReport():
             print("ERROR: Era = {}; Exception = {}".format(c,e))
     print("")
 
-def customReport(m1,d1,*date2):
+    if "output" in output and output["output"] == True:
+        newfn = "metYearReport_Mar-Feb_" + str(clmt_len_rpt) + "YRclimo_" + str(clmt_inc_rpt) + "YRincr_" + clmt["station_name"] + ".csv"
+        with open(newfn,"w") as w:
+            headers = ["Assessed Period (March to February)","PRCP Days","PRCP % of days","PRCP stdev","PRCP AVG","SNOW Days","SNOW % of days","SNOW stdev","SNOW AVG","TAVG stdev","TAVG","TMAX stdev","TMAX","TMIN stdev","TMIN"]
+            # HEADER
+            for x in range(len(headers)):
+                if x != len(headers) - 1: w.write(headers[x]); w.write(",")
+                else: w.write(headers[x]); w.write("\n")
+            w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
+            w.write("{}".format(alltime["prcpPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["prcp"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["prcp"]),1))); w.write(",")
+            w.write("{}".format(alltime["snowPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["snowPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tempAVGlist"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tempAVGlist_ind"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmin"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
+            for x in climo30yrs:
+                w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
+                w.write("{}".format(climo30yrs[x]["prcpPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["prcpPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{}".format(climo30yrs[x]["snowPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["snowPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist_ind"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmin"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
+            print("*** csv output successful ***")
+
+def customReport(m1,d1,*date2,**output):
     """Detailed Climatological Report on a custom-length period of statistics.
     All passed arguments MUST be integers. If the optional ending arguments
     are not included, the default ending will be December 31. If the end day
     given occurs before the start day in the calendar year, the end day of the
     following year will be used in compiling stats.
     
-    customReport(M1,D1,*[M2,D2])
+    customReport(M1,D1,*[M2,D2],**{output=False})
     
     REQUIRED: M1,D1 --> Represent the beginning month, and day of the custom
                         period.
@@ -3589,6 +3952,47 @@ def customReport(m1,d1,*date2):
         except Exception as er:
             print("ERROR: Era = {}; Exception = {}".format(c,er))
     print("")
+
+    if "output" in output and output["output"] == True:
+        newfn = "customReport_{}{}to{}{}_".format(calendar.month_abbr[m1],d1,calendar.month_abbr[m2],d2) + str(clmt_len_rpt) + "YRclimo_" + str(clmt_inc_rpt) + "YRincr_" + clmt["station_name"] + ".csv"
+        with open(newfn,"w") as w:
+            headers = ["Assessed Period ({}{} to {}{})".format(calendar.month_abbr[m1],d1,calendar.month_abbr[m2],d2),"PRCP Days","PRCP % of days","PRCP stdev","PRCP AVG","SNOW Days","SNOW % of days","SNOW stdev","SNOW AVG","TAVG stdev","TAVG","TMAX stdev","TMAX","TMIN stdev","TMIN"]
+            # HEADER
+            for x in range(len(headers)):
+                if x != len(headers) - 1: w.write(headers[x]); w.write(",")
+                else: w.write(headers[x]); w.write("\n")
+            w.write("{}-{}".format(alltime["years"][0],alltime["years"][1])); w.write(",")
+            w.write("{}".format(alltime["prcpPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["prcpPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["prcp"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["prcp"]),1))); w.write(",")
+            w.write("{}".format(alltime["snowPROP"]["days"])); w.write(",")
+            w.write("{:.1f}".format(round(100 * alltime["snowPROP"]["days"] / alltime["total_days"],1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["snow"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tempAVGlist"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tempAVGlist_ind"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmax"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(pstdev(alltime["tmin"]),1))); w.write(",")
+            w.write("{:.1f}".format(round(mean(alltime["tmin"]),1))); w.write("\n")
+            for x in climo30yrs:
+                w.write("{}-{}".format(climo30yrs[x]["years"][0],climo30yrs[x]["years"][1])); w.write(",")
+                w.write("{}".format(climo30yrs[x]["prcpPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["prcpPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["prcp"]),1))); w.write(",")
+                w.write("{}".format(climo30yrs[x]["snowPROP"]["days"])); w.write(",")
+                w.write("{:.1f}".format(round(100 * climo30yrs[x]["snowPROP"]["days"] / climo30yrs[x]["total_days"],1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["snow"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tempAVGlist"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tempAVGlist_ind"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmax"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(pstdev(climo30yrs[x]["tmin"]),1))); w.write(",")
+                w.write("{:.1f}".format(round(mean(climo30yrs[x]["tmin"]),1))); w.write("\n")
+            print("*** csv output successful ***")
 
 def dayRank(m,d,qty):
     """Returns a list of rankings (maxs and mins) based on a specific day of a
@@ -5530,6 +5934,43 @@ def clmthelp():
     print("       The ending date is optional. This is a good function for proxy of a YTD function")
     print("    -- allDayRank('attribute',quantity,**{season,year,month,ascending}) :: compares all daily data on record.")
     print("       optional temporal keyword arguments accepted")       
+
+def clmtmenu():
+    """Enables the user to select which csv file (as such, which city) that
+    they'd like to load/mount into the program; automatically ran at
+    initilization of the script, but can be ran at anytime; replaces the
+    csvFileList() function.
+    
+    clmtmenu()    
+    """
+    tempcsvlist = os.listdir()
+    csvs_in_dir = [x for x in tempcsvlist if x[len(x)-3:] == "csv" and x[0:9] not in ["dayReport","weekRepor","monthRepo","yearRepor","seasonRep","metYearRe","customRep"]]
+    selection = False   # Will cause the function to wait until an accepted answer is input
+    print("**********************************************************")
+    print("            CLIMATE PARSER (clmt-parser.py) v2.6")
+    print("                  by K. Gentry (ksgwxfan)")
+    print("**********************************************************")
+    print("- Make selection and press <ENTER>; type-in cancel to exit function")
+    print("- Run this function again by entering clmtmenu()")
+    print("- OPTIONAL: enter in a custom city name (useful if the file has")
+    print("      multiple stations). Just separate by a comma.")
+    print("      Example -->   Enter Selection: 2, CITY")
+    print("-----------------------------------------------------------")
+    for each in csvs_in_dir:
+        print("{:>3}. {}".format(csvs_in_dir.index(each) + 1,each))
+    print("-----------------------------------------------------------")
+    while selection == False:
+        userselection = input("Enter Selection: ")
+        userselection = userselection.split(",")
+        if userselection[0].isnumeric() and int(userselection[0]) > 0 and int(userselection[0]) <= len(csvs_in_dir):
+            selection = True
+        else: print("OOPS! Invalid selection. Try again!")
+    if userselection[0].lower() != "cancel":
+        if len(userselection) == 1: clmtAnalyze(csvs_in_dir[int(userselection[0])-1])
+        else:
+            citystr = userselection[1].strip(" ") + ", " + userselection[2].strip(" ")
+            clmtAnalyze(csvs_in_dir[int(userselection[0])-1],city=citystr)
+
 # MAIN PROGRAM --------------------------------------------------------------
 clmt = {}
 metclmt = {}
@@ -5555,24 +5996,4 @@ excludeseason_tavg = excludeseason * 2
 excludemonth_tavg = excludemonth * 2
 excludeweek_tavg = excludeweek * 2
 
-
-#csvFileList()
-#filename = "RAW-MTA-1893-oct20_2019.csv"
-
-# WELCOME MESSAGE UPON STARTING
-print("************************************")
-print("CLIMATE PARSER (clmt-parser.py) v2.5")
-print("  by K. Gentry (ksgwxfan)")
-print("************************************\n")
-
-print(" INSTRUCTIONS: (*** See README.md for data retrieval and exensive instructions ***)")
-print('    1) Find the filename of your .csv, then run clmtAnalyze("citydata.csv")')
-print("       -- csvFileList() will return a list of all csv's in the working directory and")
-print("          their basic calls")
-print("       -- OPTIONAL keyword argument for city:")
-print('             clmtAnalyze("citydata.csv",city="CITY NAME, USA"')
-print("    2) After completion, you can then run reports on the data")
-print(" -------------------------------------------------------------------------------------")
-print(" For more detailed assistance, enter clmthelp() for a breakdown of available functions")
-print(" that you can use once the data is mounted")
-print(" -------------------------------------------------------------------------------------")
+clmtmenu()

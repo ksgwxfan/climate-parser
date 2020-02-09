@@ -29,6 +29,11 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 ### Fixes and Changes
 ### New in v2.x
 
+##### v2.6
+* Eliminated `csvFileList()` (and the need thereof). The script now runs `clmtmenu()` automatically at the execution of the script. It allows the user to enter in a single number from a list of csv files, and an optional city name.
+* Added an `output` csv keyword argument to all report functions. This outputs a csv version of the report, allowing the user to open it up in a spreadsheet program to do charts and such.
+* Revamped `weekStats` output to show comprehensive layout of data including all daily data from the week inquired
+
 ##### v2.5
 * Included a new function, `allDayRank()` which ranks based solely on individual day records. This enables displaying all time record highs/lows for the entire record
   * Also included some temporal keyword arguments; so you can compare data within a certain month, month in a year, a year, a season, or a season from a specific year
@@ -115,18 +120,16 @@ Download the data, change the name to something intuitive, and place it into the
 
 ### Running the Script
 
-When you load the script `clmt_parser.py`, you should see a welcome message.
-
-Loading data is done through the `clmtAnalyze()` function.
-* Find the filename of interest
-  * running `csvFileList()` will return a list of CSV files in the current directory. Included is a sample-call using that csv file
-  * remember your file should be in the same directory as your script
-
-run `clmtAnalyze("city-data.csv")`
-* RECOMMENDED For 2 or more stations: `clmtAnalyze` accepts an optional keyword argument: `city="cityname.csv"`
-  * Example: `clmtAnalyze("city-name.csv",city="City Name")`
-  * The default setting would be using the [GHCND Station ID](https://www1.ncdc.noaa.gov/pub/data/ghcn/daily/ghcnd-stations.txt) and Station Name (which typically includes the cityname; the script will note when more than one station has been used)
-  * This will be useful as you may not want to represent all of the data as originating from one place if you compiled data from multiple (but still geographically-close) stations
+When you load the script `clmt_parser.py`, you'll see a list of csv files with a number in front. The prompt will ask you which file you'd like to mount/load. Enter the number. It also supports a city name. This is beneficial if using multiple stations from one general location. You can always bring up this prompt again by entering `clmtmenu()` to load a different file.
+```
+*** Run this function again by entering clmtmenu() ***
+-----------------------------------------------------------
+  1. RenoNV_alltime.csv
+  2. CHI_IL_1940_2019.csv
+  3. clmt-TALLAHASSEE_2stations_1899_2019.csv
+-----------------------------------------------------------
+Enter Selection: 3, Tallahassee, FL
+```
 
 Wait for the script to complete. At the end you'll receive a notice of monthly data missing from the record and the time it took to run the script
 ```
@@ -254,18 +257,28 @@ TMIN: -17, Rank: 50th Warmest; 4th Coolest
 
 Delivered stats based on a 7-day week with the submitted date being the center of that period
 ```
->>> weekStats(1955,8,15)
--------------------------------------
-Weekly Statistics for 1955-08-12 thru 1955-08-18
-USC00001337: CITY, USA
-Quantity of Records: 7
------
-Total Precipitation: 1.29
-Total Precipitation Days (>= T): 6
-Average Temperature: 78
-Average Max Temperature: 86
-Average Min Temperature: 70
------
+>>> weekStats(2014,2,14)
+
+                 Weekly Statistics for 2014-02-11 thru 2014-02-17
+                              USC00001337: CITY, USA
+                              Quantity of Records: 7
+-----------------------------------------------------------------------------------
+      |   2014   |   2014   |   2014   |   2014   |   2014   |   2014   |   2014
+      |  Feb 11  |  Feb 12  |  Feb 13  |  Feb 14  |  Feb 15  |  Feb 16  |  Feb 17
+------|----------|----------|----------|----------|----------|----------|----------
+ PRCP |  0.00T   |   0.00   |   1.20   |   0.47   |   0.02   |   0.00   |   0.00
+ SNOW |   0.0    |   0.0    |   8.6    |   2.6    |   0.0    |   0.0    |   0.0
+ SNWD |   0.0    |   0.0    |   8.0    |   11.0   |   7.0    |   5.0    |   4.0
+ TMAX |    40    |    39    |    30    |    41    |    56    |    39    |    52
+ TMIN |    27    |    20    |    21    |    30    |    32    |    22    |    22
+
+Total Precipitation: 1.69
+Total Precipitation Days (>= T): 4
+Total Snow: 11.2
+Total Snow Days (>= T): 2
+Average Temperature: 33.6
+Average Max Temperature: 42.4
+Average Min Temperature: 24.9
 ```
 Get stats for the specified month
 ```
@@ -408,15 +421,15 @@ Average Min Temperature: 16.5
 
 #### Reports
 
-These functions return robust climatological data, including all-time statistics and for climatological eras, incremented by 5 years. This enables, what I refer to as, climatological-tendency analysis. This allows you to see how the averages change over time, as comparisons of a day's, month's, or year's data usually only takes place against one time period. How is the long-term average changing? I believe it simplifies analysis and makes it easier to see trends. Of note, in `monthReport()` and `yearReport()`, reported standard deviations are calculated of the means/averages for individual months/years. Associated data is not considered if threshold quantities are not met.
+These functions return robust climatological data, including all-time statistics and for climatological eras. As mentioned before, by default, the calculated values are for 30-year periods incremented by 5 years. This enables, what I refer to as, climatological-tendency analysis. This allows you to see how the averages change over time, as comparisons of a day's, month's, or year's data usually only takes place against one time period. How is the long-term average changing? I believe it simplifies analysis and makes it easier to see trends. An optional `output=True` keyword argument allows the user to save the report externally (in the same folder as the script) to open in a spreadsheet program, allowing further inspection of the data and chart-making.
 
-`dayReport(m,d)` :: Collects and returns statistics for all specified days in the record
-`weekReport(m,d)` :: Gathers and reports for specified week in the entire record
-`monthReport(m)` :: Gives a report for a specific month
-`yearReport()` :: Analyzes the entire record and returns a report based on years; no passed-data is needed
-`metYearReport()` :: Same as above, but does so based on meteorological years (March-February)
-`seasonReport(season)` :: Gets a meteorologically-seasoned based statistic report
-`customReport(m1,d1,*[m2,d2])` :: Gets a climatolgical report based on the user-defined custom time-frame
+`dayReport(m,d,**output=True)` :: Collects and returns statistics for all specified days in the record
+`weekReport(m,d**output=True)` :: Gathers and reports for specified week in the entire record
+`monthReport(m**output=True)` :: Gives a report for a specific month
+`yearReport(**output=True)` :: Analyzes the entire record and returns a report based on years; no passed-data is needed
+`metYearReport(**output=True)` :: Same as above, but does so based on meteorological years (March-February)
+`seasonReport(season,**output=True)` :: Gets a meteorologically-seasoned based statistic report
+`customReport(m1,d1,*[m2,d2],**output=True)` :: Gets a climatolgical report based on the user-defined custom time-frame
 
 ```
 >>> monthReport(12)
@@ -629,16 +642,11 @@ Meteorlogical Years/Seasons can also be retrieved in very similar ways as above.
 * Include SNWD (Snow Depth) in rankings
 * Add a record threshold for the ranking functions; truncating after a certain amount
   * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
-* All-time based ranks.
-  * `dayRankAllTime()` would retrieve the hottest/coldest/rainiest/snowiest days on record, regardless of month or day
-  * `monthRankAllTime()` would compare all months to each other, and return the ranks
 * Improvement of report aesthetics
   * add "--" for redundant snow values of 0 across all reports
 * I know I need to comment more in the code
 * Include least-snowiest years in year functions
 * Add ranks to month and year Stats functions
-* Add/check threshold to stat functions?
-* reduce redundancy of `metclmt` compiling by checking if I can remove the threshold bools
 * Value Search Statistics (some way that you can search for 90degree-plus days; days/months with x-amount or more of precip)
 * Revamp month and year stats functions to give broader-base of data; more of a table-summary, perhaps
 * Make an annual Average Temperatures Graph; daily and day-centered weekly; day-centered monthly
@@ -646,6 +654,7 @@ Meteorlogical Years/Seasons can also be retrieved in very similar ways as above.
 * Remove `checkdate` calls from customStats
 * on all stats functions, consider also outputting the temperature quantity if different than total recordqty
 * in `errorStats`, account for times when `SNWD` goes up without any `SNOW` in the recent record
+* consider adding a max snow depth for week/month/year output?
 
 [&#8679; back to Contents](#contents)
 
