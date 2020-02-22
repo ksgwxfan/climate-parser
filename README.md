@@ -1,4 +1,4 @@
-# Climate Parser v2.4
+# Climate Parser v2.7
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -20,6 +20,7 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
   * [Stats Search Functions](#stats) - output specific to particular times
   * [Report Search Functions](#reports) - outputs a climatological report of historical stats and enables basic climatological-tendency analysis of desired time-frame
   * [Rank Search Functions](#ranking) - orders the data into ranking, based on particular time-frame of interest
+  * [Value Searching the Record](#valueSearch) - search the record based on specific value thresholds
 * [On-the-fly access/reference to data](#on-the-fly-data-retrieval)
 * Sample Scripts (to be added later)
 * [Roadmap](#roadmap)
@@ -28,6 +29,14 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 
 ### Fixes and Changes
 ### New in v2.x
+
+##### v2.7 (ready to be uploaded)
+* Fixed `weekStats` output by making a mirror function of `checkDate`. After the 2.6 overhaul, for days where data was missing, it was outputting default messages from the original checkDate function.
+  * Fixed output to reflect missing data by printing an `M`; in v2.6 it only would've done this if no entry was found in `clmt`
+* Fixed 'clmtmenu()' so it will interpret custom location names with more than 1 comma in it (i.e. "Minneapolis, MN, USA")
+* Included `clmt_vars_months`, which is a 'reverse' dictionary for monthly data. It is the monthly parallel of the previously added 'clmt_vars_days'.
+* Included `allMonthRank`, the monthly parallel of the `allDayRank` function, to allow comparison of different months to each other
+* Included a basic `valueSearch` function. This allows the user to search the record for data based on specific value thresholds
 
 ##### v2.6
 * Eliminated `csvFileList()` (and the need thereof). The script now runs `clmtmenu()` automatically at the execution of the script. It allows the user to enter in a single number from a list of csv files, and an optional city name.
@@ -120,7 +129,7 @@ Download the data, change the name to something intuitive, and place it into the
 
 ### Running the Script
 
-When you load the script `clmt_parser.py`, you'll see a list of csv files with a number in front. The prompt will ask you which file you'd like to mount/load. Enter the number. It also supports a city name. This is beneficial if using multiple stations from one general location. You can always bring up this prompt again by entering `clmtmenu()` to load a different file.
+When you load the script `clmt_parser.py`, you'll see a list of csv files with a number in front. The prompt will ask you which file you'd like to mount/load. Enter the number. It also supports a custom city name. This is beneficial if using multiple stations from one general location. You can always bring up this prompt again by entering `clmtmenu()` to load a different file. This replaces the deprecated 'csvFileList' function.
 ```
 *** Run this function again by entering clmtmenu() ***
 -----------------------------------------------------------
@@ -503,7 +512,8 @@ The "fun stuff." These temporal-based functions give quick info of record-settin
 `metYearRank("temp",qty)` :: Ranks by the meteorological year (March-Feb). Like `monthRank`, you must specify which type of ranking you want
 `seasonRank(season,"temp",qty)` :: Ranks by the meteorological season. Like `monthRank`, you must specify which type of ranking you want
 `customRank("attribute",qty,m1,d1,*[m2,d2])` :: Ranks by the meteorological season. Like some others, you must specify which type of ranking you want
-`allDayRank("attribute",qty,**{season="season",year=<YEAR>,month=<MONTH>,ascending=False})` :: Ranks based on individual days in the record, in contrast to `dayRank` which only compares records from a specified day. You can use it, for example, to get an all-time daily record high/low; all-time daily record rain/snow, etc
+`allDayRank("attribute",qty,**{season="season",year=<YEAR>,month=<MONTH>,ascending=False})` :: Ranks based on individual days in the record, in contrast to `dayRank` which only compares records from a specified day. You can use it, for example, to get an all-time daily record high/low; all-time daily record rain/snow, etc. To reverse the order (lowest to highest), include the `ascending=True` kwarg (only valid for temperature attrs)
+`allMonthRank("attribute",qty,**{season="season",ascending=False})` :: Ranks individual months, allowing comparison of different months to each other; monthly parallel of `allDayRank`. It does not accept as many optional keyword arguments though. To reverse the order (lowest to highest), include the `ascending=True` kwarg
 
 Example output:
 
@@ -556,6 +566,50 @@ Example output:
                   |                  | 10. 1910  148 |               |                 |     1968   11 
                   |                  |     1991  148 |               |                 |     1980   11 
                   |                  |     2014  148 |               |                 |     2013   11
+```
+
+[&#8679; back to Contents](#contents)
+
+### valueSearch
+
+This function allows the user to get basic stats on data based on a specific value. You can also search monthly-based data.
+* `valueSearch("attribute","operator",value,**{sortmonth=False})`
+  * The attribute ultimately must be in `["prcp","snow","snwd","tavg","tmax","tmin"]`, but some derivatives are accepted
+  * The operator must be in `["<=","<","==","!=",">",">="]`
+  * The value must be an `int` or `float`
+  * if the **kwarg `sortmonth=True`, monthly data will be searched instead of daily
+  * if the results list is >= 50, the user will be notified and asked if they want it output or not
+
+Example 1:
+```
+>>> valueSearch("tmax",">=",100)
+Total days where 'tmax' >= 100: 62
+print results? ('y'/'n'): y
+100: 1904-07-18
+102: 1904-07-19
+103: 1904-07-20
+102: 1914-06-11
+101: 1914-06-21
+100: 1914-06-22
+100: 1914-06-25
+100: 1914-07-12
+100: 1914-07-25
+101: 1914-07-26 ......
+```
+
+Example 2:
+```
+>>> valueSearch("prcp","<=",0.25,sortmonth=True)
+Total months where 'prcp' <= 0.25: 9
+  0.00: Oct 1901
+  0.11: Nov 1901
+  0.00: Sep 1903
+  0.13: Oct 1904
+  0.00: Sep 1939
+  0.00: Apr 1942
+  0.05: Oct 1963
+  0.19: Sep 1984
+  0.00: Oct 2000
 ```
 
 [&#8679; back to Contents](#contents)
@@ -627,6 +681,25 @@ The above could be accessed via a simple object attribute call
 
 Meteorlogical Years/Seasons can also be retrieved in very similar ways as above. Instead of `clmt`, you would type `metclmt` in the commands above. Additionally, metclmt years have 4 additional keys, `"spring","summer","fall","winter"`. So you can get the list of high-temperatures for spring of 2017 like this: `metclmt[2017]["spring"]["tmax"]`. Here, as mentioned above, a lot has been simplified via the stats functions
 
+Two reverse dictionaries are included, `clmt_vars_days` and `clmt_vars_months`. These are exclusively used in the `allDayRank`, `allMonthRank`, and `valueSearch` functions. They have tier 1 keys as `"prcp","snow","snwd","tavg","tmax","tmin"`. These are dictionaries set up with tier-2 keys as the unique values as keys, with lists of dates as values. Both can be called in a very similar fashion, but on-the-fly retrieval is best accomodated using the above functions, because it's cumbersome to use unless you know the exact value, and a KeyError will result if it can't find the exact key.
+
+For example, if you wanted to find days(months) where the rainfall equaled 2 inches, you could command the following:
+```
+# prints days in the record where rain total equalled exactly 5
+for DAY in clmt_vars_days["prcp"][5.00]: print(DAY)
+# prints months on record where monthly sum of rain was exactly 10
+for MONTH in clmt_vars_months["prcp"][10.00]: print(MONTH.month,MONTH.year)
+```
+
+You could do something like this to return a list of days/months based on a certain threshold
+```
+# prints days in the record where the high temperature >= 100 degrees
+for DAY in [day for v in clmt_vars_days["tmax"] if v >= 100 for day in clmt_vars_days["tmax"][v]]: print(DAY)
+# prints months in the record where monthly sum of rain exceeded 12 inches
+for MONTH in [month for v in clmt_vars_months["prcp"] if v >= 12 for month in clmt_vars_months["prcp"][v]]: print(MONTH.month,"-",MONTH.year)
+```
+
+As you can tell, that is quite a mouthful to type. So, like mentioned above, some functions are included to help assist the user.
 [&#8679; back to Contents](#contents)
 
 ### Sample Scripts
@@ -655,6 +728,11 @@ Meteorlogical Years/Seasons can also be retrieved in very similar ways as above.
 * on all stats functions, consider also outputting the temperature quantity if different than total recordqty
 * in `errorStats`, account for times when `SNWD` goes up without any `SNOW` in the recent record
 * consider adding a max snow depth for week/month/year output?
+* Check/consider the need of including exclusion thresholds in monthly stat compilation (during init). Currently, seemingly only used in the yearStats output, so no biggie (unless I overlooked something)
+* consider a making "this day in history" function??? could already be handled by 'dayRank'
+* add fixed output to `allDayRank`
+* include more kwargs for `valueSearch`
+* include error-addressing in `allDayRank, allMonthRank, and valueSearch` functions
 
 [&#8679; back to Contents](#contents)
 
