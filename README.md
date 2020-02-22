@@ -30,7 +30,7 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 ### Fixes and Changes
 ### New in v2.x
 
-##### v2.7 (ready to be uploaded)
+##### v2.7
 * Fixed `weekStats` output by making a mirror function of `checkDate`. After the 2.6 overhaul, for days where data was missing, it was outputting default messages from the original checkDate function.
   * Fixed output to reflect missing data by printing an `M`; in v2.6 it only would've done this if no entry was found in `clmt`
 * Fixed 'clmtmenu()' so it will interpret custom location names with more than 1 comma in it (i.e. "Minneapolis, MN, USA")
