@@ -40,7 +40,7 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * Added ranking output in `weekStats`; included output for average snow depth
 
 =======
->>>>>>> 932a47a7dd1de96d051221ab5ee7ffa1cc743d16
+
 ##### v2.7
 * Fixed `weekStats` output by making a mirror function of `checkDate`. After the 2.6 overhaul, for days where data was missing, it was outputting default messages from the original checkDate function.
   * Fixed output to reflect missing data by printing an `M`; in v2.6 it only would've done this if no entry was found in `clmt`
