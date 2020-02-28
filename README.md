@@ -1,4 +1,4 @@
-# Climate Parser v2.7
+# Climate Parser v2.71
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -28,9 +28,17 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * [HELP!!!](#help)
 
 ### Fixes and Changes
-### New in v2.x
+#### New in v2.x
 
-##### v2.7 (ready to be uploaded)
+##### v2.71
+* Patched an error that would occur during compiling of `metclmt` if data was missing for an entire calendar year (empty placeholders; having no variable data recorded, just dates)
+* Changed handling for data for multiple stations where days overlapped to allow modifying of data if an empty-set (empty placeholder) of variables existed for a certain day
+* `dayStats` now reflects the id/name of the specific weather data was found (primarily useful if multiple stations are in your csv)
+* Tweaked `dayStats` code to be more concise
+* Fixed output flaw in `weekRank` that would make it seem that it truncated well too-early. It was due to improper placement of string format code
+* Added ranking output in `weekStats`; included output for average snow depth
+
+##### v2.7
 * Fixed `weekStats` output by making a mirror function of `checkDate`. After the 2.6 overhaul, for days where data was missing, it was outputting default messages from the original checkDate function.
   * Fixed output to reflect missing data by printing an `M`; in v2.6 it only would've done this if no entry was found in `clmt`
 * Fixed 'clmtmenu()' so it will interpret custom location names with more than 1 comma in it (i.e. "Minneapolis, MN, USA")
@@ -255,7 +263,7 @@ Simple report retrieved for desired day
 >>> dayStats(2000,12,25)
 
 Statistics for 2000-12-25
-2 stations, CITY, USA
+Report Location: USW00001337, CITY USA
 -------------------
 PRCP: 0.01, Rank: 21
 SNWD: 11.0
@@ -269,8 +277,9 @@ Delivered stats based on a 7-day week with the submitted date being the center o
 >>> weekStats(2014,2,14)
 
                  Weekly Statistics for 2014-02-11 thru 2014-02-17
-                              USC00001337: CITY, USA
+                              USC0001337: CITY, USA
                               Quantity of Records: 7
+       '*' Denotes existance of quality flag; not included in average stats
 -----------------------------------------------------------------------------------
       |   2014   |   2014   |   2014   |   2014   |   2014   |   2014   |   2014
       |  Feb 11  |  Feb 12  |  Feb 13  |  Feb 14  |  Feb 15  |  Feb 16  |  Feb 17
@@ -281,13 +290,14 @@ Delivered stats based on a 7-day week with the submitted date being the center o
  TMAX |    40    |    39    |    30    |    41    |    56    |    39    |    52
  TMIN |    27    |    20    |    21    |    30    |    32    |    22    |    22
 
-Total Precipitation: 1.69
+Total Precipitation: 1.69, Rank: 18
 Total Precipitation Days (>= T): 4
-Total Snow: 11.2
+Total Snow: 11.2, Rank: 2
 Total Snow Days (>= T): 2
-Average Temperature: 33.6
-Average Max Temperature: 42.4
-Average Min Temperature: 24.9
+Average Snow Depth: 5.0, Rank: 1
+Average Temperature: 33.6, Rank: 75th Warmest; 19th Coolest
+Average Max Temperature: 42.4, Rank: 78th Warmest; 13th Coolest
+Average Min Temperature: 24.9, Rank: 57th Warmest; 28th Coolest
 ```
 Get stats for the specified month
 ```
@@ -712,7 +722,7 @@ As you can tell, that is quite a mouthful to type. So, like mentioned above, som
 
 * For CSV's that are combined, somehow make note of the station that an attribute is pulled from
 * Add CSV-output keyword arguments for the report functions
-* Include SNWD (Snow Depth) in rankings
+* Include SNWD (Snow Depth) in rankings (would primarily be beneficial in `dayRank` and `weekRank`)
 * Add a record threshold for the ranking functions; truncating after a certain amount
   * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
 * Improvement of report aesthetics
@@ -729,10 +739,11 @@ As you can tell, that is quite a mouthful to type. So, like mentioned above, som
 * in `errorStats`, account for times when `SNWD` goes up without any `SNOW` in the recent record
 * consider adding a max snow depth for week/month/year output?
 * Check/consider the need of including exclusion thresholds in monthly stat compilation (during init). Currently, seemingly only used in the yearStats output, so no biggie (unless I overlooked something)
-* consider a making "this day in history" function??? could already be handled by 'dayRank'
-* add fixed output to `allDayRank`
+* consider making "this day in history" function??? could already be handled by 'dayRank'
+* add fixed output to `allDayRank` and `allMonthRank`
 * include more kwargs for `valueSearch`
 * include error-addressing in `allDayRank, allMonthRank, and valueSearch` functions
+* check to see if traces of snow are recorded and reported in stats/reports (mainly need to double check `weekStats`)
 
 [&#8679; back to Contents](#contents)
 
