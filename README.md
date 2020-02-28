@@ -28,9 +28,9 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * [HELP!!!](#help)
 
 ### Fixes and Changes
+
 #### New in v2.x
 
-<<<<<<< HEAD
 ##### v2.71
 * Patched an error that would occur during compiling of `metclmt` if data was missing for an entire calendar year (empty placeholders; having no variable data recorded, just dates)
 * Changed handling for data for multiple stations where days overlapped to allow modifying of data if an empty-set (empty placeholder) of variables existed for a certain day
