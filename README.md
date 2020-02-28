@@ -27,7 +27,7 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * [Licensing](#license)
 * [HELP!!!](#help)
 
-### Fixes and Changes
+### Recent Fixes and Changes
 
 #### New in v2.x
 
