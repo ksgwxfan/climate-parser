@@ -1,4 +1,4 @@
-# Climate Parser v2.71
+# Climate Parser v2.72
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -30,6 +30,12 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 ### Fixes and Changes
 
 #### New in v2.x
+
+##### v2.72
+* Added a new `rank()` function that is used internally to return the passed rank number and correct suffix; on-going transition to use in `<temporalStats>` functions
+* Added rank reporting for `monthStats`
+  * Fixed it so the reported rankings coincide with `monthRank`
+* Modified `dayStats`,`weekStats`, and `monthStats` to report the lowest temperature ranking (instead of warmest AND coolest)
 
 ##### v2.71
 * Patched an error that would occur during compiling of `metclmt` if data was missing for an entire calendar year (empty placeholders; having no variable data recorded, just dates)
@@ -268,10 +274,10 @@ Simple report retrieved for desired day
 Statistics for 2000-12-25
 Report Location: USW00001337, CITY USA
 -------------------
-PRCP: 0.01, Rank: 21
-SNWD: 11.0
-TMAX: 12, Rank: 32nd Warmest; 13th Coolest
-TMIN: -17, Rank: 50th Warmest; 4th Coolest
+PRCP: 0.01, Rank: 21st
+SNWD: 11.0, Rank: 7th
+TMAX: 12, Rank: 13th Coolest
+TMIN: -17, Rank: 4th Coolest
 
 ```
 
@@ -298,9 +304,9 @@ Total Precipitation Days (>= T): 4
 Total Snow: 11.2, Rank: 2
 Total Snow Days (>= T): 2
 Average Snow Depth: 5.0, Rank: 1
-Average Temperature: 33.6, Rank: 75th Warmest; 19th Coolest
-Average Max Temperature: 42.4, Rank: 78th Warmest; 13th Coolest
-Average Min Temperature: 24.9, Rank: 57th Warmest; 28th Coolest
+Average Temperature: 33.6, Rank: 19th Coolest
+Average Max Temperature: 42.4, Rank: 13th Coolest
+Average Min Temperature: 24.9, Rank: 28th Coolest
 ```
 Get stats for the specified month
 ```
@@ -309,20 +315,21 @@ Get stats for the specified month
 Monthly Statistics for December 2005
 USC00001337: CITY, USA
 Quantity of Records: 31
+* Reported rankings are relative to the month of December
 -----
-Total Precipitation: 3.42
-Total Precipitation Days (>= T): 9
--- Highest Precip: 1.1 ::: 2005-12-16
-Total Snow: 0.4
-Total Snow Days (>= T): 2
--- Highest Snow: 0.3 ::: 2005-12-15
-Average Temperature: 35.3
-Average Max Temperature: 46.3
--- Warmest Max Temperature: 64 ::: 2005-12-05
--- Coolest Max Temperature: 31 ::: 2005-12-15
-Average Min Temperature: 24.3
--- Warmest Min Temperature: 35 ::: 2005-12-05, 2005-12-26
--- Coolest Min Temperature: 14 ::: 2005-12-24
+Total Precipitation: 1.96, 24th Driest
+Total Precipitation Days (>= T): 8
+-- Highest Daily Precip: 1.09 ::: 2000-12-17
+Total Snow: 2.0, 31st Snowiest
+Total Snow Days (>= T): 1
+-- Highest Daily Snow Total: 2.0 ::: 2000-12-20
+Average Temperature: 29.8, 2nd Coolest
+Average MAX Temperature: 41.2, 2nd Coolest
+-- Warmest Daily TMAX: 56 ::: 2000-12-09
+-- Coolest Daily TMAX: 27 ::: 2000-12-31
+Average MIN Temperature: 18.4, 2nd Coolest
+-- Warmest Daily TMIN: 33 ::: 2000-12-17
+-- Coolest Daily TMIN: 7 ::: 2000-12-23
 -----
 ```
 Return stats for the specified year
@@ -733,6 +740,7 @@ As you can tell, that is quite a mouthful to type. So, like mentioned above, som
 * I know I need to comment more in the code
 * Include least-snowiest years in year functions
 * Add ranks to month and year Stats functions
+  * yearStats could have a 2-row (6-month per row) summary
 * Value Search Statistics (some way that you can search for 90degree-plus days; days/months with x-amount or more of precip)
 * Revamp month and year stats functions to give broader-base of data; more of a table-summary, perhaps
 * Make an annual Average Temperatures Graph; daily and day-centered weekly; day-centered monthly
@@ -747,6 +755,11 @@ As you can tell, that is quite a mouthful to type. So, like mentioned above, som
 * include more kwargs for `valueSearch`
 * include error-addressing in `allDayRank, allMonthRank, and valueSearch` functions
 * check to see if traces of snow are recorded and reported in stats/reports (mainly need to double check `weekStats`)
+* on Stats functions, output temperature quantity if different than recordqty
+* on reported rankings in the stats functions, if the "warmest" is closer to the top than "coolest" is to the top, only print one (not both)
+* convert dayStats to use the clmt_vars_days function? May not be quicker though
+* add tavg stats for dayStats and maybe even dayRank
+* really low prcp amounts: consider not putting the rank in dayStats function?
 
 [&#8679; back to Contents](#contents)
 
