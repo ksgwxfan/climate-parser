@@ -1,4 +1,4 @@
-# Climate Parser v2.72
+# Climate Parser v2.8
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -29,75 +29,21 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 
 ### Recent Fixes and Changes
 
-#### New in v2.x
+##### New in v2.8
+* Fixed `metclmt` initialization for when the final year on record is only partial, having no more than Jan or Feb records.
+* Fixed `allDayRank` and `allMonthRank` winter-based records involving a non-existent `metclmt` year key (i think it would have only affected partial years)
+* Modified output of `allDayRank` to be fixed digits
+* Simplified read-in of `allMonthRank` data where season kwarg was present
+* take out 0 requirement on stats function report rankings (month)
+* Fixed output of `monthRank`, `yearRank`, `metYearRank`, and `seasonRank` where it was throwing an exception for rank indices exceeding the length of the compiled lists
+  * This was the same strategy I had previously used in `customRank` but had not yet implemented it into the above, which I had generated prior
+* Finished previously-started stats overhaul. This version updates `yearStats`, `metYearStats`, `seasonStats`, and `customStats`.
+  * The primary addition here, like previous, is the addition of rankings. So you'll know how a specific-period of time is ranked without running a coinciding rank function
+  * All of the listed-above except for customStats also includes a visual overhaul. A basic statistical overview for each month in the year/season is included. This will allow you to view data for months from the same year/season to avoid running monthStats for each individual month
+* MAJOR FIX: in v2.71, I modified how multiple stations were held. A significant mistake was found (by accident) where the overlapped-years were being counted twice. In essence, precip and snow totals (and total days of) would become very inflated. To fix it, all I had to do was 1 simple indention. haha.
+* Included a `daySummary` function. No confusion with dayStats is intended. This function dumps daily data in a range of dates.
 
-##### v2.72
-* Added a new `rank()` function that is used internally to return the passed rank number and correct suffix; on-going transition to use in `<temporalStats>` functions
-* Added rank reporting for `monthStats`
-  * Fixed it so the reported rankings coincide with `monthRank`
-* Modified `dayStats`,`weekStats`, and `monthStats` to report the lowest temperature ranking (instead of warmest AND coolest)
-
-##### v2.71
-* Patched an error that would occur during compiling of `metclmt` if data was missing for an entire calendar year (empty placeholders; having no variable data recorded, just dates)
-* Changed handling for data for multiple stations where days overlapped to allow modifying of data if an empty-set (empty placeholder) of variables existed for a certain day
-* `dayStats` now reflects the id/name of the specific weather data was found (primarily useful if multiple stations are in your csv)
-* Tweaked `dayStats` code to be more concise
-* Fixed output flaw in `weekRank` that would make it seem that it truncated well too-early. It was due to improper placement of string format code
-* Added ranking output in `weekStats`; included output for average snow depth
-
-=======
-
-##### v2.7
-* Fixed `weekStats` output by making a mirror function of `checkDate`. After the 2.6 overhaul, for days where data was missing, it was outputting default messages from the original checkDate function.
-  * Fixed output to reflect missing data by printing an `M`; in v2.6 it only would've done this if no entry was found in `clmt`
-* Fixed 'clmtmenu()' so it will interpret custom location names with more than 1 comma in it (i.e. "Minneapolis, MN, USA")
-* Included `clmt_vars_months`, which is a 'reverse' dictionary for monthly data. It is the monthly parallel of the previously added 'clmt_vars_days'.
-* Included `allMonthRank`, the monthly parallel of the `allDayRank` function, to allow comparison of different months to each other
-* Included a basic `valueSearch` function. This allows the user to search the record for data based on specific value thresholds
-
-##### v2.6
-* Eliminated `csvFileList()` (and the need thereof). The script now runs `clmtmenu()` automatically at the execution of the script. It allows the user to enter in a single number from a list of csv files, and an optional city name.
-* Added an `output` csv keyword argument to all report functions. This outputs a csv version of the report, allowing the user to open it up in a spreadsheet program to do charts and such.
-* Revamped `weekStats` output to show comprehensive layout of data including all daily data from the week inquired
-
-##### v2.5
-* Included a new function, `allDayRank()` which ranks based solely on individual day records. This enables displaying all time record highs/lows for the entire record
-  * Also included some temporal keyword arguments; so you can compare data within a certain month, month in a year, a year, a season, or a season from a specific year
-
-##### v2.4
-* Included a reverse dictionary, `clmt_vars_days`, which includes subset dictionaries of `"prcp"`, `"snow"`, `"snwd"`, `"tmax"`, `"tmin"`, `"tavg"`; holding values from individual days. The variables are the keys with matching dates being the new values; will be used more in a future update
-* Eliminated the `"station"` keyword argument in the `clmtAnalyze` call.
-  * Included code to handle the station ID if more than 1 station was used to compile the data
-* Fixed `customRank` help docstring
-* Altered exclusion threshold rules for `customRank` to be more stringent for periods less than a week 
-* Modified `help` docstrings to be in line with PEP standards
-* On all `Rank` functions: changed output record qty (based on the threshold) to be inclusive (greater-than or equal to) rather than exclusive (less-than).
-* Added two report-related variables, `clmt_len_rpt` and `clmt_inc_rpt`; enables change of climatology period and assessment-frequency
-  * These can be changed anytime; no need to re-run `clmtAnalyze`.
-  * The idea of adding these was make it easy for the user to assess other climatology-period lengths (like 10, 15, or 20-yr climatologies)
-* Adjusted report output to accommodate the new variables and included them in the output too
-  * Added a dynamic end-year range for the reports (wouldn't have been a problem until like 2040, but oh well, lol)
-  
-
-##### v2.3
-* Included `customStats`, `customReport`, and `customRank` functions. These allow the user to define the period of time they want to retrieve stats, reports, or rankings for. You are no longer confined to retrieving data based on fixed lengths of time. A great proxy for a Year-to-Date, Month-to-Date, or even a Season-to-Date functions.
-  * Included associated `excludecustom` threshold. Instead of a fixed integer, it is a fixed float as a percentage; implemented since time-frames can be of variable lengths. The functions have basic logic to to use other exclusion variables if they meet certain criteria.
-* Included daily temperature average in `dayReport`
-* Fixed `weekStats`, `weekReport`, and `weekRank` calculations; one of the problems seen was that on weeks that overlapped years, it wasn't using dates from the later or previous year, respectively
-* Included `help()` doc-strings for all major functions
-
-##### v2.01
-* cleaned up some testing artifacts
-
-##### v2.0
-* Inclusion of Meteorological Season functions. Allows one to compare seasons to other like-seasons.
-  * Spring - 3,4,5; Summer - 6,7,8; Fall - 9,10,11; Winter - 12,1,2
-* Inclusion of Meteorological Year functions. Meteorological years go from March to February of the following year (Spring to Winter), encompassing 4 complete seasons. Otherwise, the winter months (12,1,2) would include data from seperate winters like found if assessing a calendar year. Any inferred difference would be much less if astronomically-based functions were included, as there would only be a 10 or 11 day shift in the yearly calculations. But meteorological seasons are much simpler to deal with, and they are a standard temporal frame recognized in the weather community
-* Added accessible record-threshold variables near the end of the script to allow easy tweaking. These variables control if a year, season, month, or week of interest is included in reports and rankings. Another bonus is these thresholds can be modified after you compile/mount the script
-  * I included these record thresholds in rank function output
-* Added tweaks that aids legibility of the function output
-  * added fixed-digit output to reports and rankings
-  * added alignment to rankings
+*Please see CHANGELOG.md for a more extensive list of changes
 
 [&#8679; back to Contents](#contents)
 
@@ -336,113 +282,128 @@ Return stats for the specified year
 ```
 >>> yearStats(1990)
 -------------------------------------
-Yearly Statistics for 1990
-USC00001337: CITY, USA
-Quantity of Records: 365
------
-Total Precipitation: 50.1
-Total Precipitation Days (>= T): 147
--- Highest Daily Precip: 3.47 ::: 1990-10-11
--- Wettest Month: 9.44 ::: October
--- Driest Month: 0.77 ::: June
-Total Snow: 0.3
-Total Snow Days (>= T): 3
--- Highest Daily Snow: 0.3 ::: 1990-03-20
--- Snowiest Month: 0.3 ::: March
-Average Temperature: 59.6
-Average Max Temperature: 71.9
--- Warmest Daily Max Temperature: 96 ::: 1990-07-10
--- Coolest Daily Max Temperature: 36 ::: 1990-02-26
--- Warmest AVG Monthly Max Temperature: 88 ::: July
--- Coolest AVG Monthly Max Temperature: 54.5 ::: December
-Average Min Temperature: 47.4
--- Warmest Min Temperature: 73 ::: 1990-07-06
--- Coolest Min Temperature: 12 ::: 1990-02-26
--- Warmest AVG Monthly Min Temperature: 65.3 ::: July
--- Coolest AVG Monthly Min Temperature: 32.0 ::: January
+>>> yearStats(1984)
+
+              Yearly Statistics for 1984
+                 US00001337: CITY, USA
+               Quantity of Records: 365
+-------------------------------------------------------
+      |  JAN  |  FEB  |  MAR  |  APR  |  MAY  |  JUN  |
+-------------------------------------------------------
+ PRCP |  0.67 |  1.19 |  3.22 |  3.97 |  6.20 |  5.22 |
+ SNOW |   3.2 |  10.8 |  14.3 |  21.8 |   --  |   --  |
+ TAVG |  19.6 |  26.9 |  34.2 |  42.2 |  54.6 |  68.0 |
+ TMAX |  27.0 |  32.1 |  40.5 |  50.9 |  64.8 |  78.0 |
+ TMIN |  12.1 |  21.6 |  27.9 |  33.6 |  44.4 |  57.9 |
+-------------------------------------------------------
+      |  JUL  |  AUG  |  SEP  |  OCT  |  NOV  |  DEC  |
+-------------------------------------------------------
+ PRCP |  3.07 |  3.12 |  3.34 |  2.61 |  4.93 |  1.53 |
+ SNOW |   --  |   --  |   --  |   0.0 |  30.4 |  21.0 |
+ TAVG |  77.2 |  76.7 |  62.6 |  48.4 |  34.0 |   3.7 |
+ TMAX |  87.0 |  87.0 |  71.6 |  56.4 |  39.0 |  11.1 |
+ TMIN |  67.4 |  66.5 |  53.6 |  40.3 |  29.0 |  -3.8 |
+-------------------------------------------------------
+ Total Precipitation: 39.07, Rank: 5th Wettest
+ Total Precipitation Days (>=T): 210, Rank: 8th Most
+ -- Highest Daily Precip: 1.65 ::: 1983-07-03
+ Total Snow: 101.5, Rank: 1st Snowiest
+ Total Snow Days (>=T): 93, Rank: 10th Most
+ Average Temperature: 45.8, Rank: 30th Warmest
+ Avg MAX Temperature: 53.9, Rank: 23rd Coolest
+ -- Warmest Daily TMAX: 97 ::: 1983-08-07
+ -- Coolest Daily TMAX: -17 ::: 1983-12-23
+ Avg MIN Temperature: 37.6, Rank: 21st Warmest
+ -- Warmest Daily TMIN: 79 ::: 1983-07-21
+ -- Coolest Daily TMIN: -29 ::: 1983-12-19
 -----
 ```
 Return stats for the specified Meteorological Year (March-February)
 ```
->>> metYearStats(2015)
--------------------------------------
-Statistics for Meteorological Year 2015
-USC00001337: CITY, USA
-Quantity of Records: 366
------
-Total Precipitation: 62.2
-Total Precipitation Days (>= T): 154
--- Highest Daily Precip: 3.12 ::: 2015-04-20
--- Wettest Month: 8.35 ::: June
--- Driest Month: 2.46 ::: May
-Total Snow: 10.0
-Total Snow Days (>= T): 7
--- Highest Daily Snow: 6.0 ::: 2016-01-23
--- Snowiest Month: 8.0 ::: January
-Average Temperature: 57.6
-Average Max Temperature: 69.7
--- Warmest Daily Max Temperature: 94 ::: 2015-07-31, 2015-08-06
--- Coolest Daily Max Temperature: 24 ::: 2016-02-15
--- Warmest AVG Monthly Max Temperature: 87.4 ::: July
--- Coolest AVG Monthly Max Temperature: 45.5 ::: January
-Average Min Temperature: 45.5
--- Warmest Min Temperature: 71 ::: 2015-08-20
--- Coolest Min Temperature: 12 ::: 2016-01-07, 2016-01-20
--- Warmest AVG Monthly Min Temperature: 65.2 ::: July
--- Coolest AVG Monthly Min Temperature: 22.3 ::: January
------
-```
+>>> metYearStats(1993)
 
+                 Statistics for Meteorological Year 1993
+                         US000001337: CITY, USA
+                        Quantity of Records: 365
+-------------------------------------------------------------------------
+      | MAR 1993 | APR 1993 | MAY 1993 | JUN 1993 | JUL 1993 | AUG 1993 |
+-------------------------------------------------------------------------
+ PRCP |    7.26  |    3.15  |    4.34  |    1.41  |    2.97  |    3.79  |
+ SNOW |    11.0  |     --   |     --   |     --   |     --   |     --   |
+ TAVG |    44.2  |    55.0  |    65.9  |    72.7  |    78.1  |    74.0  |
+ TMAX |    54.3  |    68.4  |    78.2  |    85.8  |    91.0  |    86.0  |
+ TMIN |    34.7  |    41.7  |    53.6  |    59.6  |    65.3  |    61.8  |
+-------------------------------------------------------------------------
+      | SEP 1993 | OCT 1993 | NOV 1993 | DEC 1993 | JAN 1994 | FEB 1994 |
+-------------------------------------------------------------------------
+ PRCP |    5.34  |    1.68  |    4.42  |    4.74  |    6.30  |    4.63  |
+ SNOW |     --   |     --   |     --   |     6.3  |     2.5  |     1.5  |
+ TAVG |    69.1  |    54.2  |    45.3  |    34.9  |    30.2  |    37.5  |
+ TMAX |    80.0  |    69.2  |    57.9  |    45.6  |    40.3  |    49.3  |
+ TMIN |    57.5  |    39.4  |    32.6  |    24.6  |    20.7  |    25.7  |
+-------------------------------------------------------------------------
+ Total Precipitation: 50.03, Rank: 41st Wettest
+ Total Precipitation Days (>=T): 134, Rank: 23rd Most
+ -- Highest Daily Precip: 3.2 ::: 1993-11-28
+ Total Snow: 21.3, Rank: 8th Snowiest
+ Total Snow Days (>=T): 6, Rank: 7th Least
+ Average Temperature: 56.0, Rank: 18th Coolest
+ Avg MAX Temperature: 67.4, Rank: 10th Coolest
+ -- Warmest Daily TMAX: 97 ::: 1993-07-10
+ -- Coolest Daily TMAX: 15 ::: 1994-01-16
+ Avg MIN Temperature: 43.8, Rank: 22nd Coolest
+ -- Warmest Daily TMIN: 71 ::: 1993-07-20
+ -- Coolest Daily TMIN: -2 ::: 1994-01-19,  1994-01-20
+```
 Retrieve stats of a certain season (meteorological)
 ```
 >>> seasonStats(1955,"autumn")
------------------------------------------------------
+----------------------------------------
 Seasonal Statistics for Meteorological Fall 1955
-USC00001337: CITY, USA
-Quantity of Records: 91
------------------------------------------------------
-Total Precipitation: 4.11
-Total Precipitation Days (>= T): 22
--- Highest Daily Precip: 0.83 ::: 1955-10-08
--- Wettest Month: 1.92 ::: October
--- Driest Month: 0.59 ::: September
-Average Temperature: 57.6
-Average Max Temperature: 71.2
--- Warmest Daily Max Temperature: 93 ::: 1955-09-19
--- Coolest Daily Max Temperature: 35 ::: 1955-11-29
--- Warmest AVG Monthly Max Temperature: 81.9 ::: September
--- Coolest AVG Monthly Max Temperature: 59.9 ::: November
-Average Min Temperature: 44.3
--- Warmest Min Temperature: 66 ::: 1955-09-23
--- Coolest Min Temperature: 14 ::: 1955-11-29
--- Warmest AVG Monthly Min Temperature: 58.9 ::: September
--- Coolest AVG Monthly Min Temperature: 31.0 ::: November
+         USC00001337: CITY, USA
+        Quantity of Records: 91
+----------------------------------------
+      | SEP 1955 | OCT 1955 | NOV 1955 |
+ PRCP |    0.59  |    1.92  |    1.60  |
+ SNOW |     --   |     --   |     --   |
+ TAVG |    70.4  |    57.1  |    45.4  |
+ TMAX |    81.9  |    72.0  |    59.9  |
+ TMIN |    58.9  |    43.0  |    31.0  |
+----------------------------------------
+ Total Precipitation: 4.11, Rank: 9th Driest
+ Total Precipitation Days (>=T): 22, Rank: 12th Least
+ -- Highest Daily Precip: 0.83 ::: 1955-10-08
+ Average Temperature: 57.6, Rank: 27th Coolest
+ Avg MAX Temperature: 71.2, Rank: 29th Warmest
+ -- Warmest Daily TMAX: 93 ::: 1955-09-19
+ -- Coolest Daily TMAX: 35 ::: 1955-11-29
+ Avg MIN Temperature: 44.3, Rank: 30th Coolest
+ -- Warmest Daily TMIN: 66 ::: 1955-09-23
+ -- Coolest Daily TMIN: 14 ::: 1955-11-29
 -----
 ```
 
 Return stats for a custom time-frame; if you don't include an ending date, by default December 31 of that year will be used
 ```
 >>> customStats(1999,12,1,2000,1,15)
--------------------------------------
+
 Statistics for 1999-12-1 thru 2000-1-15
 USW00001337: TOWN, USA
 Quantity of Records: 46
------
-Total Precipitation: 0.97
-Total Precipitation Days (>= T): 19 (41.3 %)
-Wettest Day: 0.3 ::: 2000-01-12
-Total Snow: 19.7
-Total Snow Days (>= T): 16
-Snowiest Day: 8.7 ::: 2000-01-12
-Average Temperature: 24.4
--- Warmest Daily Avg Temperature: 42.5, ::: 1999-12-03, 1999-12-29
--- Coolest Daily Avg Temperature: -1, ::: 1999-12-21
-Average Max Temperature: 32.2
--- Warmest Max Temperature: 53, ::: 1999-12-29
--- Coolest Max Temperature: 6, ::: 1999-12-21
-Average Min Temperature: 16.5
--- Warmest Min Temperature: 36, ::: 1999-12-02
--- Coolest Min Temperature: -8, ::: 1999-12-21
+-------------------------------------
+ Total Precipitation: 0.97
+ Total Precipitation Days (>=T): 19, Rank: 7th Least
+ -- Highest Daily Precip: 0.3 ::: 2000-01-12
+ Total Snow: 19.7, Rank: 22nd Snowiest
+ Total Snow Days (>=T): 16
+-- Snowiest Day: 8.7 ::: 2000-01-12
+ Average Temperature: 24.4, Rank: 9th Warmest
+ Avg MAX Temperature: 32.2, Rank: 7th Warmest
+ -- Warmest Daily TMAX: 53 ::: 1999-12-29
+ -- Coolest Daily TMAX: 6 ::: 1999-12-21
+ Avg MIN Temperature: 16.5, Rank: 13th Warmest
+ -- Warmest Daily TMIN: 36 ::: 1999-12-02
+ -- Coolest Daily TMIN: -8 ::: 1999-12-21
 -----
 ```
 
@@ -638,6 +599,31 @@ Total months where 'prcp' <= 0.25: 9
 
 This section partly goes over the data-structure and some examples to quickly call upon some data.
 
+##### Day Summaries
+The quickest way to look at multi-day data would be the `daySummary` function.
+  * Syntax: `daySummary(y1,m1,d1,*[y2,m2,d2])`
+  * The 2nd date is optional; if none is entered, Dec 31 for the year given by y1 will be used
+  * This lists daily summaries for all dates in the range. Think of it like a raw data dump.
+  * Quality flags are listed as well.
+```
+>>> daySummary(1901,8,1,1901,8,31)
+
+                    Day Summaries from 01 AUG 1901 to 10 AUG 1901
+                              USC000001337: City, USA
+                    ---------------------------------------------
+1901-08-01: PRCP:  0.00   ; SNOW: ----   ; SNWD: ----   ; TMAX:  85   ; TMIN:  61
+1901-08-02: PRCP:  0.00   ; SNOW: ----   ; SNWD: ----   ; TMAX:  85   ; TMIN:  58
+1901-08-03: PRCP:  0.00   ; SNOW: ----   ; SNWD: ----   ; TMAX:  86   ; TMIN:  67 I
+1901-08-04: PRCP:  0.00   ; SNOW: ----   ; SNWD: ----   ; TMAX:  89   ; TMIN:  65
+1901-08-05: PRCP:  3.27   ; SNOW: ----   ; SNWD: ----   ; TMAX:  71 I ; TMIN:  66
+1901-08-06: PRCP:  0.98   ; SNOW: ----   ; SNWD: ----   ; TMAX:  76   ; TMIN:  63
+1901-08-07: PRCP:  0.00   ; SNOW: ----   ; SNWD: ----   ; TMAX:  83   ; TMIN:  64
+1901-08-08: PRCP:  0.00   ; SNOW: ----   ; SNWD: ----   ; TMAX:  85   ; TMIN:  57
+1901-08-09: PRCP:  0.00   ; SNOW: ----   ; SNWD: ----   ; TMAX:  88   ; TMIN:  58
+1901-08-10: PRCP:  0.75   ; SNOW: ----   ; SNWD: ----   ; TMAX:  90   ; TMIN:  62
+```
+
+##### Other detailed info
 When compiling, everything is thrown into a python-dictionary, `clmt`. The primary keys are integers, making organization into a dictionary to be very useful. Monthly dictionaries and Day objects are nested within the respective year's dictionary.
 
 Tier 1 keys generally are years:
@@ -719,7 +705,7 @@ for DAY in [day for v in clmt_vars_days["tmax"] if v >= 100 for day in clmt_vars
 for MONTH in [month for v in clmt_vars_months["prcp"] if v >= 12 for month in clmt_vars_months["prcp"][v]]: print(MONTH.month,"-",MONTH.year)
 ```
 
-As you can tell, that is quite a mouthful to type. So, like mentioned above, some functions are included to help assist the user.
+As you can tell, that is quite a keyboard-full to type. So, like mentioned above, some functions are included to help assist the user.
 [&#8679; back to Contents](#contents)
 
 ### Sample Scripts
@@ -730,22 +716,12 @@ As you can tell, that is quite a mouthful to type. So, like mentioned above, som
 
 ### Roadmap
 
-* For CSV's that are combined, somehow make note of the station that an attribute is pulled from
-* Add CSV-output keyword arguments for the report functions
-* Include SNWD (Snow Depth) in rankings (would primarily be beneficial in `dayRank` and `weekRank`)
 * Add a record threshold for the ranking functions; truncating after a certain amount
   * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
-* Improvement of report aesthetics
-  * add "--" for redundant snow values of 0 across all reports
 * I know I need to comment more in the code
 * Include least-snowiest years in year functions
-* Add ranks to month and year Stats functions
-  * yearStats could have a 2-row (6-month per row) summary
-* Value Search Statistics (some way that you can search for 90degree-plus days; days/months with x-amount or more of precip)
-* Revamp month and year stats functions to give broader-base of data; more of a table-summary, perhaps
 * Make an annual Average Temperatures Graph; daily and day-centered weekly; day-centered monthly
 * Check reports and ranks for unnecessary exclusions (i.e. max amount of rain and snow days/amts)
-* Remove `checkdate` calls from customStats
 * on all stats functions, consider also outputting the temperature quantity if different than total recordqty
 * in `errorStats`, account for times when `SNWD` goes up without any `SNOW` in the recent record
 * consider adding a max snow depth for week/month/year output?
@@ -755,11 +731,10 @@ As you can tell, that is quite a mouthful to type. So, like mentioned above, som
 * include more kwargs for `valueSearch`
 * include error-addressing in `allDayRank, allMonthRank, and valueSearch` functions
 * check to see if traces of snow are recorded and reported in stats/reports (mainly need to double check `weekStats`)
-* on Stats functions, output temperature quantity if different than recordqty
-* on reported rankings in the stats functions, if the "warmest" is closer to the top than "coolest" is to the top, only print one (not both)
 * convert dayStats to use the clmt_vars_days function? May not be quicker though
 * add tavg stats for dayStats and maybe even dayRank
-* really low prcp amounts: consider not putting the rank in dayStats function?
+* Include SNWD (Snow Depth) in rankings (would primarily be beneficial in `dayRank` and `weekRank`)
+* add least-snowiest to `yearRank` and `metYearRank`
 
 [&#8679; back to Contents](#contents)
 
