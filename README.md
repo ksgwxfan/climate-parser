@@ -1,4 +1,4 @@
-# Climate Parser v2.8
+# Climate Parser v2.85
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -29,19 +29,17 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 
 ### Recent Fixes and Changes
 
-##### New in v2.8
-* Fixed `metclmt` initialization for when the final year on record is only partial, having no more than Jan or Feb records.
-* Fixed `allDayRank` and `allMonthRank` winter-based records involving a non-existent `metclmt` year key (i think it would have only affected partial years)
-* Modified output of `allDayRank` to be fixed digits
-* Simplified read-in of `allMonthRank` data where season kwarg was present
-* take out 0 requirement on stats function report rankings (month)
-* Fixed output of `monthRank`, `yearRank`, `metYearRank`, and `seasonRank` where it was throwing an exception for rank indices exceeding the length of the compiled lists
-  * This was the same strategy I had previously used in `customRank` but had not yet implemented it into the above, which I had generated prior
-* Finished previously-started stats overhaul. This version updates `yearStats`, `metYearStats`, `seasonStats`, and `customStats`.
-  * The primary addition here, like previous, is the addition of rankings. So you'll know how a specific-period of time is ranked without running a coinciding rank function
-  * All of the listed-above except for customStats also includes a visual overhaul. A basic statistical overview for each month in the year/season is included. This will allow you to view data for months from the same year/season to avoid running monthStats for each individual month
-* MAJOR FIX: in v2.71, I modified how multiple stations were held. A significant mistake was found (by accident) where the overlapped-years were being counted twice. In essence, precip and snow totals (and total days of) would become very inflated. To fix it, all I had to do was 1 simple indention. haha.
-* Included a `daySummary` function. No confusion with dayStats is intended. This function dumps daily data in a range of dates.
+##### New in v2.85
+* Fixed `metclmt` monthly temperature properties appension. Errors were occuring where no months on record met the `excludemonth` threshold
+* Tweaks to `allDayRank`
+  * Finished adding fixed-digit layout to the numerics; assisting in legibility
+  * Made code more concise, trimming over 40 lines (reducing some redundancy)
+* Before, daily TMAX's (TMIN's) weren't being considered for use in reports if `TMIN == ""` (`TMAX == ""`). Originally this was done as I needed a check for if TMAX >= TMIN w/o throwing an error. I changed this by adding an `or` statement.
+* For multi-station data, I fixed where overwriting the data wasn't placing the variable in yearly and monthly lists.
+* Tweaked the output of `valueSearch` for legibility/comprehension
+* Added `TAVG` to `dayStats` and `dayRank`
+* Revamped the code of `dayRank` and `weekRank`. They now include `SNWD`. `dayRank` also now uses the `clmt_vars_days` dictionary to extract data. I also reduced redundancy in addition to 3 new variables being. Only a net-increase of around 20 lines of code resulted per function
+* Tweaked `yearReport`,`seasonReport`, `metYearReport`, and `customReport` csv output to reflect 2 decimal-place temperature averages. This was done to see finer changes in averages that are seen as longer time periods are assessed.
 
 *Please see CHANGELOG.md for a more extensive list of changes
 
@@ -128,7 +126,7 @@ These can be changed at any time. Plus, there's no need to re-run `clmtAnalyze` 
 
 ### A Note on Record Thresholds
 
-A big part that is played in compiling reports and ranks is the exclusion of data if it is deemed insufficient or incomplete. The idea is to prevent, for example, years with only 50 days of data, all happening to be in the spring and summer months, from bothering yearly-ranks and reports. To handle this, I used exclusion thresholds. In v2.0 or newer, these variables are accessible at the end of the script, to allow you to tinker with if desired. For example, for yearly ranks, the default threshold is 300 days. Change it if you feel it is too lenient or not lenient enough of a standard. Just change the variable, and run your function again. For best results, change it in the code, then run the `clmtAnalyze` function again. The following are the default values found at the end of the script:
+A big part that is played in compiling reports and ranks is the exclusion of data if it is deemed insufficient or incomplete. The idea is to prevent, for example, years with only 50 days of data, all happening to be in the spring and summer months, from bothering yearly-ranks and reports. To handle this, I used exclusion thresholds. In v2.0 or newer, these variables are accessible at the end of the script, to allow you to tinker with if desired. For example, for yearly ranks, the default threshold is 300 days. Change it if you feel it is too lenient or not lenient enough of a standard. Just change the variable, and run your function again. When changing, to ensure the most accurate results, run `clmtAnalyze` again. This potentially would alter the rankings. The following are the default values found at the end of the script:
 ```
 excludeyear = 300       # Exclude years from ranking/reports if year recordqty <= to this threshold
 excludeseason = 70      # Exclude season from rankings/reports if season recordqty <= to this threshold
@@ -137,7 +135,7 @@ excludeweek = 4         # Exclude weeks from ranking/reports if week recordqty <
 ```
 In general, these thresholds are not used when determining precipitation maximums, but are used when calculating the driest months. So a month may only have 10 days of data, but if it ends up being the rainiest month, it'll show up in the ranks. But it won't if it is one of the driest months.
 
-Temperatures always use the thresholds, but uses the number of days with temperatures recorded, rather than the `recordqty`, as it's possible that temperature data is missing from a daily-record
+Temperatures always use the thresholds, but uses the number of days with temperatures recorded, rather than the `recordqty`, as it's possible that temperature data is missing from a present daily-record
 
 [&#8679; back to Contents](#contents)
 
@@ -719,22 +717,18 @@ As you can tell, that is quite a keyboard-full to type. So, like mentioned above
 * Add a record threshold for the ranking functions; truncating after a certain amount
   * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
 * I know I need to comment more in the code
-* Include least-snowiest years in year functions
+* Include least-snowiest years in `yearRank` and `metYearRank`
 * Make an annual Average Temperatures Graph; daily and day-centered weekly; day-centered monthly
-* Check reports and ranks for unnecessary exclusions (i.e. max amount of rain and snow days/amts)
-* on all stats functions, consider also outputting the temperature quantity if different than total recordqty
 * in `errorStats`, account for times when `SNWD` goes up without any `SNOW` in the recent record
-* consider adding a max snow depth for week/month/year output?
-* Check/consider the need of including exclusion thresholds in monthly stat compilation (during init). Currently, seemingly only used in the yearStats output, so no biggie (unless I overlooked something)
-* consider making "this day in history" function??? could already be handled by 'dayRank'
-* add fixed output to `allDayRank` and `allMonthRank`
 * include more kwargs for `valueSearch`
+  * consider adding a `sortyear` kwarg
 * include error-addressing in `allDayRank, allMonthRank, and valueSearch` functions
-* check to see if traces of snow are recorded and reported in stats/reports (mainly need to double check `weekStats`)
-* convert dayStats to use the clmt_vars_days function? May not be quicker though
-* add tavg stats for dayStats and maybe even dayRank
-* Include SNWD (Snow Depth) in rankings (would primarily be beneficial in `dayRank` and `weekRank`)
-* add least-snowiest to `yearRank` and `metYearRank`
+* check why no precip rank output for `customStats(2020,2,27,2020,3,7)`...occurring for non-leap years too
+  * also need to investigate if multiple years in the customstats (i.e. customStats(2016,2,27,2020,3,7) that the ranking works well for those or just limit it to a year
+* Continue evolution of handling multi-station data where days overlap
+  * perhaps make a note of the recorded station for each variable
+* you don't have to round a number first before using float string format notation. it does it for you
+* consider removing required attribute arguments from `monthRank`, `yearRank`, etc
 
 [&#8679; back to Contents](#contents)
 

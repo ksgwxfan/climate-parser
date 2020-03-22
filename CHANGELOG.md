@@ -1,5 +1,17 @@
 # Change Log (since v2.0)
 
+### v2.85
+* Fixed `metclmt` monthly temperature properties appension. Errors were occuring where no months on record met the `excludemonth` threshold
+* Tweaks to `allDayRank`
+  * Finished adding fixed-digit layout to the numerics; assisting in legibility
+  * Made code more concise, trimming over 40 lines (reducing some redundancy)
+* Before, daily TMAX's (TMIN's) weren't being considered for use in reports if `TMIN == ""` (`TMAX == ""`). Originally this was done as I needed a check for if TMAX >= TMIN w/o throwing an error. I changed this by adding an `or` statement.
+* For multi-station data, I fixed where overwriting the data wasn't placing the variable in yearly and monthly lists.
+* Tweaked the output of `valueSearch` for legibility/comprehension
+* Added `TAVG` to `dayStats` and `dayRank`
+* Revamped the code of `dayRank` and `weekRank`. They now include `SNWD`. `dayRank` also now uses the `clmt_vars_days` dictionary to extract data. I also reduced redundancy in addition to 3 new variables being. Only a net-increase of around 20 lines of code resulted per function
+* Tweaked `yearReport`,`seasonReport`, `metYearReport`, and `customReport` csv output to reflect 2 decimal-place temperature averages. This was done to see finer changes in averages that are seen as longer time periods are assessed.
+
 ### v2.8
 * Fixed `metclmt` initialization for when the final year on record is only partial, having no more than Jan or Feb records.
 * Fixed `allDayRank` and `allMonthRank` winter-based records involving a non-existent `metclmt` year key (i think it would have only affected partial years)
