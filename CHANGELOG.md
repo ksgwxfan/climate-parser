@@ -1,5 +1,15 @@
 # Change Log (since v2.0)
 
+### v2.9
+* fixed output issue in `dayRank` where it was trying to output ranks that weren't asked for; caused by me being lazy about putting in a single logic statement.
+* fixed 'dayRank' output issue where if the length of a variable (i.e. `snwd`) was empty, it was throwing an `AttributeError`
+* added `snwd` to the standard initialization scheme. Just added yearly/monthly lists of &gt; 0 quantities and total days
+* added output to `monthStats`,`yearStats`,'seasonStats', `metYearStats`, and `customStats` to reflect quantity of days snow was reported on the ground (snow-depth;`snwdDAYS`)
+* added standardized conditioning to `metclmt` initialization to match `clmt` init
+* fixed a problem in `customStats` where ranking wasn't printing in spots. Out of necessity/convenience, I had used a`except` block to print a newline, which once investigated, I had used a wrong variable name in the `try` block.
+* added `"prcpDAYS"`, `"snowDAYS"`, and `"snwdDAYS"` to the `clmt_vars_months` dictionary, init scheme, and compatibility to `allMonthRank` as accepted attributes
+* modified `customStats` to accept no more than a year's period; may change this back in future versions if I feel like working out a way to rank multi-year scopes
+
 ### v2.85
 * Fixed `metclmt` monthly temperature properties appension. Errors were occuring where no months on record met the `excludemonth` threshold
 * Tweaks to `allDayRank`

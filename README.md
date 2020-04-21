@@ -1,4 +1,4 @@
-# Climate Parser v2.85
+# Climate Parser v2.9
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -29,17 +29,15 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 
 ### Recent Fixes and Changes
 
-##### New in v2.85
-* Fixed `metclmt` monthly temperature properties appension. Errors were occuring where no months on record met the `excludemonth` threshold
-* Tweaks to `allDayRank`
-  * Finished adding fixed-digit layout to the numerics; assisting in legibility
-  * Made code more concise, trimming over 40 lines (reducing some redundancy)
-* Before, daily TMAX's (TMIN's) weren't being considered for use in reports if `TMIN == ""` (`TMAX == ""`). Originally this was done as I needed a check for if TMAX >= TMIN w/o throwing an error. I changed this by adding an `or` statement.
-* For multi-station data, I fixed where overwriting the data wasn't placing the variable in yearly and monthly lists.
-* Tweaked the output of `valueSearch` for legibility/comprehension
-* Added `TAVG` to `dayStats` and `dayRank`
-* Revamped the code of `dayRank` and `weekRank`. They now include `SNWD`. `dayRank` also now uses the `clmt_vars_days` dictionary to extract data. I also reduced redundancy in addition to 3 new variables being. Only a net-increase of around 20 lines of code resulted per function
-* Tweaked `yearReport`,`seasonReport`, `metYearReport`, and `customReport` csv output to reflect 2 decimal-place temperature averages. This was done to see finer changes in averages that are seen as longer time periods are assessed.
+##### v2.9
+* fixed output issue in `dayRank` where it was trying to output ranks that weren't asked for; caused by me being lazy about putting in a single logic statement.
+* fixed 'dayRank' output issue where if the length of a variable (i.e. `snwd`) was empty, it was throwing an `AttributeError`
+* added `snwd` to the standard initialization scheme. Just added yearly/monthly lists of &gt; 0 quantities and total days
+* added output to `monthStats`,`yearStats`,'seasonStats', `metYearStats`, and `customStats` to reflect quantity of days snow was reported on the ground (snow-depth;`snwdDAYS`)
+* added standardized conditioning to `metclmt` initialization to match `clmt` init
+* fixed a problem in `customStats` where ranking wasn't printing in spots. Out of necessity/convenience, I had used a`except` block to print a newline, which once investigated, I had used a wrong variable name in the `try` block.
+* added `"prcpDAYS"`, `"snowDAYS"`, and `"snwdDAYS"` to the `clmt_vars_months` dictionary, init scheme, and compatibility to `allMonthRank` as accepted attributes
+* modified `customStats` to accept no more than a year's period; may change this back in future versions if I feel like working out a way to rank multi-year scopes
 
 *Please see CHANGELOG.md for a more extensive list of changes
 
@@ -639,6 +637,8 @@ Year and Month keys have additional keys besides their integer counter-parts. Th
 ['snow'] 		:: list containing the individual snow values found for a year or month
 ['snowDAYS'] 	:: integer; the number of snow days for a given year/month
 ['snowPROP']	:: daily/monthly max/min stats
+['snwd']		:: list containing individual snow-depth amounts for months/years
+['snwdDAYS']	:: integer of days (in months/years) where snow-depth amounts &gt; 0 (&gt; T)
 ['tempAVGlist] 	:: list; contains matching highs and lows for a year or month. Only days with a recorded high AND a recorded low are put into this list
 ['tmax']		:: list; contains all high-temperature data for a year or month
 ['tmaxPROP']	:: daily/monthly max/min stats
@@ -714,21 +714,17 @@ As you can tell, that is quite a keyboard-full to type. So, like mentioned above
 
 ### Roadmap
 
-* Add a record threshold for the ranking functions; truncating after a certain amount
-  * if applied, it really would only have an effect on rain-days and snow-days as there are a lot of ties, and such the report can look very sloppy
-* I know I need to comment more in the code
 * Include least-snowiest years in `yearRank` and `metYearRank`
 * Make an annual Average Temperatures Graph; daily and day-centered weekly; day-centered monthly
-* in `errorStats`, account for times when `SNWD` goes up without any `SNOW` in the recent record
 * include more kwargs for `valueSearch`
   * consider adding a `sortyear` kwarg
 * include error-addressing in `allDayRank, allMonthRank, and valueSearch` functions
-* check why no precip rank output for `customStats(2020,2,27,2020,3,7)`...occurring for non-leap years too
-  * also need to investigate if multiple years in the customstats (i.e. customStats(2016,2,27,2020,3,7) that the ranking works well for those or just limit it to a year
 * Continue evolution of handling multi-station data where days overlap
   * perhaps make a note of the recorded station for each variable
-* you don't have to round a number first before using float string format notation. it does it for you
-* consider removing required attribute arguments from `monthRank`, `yearRank`, etc
+* days of snow on the ground (snwd > 0); could add it to reports, and rank functions
+* it is possible that `snow` isn't constantly recorded, but `snwd` is. How do I account for that/warn the user about that?
+* in `errorStats`, account for times when `SNWD` goes up without any `SNOW` in the recent record
+* add ranking to `snwdDAYS` in customStats
 
 [&#8679; back to Contents](#contents)
 
