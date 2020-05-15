@@ -1,4 +1,4 @@
-# Climate Parser v2.9
+# Climate Parser v2.9x
 A Python Script enabling extensive analysis of climate data for individual cities in the United States
 
 ### Requirements
@@ -28,6 +28,9 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * [HELP!!!](#help)
 
 ### Recent Fixes and Changes
+
+##### v2.91
+* added `custom` kwarg to `allDayRank`. This will allow you to limit the scope of ranking to a specific time-interval. Example: `allDayRank("prcp",20,custom=[9,21,3,20])` would only list the ranking if a day falls between September 21 and March 20
 
 ##### v2.9
 * fixed output issue in `dayRank` where it was trying to output ranks that weren't asked for; caused by me being lazy about putting in a single logic statement.

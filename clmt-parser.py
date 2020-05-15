@@ -1,4 +1,4 @@
-# v2.9
+#v 2.91
 
 import datetime
 from time import time
@@ -7,6 +7,7 @@ from statistics import mean, pstdev, mode, median, median_grouped
 from math import floor
 import csv
 import os
+from textwrap import wrap
 from string import Template
 import random
 import traceback
@@ -6459,6 +6460,8 @@ def allDayRank(attribute,qty,**kw):
         year=YYYY        -> limit results to a specific year
         month=M          -> limit results to a specific month
         ascending=False  -> alters order of data (only affects temp attrs)
+        custom=[m1,d1,m2,d2]    -> limits results if the record falls within
+                                   the date-range given
     
     EXAMPLE: allDayRank("snow",10)
                     -> top 10 ranks all days acc. to snow
@@ -6468,6 +6471,8 @@ def allDayRank(attribute,qty,**kw):
                     -> top 10 warmest daily highs from Fall 2005
              allDayRank("tmin",10,year=2009,ascending=True)
                     -> top 10 coolest daily lows in 2009
+             allDayRank("prcp",20,custom=[12,3,5,1])
+                    -> top 20 rain-days between Dec3 and May1
     """
 
     # clmt_vars_days = {"prcp":{},"snow":{},"snwd":{},"tavg":{},"tmax":{},"tmin":{}}
@@ -6476,16 +6481,37 @@ def allDayRank(attribute,qty,**kw):
     # consider adding an "order" or "reverse" kwarg
     valid_yrs = sorted([x for x in clmt.keys() if type(x) == int])
     valid_metyrs = sorted([x for x in metclmt.keys() if type(x) == int])
+    hascustom = False
     hasseason = False
     hasyear = False
     hasmonth = False
-    
+
+    daysinmonths = ["_",31,28,31,30,31,30,31,31,30,31,30,31]    # used to quickly determine validity of dates entered with custom keyword
+
     #ERROR CHECKS
     if attribute not in ["prcp","snow","snwd","tmax","tmin","tavg"]: return print('OOPS! "{}" is an Invalid Attribute. Try Again! Valid Attributes: "prcp","snow","snwd","tmax","tmin","tavg"'.format(attribute))
     if type(qty) != int: return print("OOPS! Ensure the quantity is an integer! Try again!")
-    
+    # Custom Date Range
+    if "custom" in kw:
+        try:
+            m1 = kw["custom"][0]
+            d1 = kw["custom"][1]
+            m2 = kw["custom"][2]
+            d2 = kw["custom"][3]
+        except:
+            return print("OOPS! Something is wrong with the dates. Ensure a format of [m1,d1,m2,d2]")
+        if type(kw["custom"]) not in [list,tuple]: return print("OOPS! Pass your custom range in a list. ex: [m1,d1,m2,d2]")
+        elif any(type(x) != int for x in kw["custom"]) or len(kw["custom"]) != 4: return print("OOPS! Ensure all variables passed in your list are integers representing month/dates of interest and that a start/end month day sets are included, ex: [m1,d1,m2,d2]")
+        elif (1 <= m1 <= 12) == False or (1 <= m2 <= 12) == False: return print("OOPS! An invalid month was entered.") 
+        elif (d1 <= 0 or d1 > daysinmonths[m1]) or (d2 <= 0 or d2 > daysinmonths[m2]): return print("OOPS! One or both of the dates are invalid.")
+        elif m1 == m2 and d1 == d2: return print("OOPS! The first and second dates cannot be alike.")
+        hascustom = True
+        # If February 29, we want to default to the 28th
+        if m1 == 2 and d1 == 29: d1 = 28
+        if m2 == 2 and d2 == 29: d2 = 28
+
     # Specified Season
-    if "season" in kw:
+    elif "season" in kw:
         if kw["season"].lower() not in ["spring","summer","fall","winter"]: return print('OOPS! "{}" is an invalid season. Try again! Valid Seasons (all lower case):"spring","summer","fall","winter"'.format(kw["season"]))
         hasseason = True
         # for specifying a year of a season
@@ -6514,7 +6540,11 @@ def allDayRank(attribute,qty,**kw):
     printed = []    # Will hold the printed rankings
     print("\n-----------------------------------------------")
     # HEADER ------------------
-    if hasseason == True:
+    if hascustom == True: print("Top {} Daily {} Records for the Range of {} {} thru {} {}".format(
+            qty,attribute.upper(),d1,calendar.month_abbr[m1].upper(),
+            d2,calendar.month_abbr[m2].upper()
+        ))
+    elif hasseason == True:
         if hasyear == True: print("Top {} Daily {} Records for {} {}".format(qty,attribute.upper(),kw["season"].capitalize(),YEAR))
         else: print("Top {} Daily {} Records for {}".format(qty,attribute.upper(),kw["season"].capitalize()))
     elif hasyear == True:
@@ -6535,7 +6565,25 @@ def allDayRank(attribute,qty,**kw):
     print("-----------------------------------------------")
     # -------------------------
     validated = {}
-    if hasseason == True and hasyear == False: # Only assess a season
+    # 12-3  to 1,10
+    #               (1959,1,7)
+    if hascustom == True:
+        for x in keys:
+            for y in range(len(clmt_vars_days[attribute][x])):
+                # When the 2nd month refers to an earlier month(or the same)
+                if datetime.date(2100,m2,d2) < datetime.date(2100,m1,d1):
+                    try:
+                        if (clmt_vars_days[attribute][x][y] >= datetime.date(clmt_vars_days[attribute][x][y].year,m1,d1)) or (clmt_vars_days[attribute][x][y] <= datetime.date(clmt_vars_days[attribute][x][y].year,m2,d2)):
+                            if x not in validated: validated[x] = [clmt_vars_days[attribute][x][y]]
+                            else: validated[x].append(clmt_vars_days[attribute][x][y])
+                    except Exception as e:
+                        pass
+                # When the 2nd month is later than the first month
+                else:
+                    if datetime.date(clmt_vars_days[attribute][x][y].year,m1,d1) <= clmt_vars_days[attribute][x][y] <= datetime.date(clmt_vars_days[attribute][x][y].year,m2,d2):
+                        if x not in validated: validated[x] = [clmt_vars_days[attribute][x][y]]
+                        else: validated[x].append(clmt_vars_days[attribute][x][y])
+    elif hasseason == True and hasyear == False: # Only assess a season
         # metclmt[y][s]["valid"] = [3,4,5]
         # clmt_vars_days[attribute][x][y]
         for x in keys:
@@ -6865,22 +6913,6 @@ def valueSearch(stat_type,op,value,**kwargs):
                 for x in results: print("{:>3}: {}".format(clmt[x.year][x.month][x.day].tmin,x))
     print("")
 
-def csvFileList():
-    """Returns a list of CSV files in the directory where the script is 
-    located
-    
-    csvFileList() -> lists csv files located in the directory of the script; 
-                     no passed arguments
-    """
-    tempcsvlist = os.listdir()
-    csvs_in_dir = [x for x in tempcsvlist if x[len(x)-3:] == "csv"]
-
-    print("CSV's in Current Directory w/Convenient Basic Copy/Paste Loading Calls:")
-    print("----------------------------------------------------------")
-    for each in csvs_in_dir:
-        print(".. {:<40} ::   {}".format(each,'clmtAnalyze("{}")'.format(each)))
-    print("")
-
 def corrections():
     """Activates correction mode"""
 
@@ -6983,26 +7015,24 @@ def corrections():
 
 def clmthelp():
     """An extensive list within the script of available functions to the user
-    """
+    """                                                                                 #
     print("* PLEASE SEE README.md FOR A FULL BREAKDOWN OF PROGRAM'S CAPABILITIES *")
-    print("* TO START: -execute clmtAnalyze('your_csv_file.csv'")
+    for x in wrap("* TO START: -When you start, the clmtmenu() function automatically runs. If canceled, simply run the function again. it displays all csv's in the folder",width=78,subsequent_indent="    "): print(x)
     print("            -takes optional keyword argument <city>")
-    print("            -If needed, execute the csvFileList() function to see a list of csv files in the ")
-    print("             current directory")
-    print("CLIMATOLOGY VARIABLES: At the end of the script, you'll see two variables: clmt_len_rpt and clmt_inc_rpt. These are")
-    print("                       strictly used in the Report functions. The former is to allow the user to modify the length of")
-    print("                       climatologies (so if you want to assess them at 10, 20, or even 50-yr); the latter controls")
-    print("                       the frequency of the assessment")
-    print("                   clmt_len_rpt = 30   # Default Climatology Length respected in reports (x-yr climatology)")
-    print("                   clmt_inc_rpt = 5    # Default 'running'-mean increment (tendency frequency? i guess)")
-    print("RECORD THRESHOLDS: At the end of the script, you'll find record thresholds. These are controls employed whilst running ")
-    print("            report/rank functions to prevent partial years/months/weeks from polluting the overall data if it would ")
-    print("            affect it")
-    print("            DEFAULT VALUES (can be modified before or after compiling the data):")
-    print("                excludeyear = 300       # Exclude years from ranking/reports if year recordqty <= to this threshold")
-    print("                excludemonth = 20       # Exclude months from ranking/reports if month recordqty <= to this threshold")
-    print("                excludeweek = 4         # Exclude weeks from ranking/reports if week recordqty <= to this threshold")
-    print("                excludecustom = .75     # Exclude custom periods from ranking/reports if week recordqty <= 75% of a threshold")
+    for x in wrap("CLIMATOLOGY VARIABLES: At the end of the script, you'll see two variables: clmt_len_rpt and clmt_inc_rpt. These are strictly used in the Report functions. The former is to allow the user to modify the length of climatologies (so if you want to assess them at 10, 20, or even 50-yr); the latter controls the frequency of the assessment",width=78,subsequent_indent="    "): print(x)
+    print("        clmt_len_rpt = 30   # Default Climatology Length in reports")
+    print("        clmt_inc_rpt = 5    # Default running-mean increment")
+    for x in wrap("RECORD THRESHOLDS: At the end of the script, you'll find record thresholds. These are controls employed whilst running report/rank functions to prevent partial years/months/weeks from polluting the overall data if it would affect it",width=78,subsequent_indent="    "): print(x)
+    print("        DEFAULT VALUES (can be modified before or after compiling the data):")
+    print("            excludeyear = 300       # Exclude years from ranking/reports if ")
+    print("                                      year recordqty <= to this threshold")
+    print("            excludemonth = 20       # Exclude months from ranking/reports if")
+    print("                                      month recordqty <= to this threshold")
+    print("            excludeweek = 4         # Exclude weeks from ranking/reports if")
+    print("                                      week recordqty <= to this threshold")
+    print("            excludecustom = .75     # Exclude custom periods from ranking or")
+    print("                                      reports if week recordqty <= 75% of a")
+    print("                                      threshold")
     print("DAILY SUMMARIES:")
     print("    -- daySummary(y1,m1,d1,*[y2,m2,d2]) :: Dumps a list of day-by-day data in a given range of dates")
     print("ERRORS OVERVIEW:")
@@ -7069,7 +7099,7 @@ def clmtmenu():
     csvs_in_dir = [x for x in tempcsvlist if x[len(x)-3:] == "csv" and x[0:9] not in ["dayReport","weekRepor","monthRepo","yearRepor","seasonRep","metYearRe","customRep"]]
     selection = False   # Will cause the function to wait until an accepted answer is input
     print("**********************************************************")
-    print("          CLIMATE PARSER (clmt-parser.py) v2.81")
+    print("          CLIMATE PARSER (clmt-parser.py) v2.91")
     print("                  by K. Gentry (ksgwxfan)")
     print("**********************************************************")
     print("- Make selection and press <ENTER>; type-in cancel to exit function")
