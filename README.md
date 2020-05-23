@@ -12,7 +12,6 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * [Fixes / Changes](#fixes-and-changes)
 * [Data Retrieval and Required Format](#data-retrieval-and-required-format)<br />
 * [Running the Script / Loading the Data](#running-the-script)
-* [Changeable Climatology Report-Related Variables](#changeable-climatology-report-related-variables)
 * [A Note on Record Thresholds](#a-note-on-record-thresholds)
 * [Error Report Overview (skip if you just want to go to analyzing the data)](#error-report)
   * [OPTIONAL: Fixing Errored Data](#fixing-data)
@@ -28,6 +27,10 @@ Weather data are faithfully kept, recorded, and preserved everyday. This is prim
 * [HELP!!!](#help)
 
 ### Recent Fixes and Changes
+
+##### v2.92
+* Deprecated (and removed) the `clmt_len_rpt` and `clmt_inc_rpt` variables... I upgraded all Report functions to include default keyword arguments, `climatology=30` and `increment=5` and `output=False`, all of which are accessible and edit-ready upon call of the Report function if one so chooses. Otherwise, the defaults listed above will be used.
+* Patched-up (notice I didn't say "fixed") a major problem with `dayReport` where little to no daily average temperatures were being recorded. So the report was printing, but the reported avg temps weren't representative of reality. I had used short-circuiting for error addressing and it inadvertently "hid" the problem.
 
 ##### v2.91
 * added `custom` kwarg to `allDayRank`. This will allow you to limit the scope of ranking to a specific time-interval. Example: `allDayRank("prcp",20,custom=[9,21,3,20])` would only list the ranking if a day falls between September 21 and March 20
@@ -117,11 +120,8 @@ Now you're ready to do some analysis or inspect the data.
 [&#8679; back to Contents](#contents)
 
 ### Changeable Climatology Report-Related Variables
-Two variables have been included, reflected in the Report functions, that allow you to modify climatology length and assessment increment.
-  * `clmt_len_rpt` :: (Default = 30) This represents the span of years that climatologies are assessed
-  * `clmt_inc_rpt` :: (Default = 5) This represents the increment between climatologies; should always be less than the length variable; smaller variable yields finer (or more) results;
 
-These can be changed at any time. Plus, there's no need to re-run `clmtAnalyze` after. This enables you to run, for example, 10, 15, or 20-year climatologies, incremented at 1, 5, or 10 years. `clmt_inc_rpt` should be smaller than `clmt_len_rpt`. For the `yearReport` and `metYearReport` and `customReport` functions, you can expect much longer compile times as the increment is decreased.
+DEPRECATED and REMOVED! Check the [Report Search Functions](#reports) section for better (much more user-friendly) method...
 
 [&#8679; back to Contents](#contents)
 
@@ -410,15 +410,20 @@ Quantity of Records: 46
 
 #### Reports
 
-These functions return robust climatological data, including all-time statistics and for climatological eras. As mentioned before, by default, the calculated values are for 30-year periods incremented by 5 years. This enables, what I refer to as, climatological-tendency analysis. This allows you to see how the averages change over time, as comparisons of a day's, month's, or year's data usually only takes place against one time period. How is the long-term average changing? I believe it simplifies analysis and makes it easier to see trends. An optional `output=True` keyword argument allows the user to save the report externally (in the same folder as the script) to open in a spreadsheet program, allowing further inspection of the data and chart-making.
+These functions return robust climatological data, including all-time statistics and for climatological eras. As mentioned before, by default, the calculated values are for 30-year periods incremented by 5 years. This enables, what I refer to as, climatological-tendency analysis. This allows you to see how the averages change over time, as comparisons of a day's, month's, or year's data usually only takes place against one time period. How is the long-term average changing? I believe it simplifies analysis and makes it easier to see trends.
 
-`dayReport(m,d,**output=True)` :: Collects and returns statistics for all specified days in the record
-`weekReport(m,d**output=True)` :: Gathers and reports for specified week in the entire record
-`monthReport(m**output=True)` :: Gives a report for a specific month
-`yearReport(**output=True)` :: Analyzes the entire record and returns a report based on years; no passed-data is needed
-`metYearReport(**output=True)` :: Same as above, but does so based on meteorological years (March-February)
-`seasonReport(season,**output=True)` :: Gets a meteorologically-seasoned based statistic report
-`customReport(m1,d1,*[m2,d2],**output=True)` :: Gets a climatolgical report based on the user-defined custom time-frame
+In version 2.9x, each report function was upgraded to accept optional keyword arguments for climatology length, increment, and output. This makes it significantly easier over previous versions to customize your report. The climatology length should always be greater than the increment. The smaller the increment, the finer the details seen when doing climatological tendency analysis.
+
+* So if you wanted a 10-year climatology, incremented every 1 year, you would include `climatology=10, increment=1` in the function call.
+* If you wanted to output a CSV report, simply include `output=True` in the call. It will place it in the directory of the script.
+
+`dayReport(m,d, climatology=30, increment=5, output=False)` :: Collects and returns statistics for all specified days in the record
+`weekReport(m,d, climatology=30, increment=5, output=False)` :: Gathers and reports for specified week in the entire record
+`monthReport(m, climatology=30, increment=5, output=False)` :: Gives a report for a specific month
+`yearReport(climatology=30, increment=5, output=False)` :: Analyzes the entire record and returns a report based on years; no passed-data is needed
+`metYearReport(climatology=30, increment=5, output=False)` :: Same as above, but does so based on meteorological years (March-February)
+`seasonReport(season, climatology=30, increment=5, output=False)` :: Gets a meteorologically-seasoned based statistic report
+`customReport(m1,d1,*[m2,d2], climatology=30, increment=5, output=False)` :: Gets a climatolgical report based on the user-defined custom time-frame
 
 ```
 >>> monthReport(12)

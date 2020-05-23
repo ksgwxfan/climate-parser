@@ -1,5 +1,9 @@
 # Change Log (since v2.0)
 
+##### v2.92
+* Deprecated (and removed) the `clmt_len_rpt` and `clmt_inc_rpt` variables... I upgraded all Report functions to include default keyword arguments, `climatology=30` and `increment=5` and `output=False`, all of which are accessible and edit-ready upon call of the Report function if one so chooses. Otherwise, the defaults listed above will be used.
+* Patched-up (notice I didn't say "fixed") a major problem with `dayReport` where little to no daily average temperatures were being recorded. So the report was printing, but the reported avg temps weren't representative of reality. I had used short-circuiting for error addressing and it inadvertently "hid" the problem.
+
 ##### v2.91
 * added `custom` kwarg to `allDayRank`. This will allow you to limit the scope of ranking to a specific time-interval. Example: `allDayRank("prcp",20,custom=[9,21,3,20])` would only list the ranking if a day falls between September 21 and March 20
 
